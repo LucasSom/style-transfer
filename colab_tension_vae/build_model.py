@@ -1,4 +1,3 @@
-
 from tensorflow.keras.layers import Dense, \
     GRU, Input, Bidirectional, RepeatVector, \
     TimeDistributed, Lambda
@@ -7,22 +6,21 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.python.keras import backend as K
 
-from util import *
+from colab_tension_vae.util import *
 import matplotlib.pyplot as plt
+
 plt.style.use('ggplot')
 
+
 def build_model():
-
-
     encoder_input = Input(shape=(time_step, input_dim), name='encoder_input')
 
-    rnn1 = Bidirectional(GRU(rnn_dim, return_sequences=True), name='rnn1')(encoder_input)
-    rnn2 = Bidirectional(GRU(rnn_dim), name='rnn2')(rnn1)
+    # encoder
+    rnn1 = Bidirectional(GRU(rnn_dim, return_sequences=True), name='rnn1')(encoder_input)   # biGRU = 64?*512
+    rnn2 = Bidirectional(GRU(rnn_dim), name='rnn2')(rnn1)                                   # biGRU =   1*512
 
-
-
-    z_mean = Dense(z_dim, name='z_mean')(rnn2)
-    z_log_var = Dense(z_dim, name='z_log_var')(rnn2)
+    z_mean = Dense(z_dim, name='z_mean')(rnn2)                                              # Linear + ReLU = 1*96
+    z_log_var = Dense(z_dim, name='z_log_var')(rnn2)                                        # Linear + ReLU = 1*96
 
     def sampling(args):
         z_mean, z_log_var = args
@@ -32,7 +30,9 @@ def build_model():
         epsilon = K.random_normal(shape=(batch, dim))
         return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
-    z = Lambda(sampling, output_shape=(z_dim,), name='z')([z_mean, z_log_var])
+    # espacio latente
+    z = Lambda(sampling, output_shape=(z_dim,), name='z')([z_mean, z_log_var])              # z = 1*96
+
     class kl_beta(tf.keras.layers.Layer):
         def __init__(self):
             super(kl_beta, self).__init__()
@@ -42,42 +42,40 @@ def build_model():
 
         def call(self, inputs, **kwargs):
             # your mul operation goes here
-            return -self.beta *inputs
+            return -self.beta * inputs
 
     beta = kl_beta()
     encoder = Model(encoder_input, z, name='encoder')
 
     # decoder
 
-    decoder_latent_input = Input(shape=z_dim, name='z_sampling')
+    decoder_latent_input = Input(shape=z_dim, name='z_sampling')                                # sampling (output de z)
 
-    repeated_z = RepeatVector(time_step, name='repeated_z_tension')(decoder_latent_input)
+    repeated_z = RepeatVector(time_step, name='repeated_z_tension')(decoder_latent_input)       # repeat = 64?*96
 
+    rnn1_output = GRU(rnn_dim, name='decoder_rnn1', return_sequences=True)(repeated_z)          # GRU = 64?*256
 
-
-    rnn1_output = GRU(rnn_dim, name='decoder_rnn1', return_sequences=True)(repeated_z)
-
-    rnn2_output = GRU(rnn_dim, name='decoder_rnn2', return_sequences=True)(
+    rnn2_output = GRU(rnn_dim, name='decoder_rnn2', return_sequences=True)(                     # GRU = 64?*256
         rnn1_output)
 
     kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
     kl_loss = K.sum(kl_loss, axis=-1)
     kl_loss = tf.reduce_mean(kl_loss)
 
-    kl_loss = 0.5 *kl_loss
+    kl_loss = 0.5 * kl_loss
 
     kl_loss = beta(kl_loss)
     tensile_middle_output = TimeDistributed(Dense(tension_middle_dim, activation='elu'),
                                             name='tensile_strain_dense1')(rnn2_output)
 
-    tensile_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
-                                     name='tensile_strain_dense2')(tensile_middle_output)
+    # tensile_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
+    #                                 name='tensile_strain_dense2')(tensile_middle_output)
 
-    diameter_middle_output = TimeDistributed(Dense(tension_middle_dim, activation='elu'),
-                                             name='diameter_strain_dense1')(rnn2_output)
+    # diameter_middle_output = TimeDistributed(Dense(tension_middle_dim, activation='elu'),
+    #                                         name='diameter_strain_dense1')(rnn2_output)
 
-    diameter_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
-                                      name='diameter_strain_dense2')(diameter_middle_output)
+    # diameter_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
+    #                                  name='diameter_strain_dense2')(diameter_middle_output)
 
     melody_rhythm_1 = TimeDistributed(Dense(start_middle_dim, activation='elu'),
                                       name='melody_start_dense1')(rnn2_output)
@@ -104,7 +102,7 @@ def build_model():
                                         name='bass_pitch_dense2')(bass_pitch_1)
 
     decoder_output = [melody_pitch_output, melody_rhythm_output, bass_pitch_output, bass_rhythm_output,
-                      tensile_output, diameter_output
+                      # tensile_output, diameter_output
                       ]
 
     decoder = Model(decoder_latent_input, decoder_output, name='decoder')
@@ -118,8 +116,6 @@ def build_model():
     vae.add_metric(kl_loss, name='kl_loss', aggregation='mean')
 
     optimizer = keras.optimizers.Adam()
-
-
 
     vae.compile(optimizer=optimizer,
                 loss=['categorical_crossentropy', 'binary_crossentropy',
@@ -159,16 +155,16 @@ def draw_two_figure(tensile_strain, diameter, first_name='tensile strain',
     plt.show()
     plt.close('all')
 
-def manipuate_latent_space(piano_roll, vector_up_t, vector_high_d, vector_up_down_t,
-                                                 vae,t_up_factor,d_high_factor,t_up_down_factor,
-                                                   change_t=True,change_d=False,change_t_up_down=False,
-                                                   with_input=True,draw_tension=True):
 
+def manipulate_latent_space(piano_roll, vector_up_t, vector_high_d, vector_up_down_t,
+                            vae, t_up_factor, d_high_factor, t_up_down_factor,
+                            change_t=True, change_d=False, change_t_up_down=False,
+                            with_input=True, draw_tension=True):
     if with_input and piano_roll is not None:
         piano_roll = np.expand_dims(piano_roll, 0)
         z = vae.layers[1].predict(piano_roll)
     else:
-        z = np.random.normal(size=(1,z_dim))
+        z = np.random.normal(size=(1, z_dim))
 
     reconstruction = vae.layers[2].predict(z)
 
@@ -195,13 +191,7 @@ def manipuate_latent_space(piano_roll, vector_up_t, vector_high_d, vector_up_dow
     changed_diameter_reconstruction = np.squeeze(changed_reconstruction[-1])
 
     if draw_tension:
-        draw_two_figure(tensile_reconstruction,diameter_reconstruction,title='original tension')
-        draw_two_figure(changed_tensile_reconstruction,changed_diameter_reconstruction,title='changed tension')
-
+        draw_two_figure(tensile_reconstruction, diameter_reconstruction, title='original tension')
+        draw_two_figure(changed_tensile_reconstruction, changed_diameter_reconstruction, title='changed tension')
 
     return piano_roll, changed_recon_result
-
-
-
-
-

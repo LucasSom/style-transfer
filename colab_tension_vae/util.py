@@ -1,5 +1,5 @@
 import numpy as np
-from params import *
+from colab_tension_vae.params import *
 import pretty_midi
 import music21
 import copy
@@ -12,26 +12,23 @@ def result_sampling(rolls):
     for i in range(num):
         roll = rolls[i]
         timesteps = roll.shape[0]
-        new_roll = np.zeros((roll.shape[0],89))
+        new_roll = np.zeros((roll.shape[0], 89))
         for step in range(timesteps):
-            melody_note = np.argmax(roll[step,:melody_output_dim])
-            melody_start = roll[step,melody_output_dim] > 0.5
-            bass_note = np.argmax(roll[step, melody_output_dim+melody_note_start_dim:melody_output_dim+melody_note_start_dim + bass_output_dim])
-            bass_start = roll[step,melody_output_dim+melody_note_start_dim + bass_output_dim] > 0.5
+            melody_note = np.argmax(roll[step, :melody_output_dim])
+            melody_start = roll[step, melody_output_dim] > 0.5
+            bass_note = np.argmax(roll[step,
+                                  melody_output_dim + melody_note_start_dim:melody_output_dim + melody_note_start_dim + bass_output_dim])
+            bass_start = roll[step, melody_output_dim + melody_note_start_dim + bass_output_dim] > 0.5
 
-            new_roll[step,melody_note] = 1
+            new_roll[step, melody_note] = 1
             new_roll[step, melody_output_dim] = melody_start
-            new_roll[step, bass_note+melody_output_dim+melody_note_start_dim] = 1
-            new_roll[step,melody_output_dim+melody_note_start_dim + bass_output_dim] = bass_start
+            new_roll[step, bass_note + melody_output_dim + melody_note_start_dim] = 1
+            new_roll[step, melody_output_dim + melody_note_start_dim + bass_output_dim] = bass_start
         new_rolls.append(new_roll)
     return np.array(new_rolls)
 
 
-
-
-
-def roll_to_pretty_midi(rolls,pm_old):
-
+def roll_to_pretty_midi(rolls, pm_old):
     melody_notes = []
     bass_notes = []
     step_time = 60 / TEMPO / 4
@@ -40,8 +37,6 @@ def roll_to_pretty_midi(rolls,pm_old):
     previous_b_pitch = -1
     previous_m_start = False
     previous_b_start = False
-
-
 
     for timestep in range(rolls.shape[0]):
         melody_pitch = np.where(rolls[timestep, :melody_dim] != 0)[0]
@@ -117,6 +112,7 @@ def roll_to_pretty_midi(rolls,pm_old):
         pm.instruments.append(bass)
 
         return pm
+
 
 def show_score(pm):
     pm.write('./temp.mid')
