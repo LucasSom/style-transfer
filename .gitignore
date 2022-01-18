@@ -1,6 +1,7 @@
 **/.DS_Store
 *.pkl
 *.idea/
+*data/
 
 ### Template ###
 # Byte-compiled / optimized / DLL files
