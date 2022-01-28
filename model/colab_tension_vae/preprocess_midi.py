@@ -1,11 +1,9 @@
-import os
-
-import pretty_midi
-import numpy as np
-from colab_tension_vae.params import *
 import pickle
-import colab_tension_vae.util
 
+import numpy as np
+import pretty_midi
+
+from model.colab_tension_vae.params import *
 
 tension_vae_dir = "/home/urania/Documentos/Tesis/src/colab_tension_vae/"
 
@@ -299,7 +297,7 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
             print(f'factor is {curr_factor}')
             z_new = z + curr_factor * feature_vector
             reconstruction_new = model.layers[2].predict(z_new)
-            result_new = colab_tension_vae.util.result_sampling(np.concatenate(list(reconstruction_new), axis=-1))[0]
+            result_new = model.colab_tension_vae.util.result_sampling(np.concatenate(list(reconstruction_new), axis=-1))[0]
             tensile_new = np.squeeze(reconstruction_new[-2])
             diameter_new = np.squeeze(reconstruction_new[-1])
 
