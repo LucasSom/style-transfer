@@ -1,5 +1,5 @@
 import os
-from utils import roll_to_score
+from roll.roll import roll_to_score
 import music21 as m21
 
 debugging = True
