@@ -4,11 +4,7 @@ from typing import List, Dict
 import dfply
 import pandas as pd
 
-from colab_tension_vae import preprocess_midi, util
-from debug_utils import debug, debugging
-
-
-### Dataset con DataFrame
+from model.colab_tension_vae import preprocess_midi, util
 
 
 def preprocess_midi_wrapper(path):
@@ -29,18 +25,18 @@ def df_roll_to_pm(matrices, pms):
 def preprocess_data(songs: Dict[str, List[str]]) -> pd.DataFrame:
     data = [{'Autor': key,
              'Titulo': os.path.basename(path),
-             'Id roll': idx,
-             'Roll': matrix,
-             'Old PM': old_pm,
+             'rollID': idx,
+             'roll': matrix,
+             'oldPM': old_pm,
              }
             for key, paths in songs.items()
             for path in paths
-            for old_roll, _, old_pm in [preprocess_midi_wrapper(f"data/{path}")]
+            for old_roll, _, old_pm in [preprocess_midi_wrapper(path)]
             for idx, matrix in enumerate(old_roll[:])
             ]
 
     return (pd.DataFrame(data)
-            >> dfply.mutate(midi=df_roll_to_pm(dfply.X['Roll'], dfply.X['Old PM']))
+            >> dfply.mutate(midi=df_roll_to_pm(dfply.X['roll'], dfply.X['oldPM']))
             )
 
     # (df >> dfply.group_by('Autor')

@@ -1,5 +1,5 @@
 import numpy as np
-from params import *
+from model.colab_tension_vae.params import *
 import pretty_midi
 import music21
 import copy

@@ -5,7 +5,7 @@ import pretty_midi
 
 from model.colab_tension_vae.params import *
 
-tension_vae_dir = "/home/urania/Documentos/Tesis/src/colab_tension_vae/"
+tension_vae_dir = "/home/urania/Documentos/Tesis/src/style-transfer/model/colab_tension_vae/"
 
 tensile_up_feature_vector = pickle.load(open(tension_vae_dir + 'model/tensile_up_feature_vector', 'rb'))
 diameter_up_feature_vector = pickle.load(open(tension_vae_dir + 'model/diameter_up_feature_vector', 'rb'))
@@ -321,5 +321,5 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
     return result_roll, tensile_strain, diameter
 
 
-
-preprocess_midi('/home/urania/Documentos/Tesis/src/tesis/data/Mozart/sonata15-1-debug.mid')
+if __name__ == '__main__':
+    preprocess_midi('../../data/Mozart/sonata15-1-debug.mid')

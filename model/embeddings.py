@@ -8,7 +8,7 @@ def obtain_embeddings(df, vae):
     # df_sampled['Embedding'].iloc[0][0]
 
     # df_emb = df
-    t = vae.get_layer(name='encoder')(np.stack(df_emb['Roll']))
+    t = vae.get_layer(name='encoder')(np.stack(df_emb['roll']))
     df_emb['Embedding'] = list(t.numpy())
     return df_emb
 

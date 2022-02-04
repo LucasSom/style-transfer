@@ -46,9 +46,9 @@ def get_roll_midi_df(df_in, column='Embedding', inline=False):
             df = get_roll_midi_df(df_in, column=c, inline=inline)
         return df
 
-    rolls, midis = embedding_list_to_roll_and_midi(df[column], df['Old PM'])
-    df[column + ' roll'] = rolls
-    df[column + ' midi'] = midis
+    rolls, midis = embedding_list_to_roll_and_midi(df[column], df['oldPM'])
+    df[column + 'Roll'] = rolls
+    df[column + 'Midi'] = midis
 
     return df
 
