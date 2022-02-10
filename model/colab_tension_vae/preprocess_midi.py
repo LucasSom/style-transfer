@@ -1,3 +1,4 @@
+import os
 import pickle
 
 import numpy as np
@@ -25,14 +26,19 @@ def beat_time(pm, beat_division=4):
             divided_beats.append((beats[i + 1] - beats[i]) / beat_division * j + beats[i])
     divided_beats.append(beats[-1])
     down_beats = pm.get_downbeats()
+    # instantes de tiempo donde empieza cada compás
     down_beat_indices = []
     for down_beat in down_beats:
         down_beat_indices.append(np.argwhere(divided_beats == down_beat)[0][0])
+        # descarta las síncopas
 
     return np.array(divided_beats), np.array(down_beat_indices)
 
 
-def find_active_range(rolls, down_beat_indices):
+def find_active_range(rolls, down_beat_indices, continued=False):
+    """
+    Keep only bars with notes. Discard bars of rest
+    """
     if down_beat_indices[1] - down_beat_indices[0] == 8:
         interval = SEGMENT_BAR_LENGTH * 2
         SAMPLES_PER_BAR = 8
@@ -54,7 +60,7 @@ def find_active_range(rolls, down_beat_indices):
     filled_indices = []
 
     for i in range(0, len(two_track_filled_bar) - interval + 1, SLIDING_WINDOW):
-        if np.sum(two_track_filled_bar[i:i + interval]) == interval:
+        if continued or np.sum(two_track_filled_bar[i:i + interval]) == interval:
             filled_indices.append((i, i + interval))
 
     return filled_indices
@@ -118,6 +124,7 @@ def stack_data(rolls):
 
 def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
     rolls = []
+    bars_skipped = []
     for start, end in filled_indices:
         start_index = down_beat_indices[start]
         if end == len(down_beat_indices):
@@ -126,20 +133,21 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
                 fill_roll = np.vstack([roll_concat[start_index:, :], np.zeros((fill_num, 89))])
             else:
                 fill_roll = roll_concat[start_index:start_index + SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH]
-            if fill_roll.shape[0] != (SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH):
-                print('skip')
-                continue
-            rolls.append(fill_roll)
+            if fill_roll.shape[0] == (SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH):
+                rolls.append(fill_roll)
+            else:
+                print('skip last bars')
+                bars_skipped.append(fill_roll)
         else:
             end_index = down_beat_indices[end]
             # select 4 bars
-            if roll_concat[start_index:end_index, :].shape[0] != (SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH):
+            if roll_concat[start_index:end_index, :].shape[0] == (SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH):
+                rolls.append(roll_concat[start_index:end_index, :])
+            else:
                 print('skip')
-                continue
+                bars_skipped.append(roll_concat[start_index:end_index, :])
 
-            rolls.append(roll_concat[start_index:end_index, :])
-
-    return rolls, filled_indices
+    return rolls, bars_skipped
 
 
 def get_roll_with_continue(track_num, track, times):
@@ -235,25 +243,40 @@ def preprocess_midi(midi_file, continued=True):
         return
 
     sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(SAMPLES_PER_BAR / 4))
+    # sixteenth_time: marca los instantes de tiempo en donde empieza una semicorchea
+    # down_beat_indices: indica los índices de las notas del pm donde empieza cada compás
+    #   Si hay síncopa o silencio entendería que no las marca
     rolls = get_piano_roll(pm, sixteenth_time)
 
     melody_roll = rolls[0]
     bass_roll = rolls[1]
 
-    if continued:
-        filled_indices = [(i, min(i+SLIDING_WINDOW, len(down_beat_indices))) for i in range(0, len(down_beat_indices), SLIDING_WINDOW)] # TODO: Debería quedarme [(0,16), (16, 32), (32,48), (48, 64), (64, 80), ...] en lugar de [(16, 32), (48, 64), (64, 80), (96, 112), (112, 128)]
-    else:
-        filled_indices = find_active_range([melody_roll, bass_roll], down_beat_indices)
-        # Sin tuneo tiene tamaño 7. Con tuneo, 1
+    # if continued:
+    #     filled_indices_debug = [
+    #         (i, min(i + SLIDING_WINDOW, len(down_beat_indices)))
+    #         for i in range(0, len(down_beat_indices), SLIDING_WINDOW)]
+    #     # Queda [(0,16), (16, 32), (32,48), (48, 64), (64, 80), ...]
+    #     # en lugar de [(16, 32), (48, 64), (64, 80), (96, 112), (112, 128)]
+    #
+    #     filled_indices = find_active_range([melody_roll, bass_roll], down_beat_indices, continued)
+    #     print("Al final filled_indices eran iguales?", filled_indices == filled_indices_debug[:-1])
+    #     print("Mi vieja propuesta:", filled_indices_debug)
+    #     print("La nueva propuesta:", filled_indices)
+    # else:
+    filled_indices = find_active_range([melody_roll, bass_roll], down_beat_indices, continued)
+    # Sin tuneo tiene tamaño 7. Con tuneo, 1
 
     if filled_indices is None:
         print('not enough data for melody and bass track')
         return None
+    else:
+        print("Tamaño de filled_indices:", len(filled_indices))
+
     roll_concat = stack_data([melody_roll, bass_roll])
 
-    x, indices = prepare_one_x(roll_concat, filled_indices, down_beat_indices)
+    x, bars_skipped = prepare_one_x(roll_concat, filled_indices, down_beat_indices)
     x = np.array(x)
-    return x, indices, pm
+    return x, filled_indices, pm, bars_skipped
     # Sin tuneo: x es un ndarray de shape 7x64x89
     # con tuneo es de 1x256x89.
 
@@ -297,7 +320,8 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
             print(f'factor is {curr_factor}')
             z_new = z + curr_factor * feature_vector
             reconstruction_new = model.layers[2].predict(z_new)
-            result_new = model.colab_tension_vae.util.result_sampling(np.concatenate(list(reconstruction_new), axis=-1))[0]
+            result_new = \
+                model.colab_tension_vae.util.result_sampling(np.concatenate(list(reconstruction_new), axis=-1))[0]
             tensile_new = np.squeeze(reconstruction_new[-2])
             diameter_new = np.squeeze(reconstruction_new[-1])
 

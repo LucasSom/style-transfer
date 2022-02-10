@@ -12,7 +12,7 @@ def preprocess_midi_wrapper(path):
     # print(pm)
     if pm is None:
         print(f'DEBUG: {path} preprocessing returns None')
-        return [], None, None
+        return [], None, None, []
     # print(f'DEBUG: {path} is not None')
     return pm
 
@@ -28,10 +28,11 @@ def preprocess_data(songs: Dict[str, List[str]]) -> pd.DataFrame:
              'rollID': idx,
              'roll': matrix,
              'oldPM': old_pm,
+             'bars_skipped': bars_skipped
              }
             for key, paths in songs.items()
             for path in paths
-            for old_roll, _, old_pm in [preprocess_midi_wrapper(path)]
+            for old_roll, _, old_pm, bars_skipped in [preprocess_midi_wrapper(path)]
             for idx, matrix in enumerate(old_roll[:])
             ]
 

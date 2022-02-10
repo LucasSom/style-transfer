@@ -1,6 +1,7 @@
 import os
 import subprocess
 import tempfile
+from typing import List
 
 from IPython.core.display import Image
 from IPython.display import Audio, display
@@ -20,8 +21,20 @@ def PlayMidi(midi_path, wav_path=None):
 
 # PlayMidi('/tmp/music21/tmp83sbvwxi.mid')
 
-# midis = list(zip(df_caracteristicos['Titulo'],df_caracteristicos['Id matriz'],df_caracteristicos['Embedding midis']))
-def save_audio(midis, path='./Evaluación/files/'):
+# midis = list(zip(df['Titulo'], df['rollID'], df['midi'], df['oldPM']))
+def save_audios(midis: List, path='./Evaluación/files/'):
+    """
+    Generate mp3 from midis. Example of midis parameter:
+
+    ``list(zip(df['Titulo'], df['rollID'], df['midi'], df['oldPM']))``
+
+    :param midis: list of tuples/zip containing:
+        * name: str
+        * id: id of roll
+        * pm: pretty midi to convert to mp3
+        * oldPM: pretty midi of the original song
+    :param path: where to save files
+    """
     for i, (nombre, id, pm, pm_original) in enumerate(midis):
         file_name = path + f'{nombre}_{id}'
 
