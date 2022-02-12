@@ -4,7 +4,7 @@ from files_utils import save_pickle, load_pickle
 from preprocessing import preprocess_data
 import pytest
 
-from roll.roll import roll_to_midi
+from roll.roll import Roll
 
 
 @pytest.fixture
@@ -18,8 +18,8 @@ def mapleleaf_ds():
     return {"ragtime_test": ["../data/debug/mapleleaf.mid"]}
 
 
-def test_preprocess_midi():
-    pass
+def test_not_cached(sonata15_mapleleaf_ds):
+    df = preprocess_data(sonata15_mapleleaf_ds)
 
 
 def test_mapleaf(mapleleaf_ds):
@@ -31,7 +31,8 @@ def test_mapleaf(mapleleaf_ds):
 
     save_audios(df.midi[19], path="../data/debug/")
     assert df[df["Autor"] == "ragtime_test"].shape[0] == 17
-    assert pm_cmp(df.midi[0], roll_to_midi(df.roll[0], df.oldPM[0]))
+    r = Roll(df.roll[0], compases=8)
+    assert pm_cmp(df.midi[0], r._roll_to_midi(df.oldPM[0]))
 
 
 def test_preprocess_data(sonata15_mapleleaf_ds):
@@ -45,8 +46,11 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
     assert df[df["Autor"] == "mozart_test"].shape[0] > 0
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
-    assert pm_cmp(df.midi[0], roll_to_midi(df.roll[0], df.oldPM[0]))
-    assert pm_cmp(df.midi[20], roll_to_midi(df.roll[20], df.oldPM[20]))
+
+    r0 = Roll(df.roll[0], compases=8)
+    r20 = Roll(df.roll[20], compases=8)
+    assert pm_cmp(df.midi[0], r0._roll_to_midi(df.oldPM[0]))
+    assert pm_cmp(df.midi[20], r20._roll_to_midi(df.oldPM[20]))
 
 
 def test_midis_from_df(sonata15_mapleleaf_ds):

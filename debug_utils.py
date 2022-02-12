@@ -1,5 +1,4 @@
 import os
-from roll.roll import roll_to_score
 import music21 as m21
 
 debugging = True
@@ -12,7 +11,7 @@ def debug(df):
     if debugging:
         for k, r in df.iterrows():
             roll = r["Roll"]
-            s = roll_to_score(roll.T)
+            s = roll.score
             lily_conv = m21.converter.subConverters.ConverterLilypond()
             lily_conv.write(s, fp=f"debug_outputs/debug-1_{k}", fmt='lilypond', subformats=['png'])
 

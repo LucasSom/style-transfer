@@ -1,9 +1,13 @@
+import numpy as np
+import pandas as pd
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model
 
 
-def train_model(ds, if_train, entrenar_nuevo, epoca_final, checkpt=50):
+def train_model(df: pd.DataFrame, if_train: bool, entrenar_nuevo: bool, epoca_final: int, checkpt: int = 50):
+    ds = np.stack(list(df['Roll']))
+
     # Carga del modelo
     if if_train == "No" or entrenar_nuevo == "No":
         vae = keras.models.load_model("saved_models/")
@@ -32,7 +36,7 @@ def train_model(ds, if_train, entrenar_nuevo, epoca_final, checkpt=50):
             verbose=2,
             workers=8,
             initial_epoch=i,
-            epochs=i+checkpt,
+            epochs=i + checkpt,
             callbacks=[tensorboard_callback]
         )
 

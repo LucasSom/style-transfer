@@ -9,7 +9,6 @@ import music21 as m21
 
 from preprocessing import preprocess_data
 from utils import filter_column
-from roll.roll import roll_to_score
 
 random.seed(42)
 
@@ -33,16 +32,13 @@ from IPython.display import display
 canciones_a_imprimir = filter_column(current_df, 'Roll')
 embeddings_a_imprimir = filter_column(current_df, 'Embedding')
 
-# def get_scores_from_roll(roll):
-#   return roll_to_score2(roll.T)
-
 # noised_scores = get_scores_from_roll(noised_roll)
 # dup_scores = get_scores_from_roll(dup_roll)
 # sigma_scores = get_scores_from_roll(sigma_roll)
 # progression_scores = get_scores_from_roll(dup_progression_roll)
 
 # all_scores = [noised_scores, dup_scores, sigma_scores, progression_scores]
-scores = {nombre: roll_to_score(roll.T)
+scores = {nombre: roll.score
           for nombre, roll in canciones_a_imprimir.items()}
 
 for nombre, score in scores.items():

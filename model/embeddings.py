@@ -1,6 +1,12 @@
+import copy
+from typing import List
+
 import dfply
 import numpy as np
 import pandas as pd
+
+from model.colab_tension_vae import util
+from roll.roll import rolls_to_midis
 
 
 def obtain_embeddings(df, vae):
@@ -80,3 +86,38 @@ def cambiar_estilo(df, caracteristicos, original, objetivo, sample=1, escala=1):
             >> dfply.mutate(Mutacion_add=dfply.X['Embedding'].apply(lambda e: e + v_goal * escala))
             >> dfply.mutate(Mutacion_add_sub=dfply.X['Embedding'].apply(lambda e: e - v_original * escala))
             )
+
+
+@dfply.make_symbolic
+def embedding_list_to_roll_and_midi(embeddings, vae):
+    roll_set = decode_embeddings(embeddings, vae)
+
+    roll = roll_sets_to_roll(roll_set)
+    midi = rolls_to_midis(roll)
+
+    return roll, midi
+
+
+def get_roll_midi_df(df_in, vae, column='Embedding', inline=False):
+    df = df_in if inline else copy.deepcopy(df_in)
+
+    if type(column) == list:
+        for c in column:
+            df = get_roll_midi_df(df_in, vae, column=c, inline=inline)
+        return df
+
+    rolls, midis = embedding_list_to_roll_and_midi(df[column], vae)
+    df[column + 'Roll'] = rolls
+    df[column + 'Midi'] = midis
+
+    return df
+
+
+def roll_sets_to_roll(roll_sets: List):
+    rolls = []
+    for new_roll_set in roll_sets:
+        new_roll = np.array([np.hstack(x) for x in zip(*new_roll_set)])
+        sampled_roll = util.result_sampling(new_roll)
+        sampled_roll = np.reshape(sampled_roll, (-1, sampled_roll.shape[-1]))
+        rolls.append(sampled_roll)
+    return rolls
