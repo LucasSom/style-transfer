@@ -235,6 +235,7 @@ def get_piano_roll(pm, sample_times):
     return rolls
 
 
+# TODO: Acá debería cambiarse todo por "matrix". Checkear con March (depende del nombre definitivo de la clase Roll)
 def preprocess_midi(midi_file, continued=True):
     pm = pretty_midi.PrettyMIDI(midi_file)
 

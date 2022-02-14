@@ -5,6 +5,8 @@ import dfply
 import pandas as pd
 
 from model.colab_tension_vae import preprocess_midi, util
+from roll.roll import Roll
+from roll.song import Song
 
 
 def preprocess_midi_wrapper(path):
@@ -22,11 +24,12 @@ def df_roll_to_pm(matrices, pms):
     return [util.roll_to_pretty_midi(m, pm) for m, pm in zip(matrices, pms)]
 
 
-def preprocess_data(songs: Dict[str, List[str]]) -> pd.DataFrame:
+def preprocess_data(songs: Dict[str, List[str]], compases=8) -> pd.DataFrame:
     data = [{'Autor': key,
              'Titulo': os.path.basename(path),
              'rollID': idx,
-             'roll': matrix,
+             'roll': Roll(matrix, compases=compases),
+             # TODO: asignarle la canción correspondiente: guardo canciones o rolls? Checkear con March
              'oldPM': old_pm,
              'bars_skipped': bars_skipped
              }
@@ -36,9 +39,19 @@ def preprocess_data(songs: Dict[str, List[str]]) -> pd.DataFrame:
             for idx, matrix in enumerate(old_roll[:])
             ]
 
-    return (pd.DataFrame(data)
-            >> dfply.mutate(midi=df_roll_to_pm(dfply.X['roll'], dfply.X['oldPM']))
-            )
+    # TODO: guardo canciones o rolls? Checkear con March
+    dataSongs = [{'Autor': key,
+                  'Titulo': os.path.basename(path),
+                  'song': Song(midi_file=path, nombre=os.path.basename(path), compases=compases),
+                  }
+                 for key, paths in songs.items()
+                 for path in paths
+                 ]
+
+    return pd.DataFrame(data)
+    # return (pd.DataFrame(data)
+    #         >> dfply.mutate(midi=df_roll_to_pm(dfply.X['roll'], dfply.X['oldPM']))
+    #         ) # TODO: esto vuela porque al pm ya lo tengo en la canción/roll
 
     # (df >> dfply.group_by('Autor')
     #  >> dfply.summarize(count=dfply.X['Titulo'].unique().shape[0]))

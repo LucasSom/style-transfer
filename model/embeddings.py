@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from model.colab_tension_vae import util
-from roll.roll import rolls_to_midis
+from roll.roll import Roll
 
 
 def obtain_embeddings(df, vae):
@@ -89,35 +89,35 @@ def cambiar_estilo(df, caracteristicos, original, objetivo, sample=1, escala=1):
 
 
 @dfply.make_symbolic
-def embedding_list_to_roll_and_midi(embeddings, vae):
-    roll_set = decode_embeddings(embeddings, vae)
+def embeddings_to_rolls(embeddings, vae) -> List[Roll]:
+    decoded_matrices = decode_embeddings(embeddings, vae)
 
-    roll = roll_sets_to_roll(roll_set)
-    midi = rolls_to_midis(roll)
+    matrices = matrix_sets_to_matrices(decoded_matrices)
+    rolls = [Roll(m) for m in matrices]
 
-    return roll, midi
+    return rolls
 
 
-def get_roll_midi_df(df_in, vae, column='Embedding', inline=False):
+# Antiguo nombre: get_roll_midi_df
+def get_embeddings_roll_df(df_in, vae, column='Embedding', inline=False):
     df = df_in if inline else copy.deepcopy(df_in)
 
     if type(column) == list:
         for c in column:
-            df = get_roll_midi_df(df_in, vae, column=c, inline=inline)
+            df = get_embeddings_roll_df(df_in, vae, column=c, inline=inline)
         return df
 
-    rolls, midis = embedding_list_to_roll_and_midi(df[column], vae)
+    rolls = embeddings_to_rolls(df[column], vae)
     df[column + 'Roll'] = rolls
-    df[column + 'Midi'] = midis
 
     return df
 
 
-def roll_sets_to_roll(roll_sets: List):
-    rolls = []
-    for new_roll_set in roll_sets:
-        new_roll = np.array([np.hstack(x) for x in zip(*new_roll_set)])
-        sampled_roll = util.result_sampling(new_roll)
-        sampled_roll = np.reshape(sampled_roll, (-1, sampled_roll.shape[-1]))
-        rolls.append(sampled_roll)
-    return rolls
+def matrix_sets_to_matrices(matrix_sets: List):
+    matrices = []
+    for new_matrix_set in matrix_sets:
+        new_matrix = np.array([np.hstack(x) for x in zip(*new_matrix_set)])
+        sampled_matrix = util.result_sampling(new_matrix)
+        sampled_matrix = np.reshape(sampled_matrix, (-1, sampled_matrix.shape[-1]))
+        matrices.append(sampled_matrix)
+    return matrices

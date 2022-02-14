@@ -9,14 +9,14 @@ lily_conv = m21.converter.subConverters.ConverterLilypond()
 
 class Roll:
 
-    def __init__(self, roll, song=None, compases=4):
+    def __init__(self, matrix, song=None, compases=8):
         self.compases = compases
-        self.roll = roll
+        self.matrix = matrix
         self.song = song
         self.score = self._roll_to_score()
 
         if song is None:
-            self.midi = self._roll_to_midi(self.roll)
+            self.midi = self._roll_to_midi(self.matrix)
         else:
             self.midi = self._roll_to_midi(song.old_pm)
 
@@ -54,10 +54,10 @@ class Roll:
                 t = t2
             return n_part
 
-        high_part = instrument_roll_to_part(self.roll.T[guo_params.melody_dim],
-                                            self.roll.T[:guo_params.melody_dim, :], 24)
-        low_part = instrument_roll_to_part(self.roll.T[-1, :],
-                                           self.roll.T[
+        high_part = instrument_roll_to_part(self.matrix.T[guo_params.melody_dim],
+                                            self.matrix.T[:guo_params.melody_dim, :], 24)
+        low_part = instrument_roll_to_part(self.matrix.T[-1, :],
+                                           self.matrix.T[
                                            guo_params.melody_dim + 1: guo_params.melody_dim + 1 + guo_params.bass_dim,
                                            :], 48)
         low_part.insert(0, m21.clef.BassClef())
@@ -65,7 +65,7 @@ class Roll:
         full_score = m21.stream.Score([high_part, low_part])
         return full_score
 
-    def display_score_from_roll(self):
+    def display_score(self):
         lily = lily_conv.write(self.score, fmt='lilypond', fp='file', subformats=['png'])
         display(Image(str(lily)))
 
