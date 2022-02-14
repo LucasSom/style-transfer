@@ -1,4 +1,4 @@
-from preprocessing import preprocess_midi_wrapper
+from model.colab_tension_vae.preprocess_midi import preprocess_midi_wrapper
 from roll.roll import Roll
 
 
@@ -10,6 +10,6 @@ class Song:
         self.granularity = granularity
 
         matrices, _, old_pm, bars_skipped = preprocess_midi_wrapper(midi_file)
-        self.rolls = [Roll(m, song=self, compases=compases) for m in matrices]
         self.old_pm = old_pm
         self.bars_skipped = bars_skipped
+        self.rolls = [Roll(m, song=self, compases=compases) for m in matrices]

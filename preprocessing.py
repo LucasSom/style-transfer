@@ -4,19 +4,10 @@ from typing import List, Dict
 import dfply
 import pandas as pd
 
-from model.colab_tension_vae import preprocess_midi, util
+from model.colab_tension_vae import util
+from model.colab_tension_vae.preprocess_midi import preprocess_midi_wrapper
 from roll.roll import Roll
 from roll.song import Song
-
-
-def preprocess_midi_wrapper(path):
-    pm = preprocess_midi.preprocess_midi(path)
-    # print(pm)
-    if pm is None:
-        print(f'DEBUG: {path} preprocessing returns None')
-        return [], None, None, []
-    # print(f'DEBUG: {path} is not None')
-    return pm
 
 
 @dfply.make_symbolic

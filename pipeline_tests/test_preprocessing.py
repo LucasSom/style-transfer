@@ -29,10 +29,11 @@ def test_mapleaf(mapleleaf_ds):
         df = preprocess_data(mapleleaf_ds)
         save_pickle(df, name="mapleleaf_ds", path="../data/debug/")
 
-    save_audios(df.midi[19], path="../data/debug/")
-    assert df[df["Autor"] == "ragtime_test"].shape[0] == 17
-    r = Roll(df.roll[0], compases=8)
-    assert pm_cmp(df.midi[0], r._roll_to_midi(df.oldPM[0]))
+    save_audios([(df["Titulo"][0], df["rollID"][0], df["roll"][0].midi, df["oldPM"][0])], path="../data/debug/")
+    assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
+    assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
+    r = Roll(df.roll[0].matrix, compases=8)
+    assert pm_cmp(r.midi, r._roll_to_midi(df.oldPM[0]))
 
 
 def test_preprocess_data(sonata15_mapleleaf_ds):
@@ -47,10 +48,10 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
 
-    r0 = Roll(df.roll[0], compases=8)
-    r20 = Roll(df.roll[20], compases=8)
-    assert pm_cmp(df.midi[0], r0._roll_to_midi(df.oldPM[0]))
-    assert pm_cmp(df.midi[20], r20._roll_to_midi(df.oldPM[20]))
+    r0 = Roll(df.roll[0].matrix, compases=8)
+    r20 = Roll(df.roll[20].matrix, compases=8)
+    assert pm_cmp(r0.midi, r0._roll_to_midi(df.oldPM[0]))
+    assert pm_cmp(r20.midi, r20._roll_to_midi(df.oldPM[20]))
 
 
 def test_midis_from_df(sonata15_mapleleaf_ds):
@@ -60,7 +61,7 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
         df = preprocess_data(sonata15_mapleleaf_ds)
         save_pickle(df, name="sonata15_mapleleaf_ds", path="../data/debug/")
 
-    save_audios([(df["Titulo"][0], df["rollID"][0], df["midi"][0], df["oldPM"][0]),
-                 (df["Titulo"][20], df["rollID"][20], df["midi"][20], df["oldPM"][20])
+    save_audios([(df["Titulo"][0], df["rollID"][0], df["roll"][0].midi, df["oldPM"][0]),
+                 (df["Titulo"][20], df["rollID"][20], df["roll"][20].midi, df["oldPM"][20])
                  ],
                 path="../data/debug/")

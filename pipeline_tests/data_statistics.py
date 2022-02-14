@@ -1,6 +1,6 @@
 import math
 
-from preprocessing import preprocess_midi_wrapper
+from model.colab_tension_vae.preprocess_midi import preprocess_midi_wrapper
 
 
 class SongStatistics:

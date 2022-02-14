@@ -16,12 +16,13 @@ class Roll:
         self.score = self._roll_to_score()
 
         if song is None:
-            self.midi = self._roll_to_midi(self.matrix)
+            self.midi = self._roll_to_midi(None)
         else:
             self.midi = self._roll_to_midi(song.old_pm)
+        print(self.midi)
 
     def _roll_to_midi(self, old_pm=None):
-        return util.roll_to_pretty_midi(self, old_pm) if type(self) == np.ndarray else np.NaN
+        return util.roll_to_pretty_midi(self.matrix, old_pm)
 
     def _roll_to_score(self):
         def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24):

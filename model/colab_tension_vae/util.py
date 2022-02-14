@@ -95,7 +95,7 @@ def roll_to_pretty_midi(rolls, pm_old):
 
                     previous_b_pitch = bass_pitch
 
-    if pm_old:
+    if pm_old is not None:
         print(pm_old)
         pm_new = copy.deepcopy(pm_old)
         pm_new.instruments[0].notes = melody_notes

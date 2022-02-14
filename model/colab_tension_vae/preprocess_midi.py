@@ -348,3 +348,13 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
 
 if __name__ == '__main__':
     preprocess_midi('../../data/Mozart/sonata15-1-debug.mid')
+
+
+def preprocess_midi_wrapper(path):
+    pm = preprocess_midi(path)
+    # print(pm)
+    if pm is None:
+        print(f'DEBUG: {path} preprocessing returns None')
+        return [], None, None, []
+    # print(f'DEBUG: {path} is not None')
+    return pm
