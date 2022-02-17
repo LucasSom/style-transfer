@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from model.colab_tension_vae import util
-from roll.roll import Roll
+from roll.guoroll import GuoRoll
 
 
 def obtain_embeddings(df, vae):
@@ -89,11 +89,11 @@ def cambiar_estilo(df, caracteristicos, original, objetivo, sample=1, escala=1):
 
 
 @dfply.make_symbolic
-def embeddings_to_rolls(embeddings, vae) -> List[Roll]:
+def embeddings_to_rolls(embeddings, vae) -> List[GuoRoll]:
     decoded_matrices = decode_embeddings(embeddings, vae)
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
-    rolls = [Roll(m) for m in matrices]
+    rolls = [GuoRoll(m) for m in matrices]
 
     return rolls
 

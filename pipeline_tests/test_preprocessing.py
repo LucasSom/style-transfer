@@ -1,10 +1,12 @@
-from debug_utils import pm_cmp
+import os
+
+from utils.debug_utils import pm_cmp
 from display_audio import save_audios
-from files_utils import save_pickle, load_pickle
+from utils.files_utils import save_pickle, load_pickle
 from preprocessing import preprocess_data
 import pytest
 
-from roll.roll import Roll
+from roll.guoroll import GuoRoll
 
 
 @pytest.fixture
@@ -19,7 +21,7 @@ def mapleleaf_ds():
 
 
 def test_not_cached(sonata15_mapleleaf_ds):
-    df = preprocess_data(sonata15_mapleleaf_ds)
+    assert os.system("python3 show_statistics.py /home/urania/Documentos/Tesis/src/style-transfer/data/") == 0
 
 
 def test_mapleaf(mapleleaf_ds):
@@ -29,11 +31,12 @@ def test_mapleaf(mapleleaf_ds):
         df = preprocess_data(mapleleaf_ds)
         save_pickle(df, name="mapleleaf_ds", path="../data/debug/")
 
-    save_audios([(df["Titulo"][0], df["rollID"][0], df["roll"][0].midi, df["oldPM"][0])], path="../data/debug/")
+    roll = df["roll"][0]
+    save_audios([(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug/")
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
-    r = Roll(df.roll[0].matrix, compases=8)
-    assert pm_cmp(r.midi, r._roll_to_midi(df.oldPM[0]))
+    r = GuoRoll(df.roll[0].matrix, compases=8)
+    assert pm_cmp(r.midi, r._roll_to_midi(df.roll[0].song.old_pm))
 
 
 def test_preprocess_data(sonata15_mapleleaf_ds):
@@ -48,10 +51,10 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
 
-    r0 = Roll(df.roll[0].matrix, compases=8)
-    r20 = Roll(df.roll[20].matrix, compases=8)
-    assert pm_cmp(r0.midi, r0._roll_to_midi(df.oldPM[0]))
-    assert pm_cmp(r20.midi, r20._roll_to_midi(df.oldPM[20]))
+    r0 = GuoRoll(df.roll[0].matrix, compases=8)
+    r20 = GuoRoll(df.roll[20].matrix, compases=8)
+    assert pm_cmp(r0.midi, r0._roll_to_midi(df.roll[0].song.old_pm))
+    assert pm_cmp(r20.midi, r20._roll_to_midi(df.roll[20].song.old_pm))
 
 
 def test_midis_from_df(sonata15_mapleleaf_ds):
@@ -60,8 +63,9 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
         save_pickle(df, name="sonata15_mapleleaf_ds", path="../data/debug/")
-
-    save_audios([(df["Titulo"][0], df["rollID"][0], df["roll"][0].midi, df["oldPM"][0]),
-                 (df["Titulo"][20], df["rollID"][20], df["roll"][20].midi, df["oldPM"][20])
+    r0 = df["roll"][0]
+    r20 = df["roll"][20]
+    save_audios([(df["Titulo"][0], r0.midi, r0.song.old_pm),
+                 (df["Titulo"][20], r20.midi, r20.song.old_pm)
                  ],
                 path="../data/debug/")

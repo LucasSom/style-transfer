@@ -1,5 +1,5 @@
 from model.colab_tension_vae.preprocess_midi import preprocess_midi_wrapper
-from roll.roll import Roll
+from roll.guoroll import GuoRoll
 
 
 class Song:
@@ -12,4 +12,4 @@ class Song:
         matrices, _, old_pm, bars_skipped = preprocess_midi_wrapper(midi_file)
         self.old_pm = old_pm
         self.bars_skipped = bars_skipped
-        self.rolls = [Roll(m, song=self, compases=compases) for m in matrices]
+        self.rolls = [GuoRoll(m, song=self, compases=compases) for m in matrices]

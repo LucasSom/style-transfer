@@ -8,7 +8,7 @@ import random
 import music21 as m21
 
 from preprocessing import preprocess_data
-from utils import filter_column
+from utils.utils import filter_column
 
 random.seed(42)
 

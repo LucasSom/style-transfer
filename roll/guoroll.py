@@ -7,7 +7,7 @@ from model.colab_tension_vae import util, params as guo_params
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
 
-class Roll:
+class GuoRoll:
 
     def __init__(self, matrix, song=None, compases=8):
         self.compases = compases

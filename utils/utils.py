@@ -8,7 +8,7 @@ def filter_column(df, column="Embedding", tipo='Fragmento'):
 
 # Cuales son los exps que hicimos?
 def exp_disponibles(df):
-    c_no_exp = {'Autor', 'Titulo', 'rollID', 'roll', 'oldPM', 'Tipo', 'Sigma'}
+    c_no_exp = {'Autor', 'Titulo', 'roll', 'oldPM', 'Tipo', 'Sigma'}
     return [c for c in df.columns
             if c not in c_no_exp
             and 'roll' not in c

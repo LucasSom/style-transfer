@@ -1,12 +1,13 @@
 import os
 import subprocess
 import tempfile
+from collections import Counter
 from typing import List
 
 from IPython.core.display import Image
 from IPython.display import Audio, display
 
-from roll.roll import lily_conv
+from roll.guoroll import lily_conv
 
 
 def PlayMidi(midi_path, wav_path=None):
@@ -21,21 +22,24 @@ def PlayMidi(midi_path, wav_path=None):
 
 # PlayMidi('/tmp/music21/tmp83sbvwxi.mid')
 
-# midis = list(zip(df['Titulo'], df['rollID'], df['midi'], df['oldPM']))
+# midis = list(zip(df['Titulo'], df['midi'], df['oldPM']))
 def save_audios(midis: List, path='./Evaluación/files/'):
     """
     Generate mp3 from midis. Example of midis parameter:
 
-    ``list(zip(df['Titulo'], df['rollID'], df['midi'], df['oldPM']))``
+    ``list(zip(df['Titulo'], df['midi'], df['oldPM']))``
 
     :param midis: list of tuples/zip containing:
         * name: str
-        * id: id of roll
         * pm: pretty midi to convert to mp3
         * oldPM: pretty midi of the original song
     :param path: where to save files
     """
-    for i, (nombre, id, pm, pm_original) in enumerate(midis):
+    ids = Counter()
+    for i, (nombre, pm, pm_original) in enumerate(midis):
+        ids['nombre'] += 1
+        id = ids['nombre']
+
         file_name = path + f'{nombre}_{id}'
 
         pm.write(file_name + '.mid')
@@ -48,7 +52,7 @@ def save_audios(midis: List, path='./Evaluación/files/'):
         os.system(f"{fluidsynth_command} {file_name}_original.mid | {ffmpeg_command} {file_name}_original.mp3")
 
 
-def display_audio(midis, path='Evaluación/files/'):
+def display_audios(midis, path='Evaluación/files/'):
     for nombre, id, _, _ in midis:
         audio_orig = PlayMidi(path + f'{nombre}_{id}_original.mid')
         audio = PlayMidi(path + f'{nombre}_{id}.mid')
