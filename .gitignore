@@ -2,6 +2,7 @@
 *.pkl
 *.idea/
 *data/
+pipeline_tests/logs/
 
 ### Template ###
 # Byte-compiled / optimized / DLL files

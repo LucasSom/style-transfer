@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.python.keras import backend as K
 
-from util import *
+from model.colab_tension_vae.util import *
 import matplotlib.pyplot as plt
 
 plt.style.use('ggplot')
@@ -120,14 +120,14 @@ def build_model():
     vae.compile(optimizer=optimizer,
                 loss=['categorical_crossentropy', 'binary_crossentropy',
                       'categorical_crossentropy', 'binary_crossentropy',
-                      'mse', 'mse'
+                      # 'mse', 'mse'
                       ],
                 metrics=[[keras.metrics.CategoricalAccuracy()],
                          [keras.metrics.BinaryAccuracy()],
                          [keras.metrics.CategoricalAccuracy()],
                          [keras.metrics.BinaryAccuracy()],
-                         [keras.metrics.MeanSquaredError()],
-                         [keras.metrics.MeanSquaredError()]
+                         # [keras.metrics.MeanSquaredError()],
+                         # [keras.metrics.MeanSquaredError()]
                          ]
                 )
 

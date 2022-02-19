@@ -26,13 +26,13 @@ def test_not_cached(sonata15_mapleleaf_ds):
 
 def test_mapleaf(mapleleaf_ds):
     try:
-        df = load_pickle(name="mapleleaf_ds", path="../data/debug/")
+        df = load_pickle(name="mapleleaf_ds", path="../data/preprocessed_data/")
     except:
         df = preprocess_data(mapleleaf_ds)
-        save_pickle(df, name="mapleleaf_ds", path="../data/debug/")
+        save_pickle(df, name="mapleleaf_ds", path="../data/preprocessed_data/")
 
     roll = df["roll"][0]
-    save_audios([(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug/")
+    save_audios([(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug_outputs/audios/")
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix, compases=8)
@@ -41,10 +41,10 @@ def test_mapleaf(mapleleaf_ds):
 
 def test_preprocess_data(sonata15_mapleleaf_ds):
     try:
-        df = load_pickle(name="sonata15_mapleleaf_ds", path="../data/debug/")
+        df = load_pickle(name="sonata15_mapleleaf_ds", path="../data/preprocessed_data/")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, name="sonata15_mapleleaf_ds", path="../data/debug/")
+        save_pickle(df, name="sonata15_mapleleaf_ds", path="../data/preprocessed_data/")
 
     assert df[df["Autor"] == "mozart_test"].shape[0] <= 18
     assert df[df["Autor"] == "mozart_test"].shape[0] > 0
@@ -59,13 +59,13 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
 
 def test_midis_from_df(sonata15_mapleleaf_ds):
     try:
-        df = load_pickle(name="sonata15_mapleleaf_ds", path="../data/debug/")
+        df = load_pickle(name="sonata15_mapleleaf_ds", path="../data/preprocessed_data/")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, name="sonata15_mapleleaf_ds", path="../data/debug/")
+        save_pickle(df, name="sonata15_mapleleaf_ds", path="../data/preprocessed_data/")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
     save_audios([(df["Titulo"][0], r0.midi, r0.song.old_pm),
                  (df["Titulo"][20], r20.midi, r20.song.old_pm)
                  ],
-                path="../data/debug/")
+                path="../data/debug_outputs/audios/")

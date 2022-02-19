@@ -29,7 +29,7 @@ current_df = preprocess_data()
 
 from IPython.display import display
 
-canciones_a_imprimir = filter_column(current_df, 'Roll')
+canciones_a_imprimir = filter_column(current_df, 'roll')
 embeddings_a_imprimir = filter_column(current_df, 'Embedding')
 
 # noised_scores = get_scores_from_roll(noised_roll)
