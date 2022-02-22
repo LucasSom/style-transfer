@@ -12,15 +12,30 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 
+class kl_beta(tf.keras.layers.Layer):
+    def __init__(self):
+        super(kl_beta, self).__init__()
+
+        # your variable goes here
+        self.beta = tf.Variable(0.0, trainable=False, dtype=tf.float32)
+
+    def call(self, inputs, **kwargs):
+        # your mul operation goes here
+        return -self.beta * inputs
+
+    def get_config(self):
+        return {}
+
+
 def build_model():
     encoder_input = Input(shape=(time_step, input_dim), name='encoder_input')
 
     # encoder
-    rnn1 = Bidirectional(GRU(rnn_dim, return_sequences=True), name='rnn1')(encoder_input)   # biGRU = 64?*512
-    rnn2 = Bidirectional(GRU(rnn_dim), name='rnn2')(rnn1)                                   # biGRU =   1*512
+    rnn1 = Bidirectional(GRU(rnn_dim, return_sequences=True), name='rnn1')(encoder_input)  # biGRU = 64?*512
+    rnn2 = Bidirectional(GRU(rnn_dim), name='rnn2')(rnn1)  # biGRU =   1*512
 
-    z_mean = Dense(z_dim, name='z_mean')(rnn2)                                              # Linear + ReLU = 1*96
-    z_log_var = Dense(z_dim, name='z_log_var')(rnn2)                                        # Linear + ReLU = 1*96
+    z_mean = Dense(z_dim, name='z_mean')(rnn2)  # Linear + ReLU = 1*96
+    z_log_var = Dense(z_dim, name='z_log_var')(rnn2)  # Linear + ReLU = 1*96
 
     def sampling(args):
         z_mean, z_log_var = args
@@ -31,31 +46,20 @@ def build_model():
         return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
     # espacio latente
-    z = Lambda(sampling, output_shape=(z_dim,), name='z')([z_mean, z_log_var])              # z = 1*96
-
-    class kl_beta(tf.keras.layers.Layer):
-        def __init__(self):
-            super(kl_beta, self).__init__()
-
-            # your variable goes here
-            self.beta = tf.Variable(0.0, trainable=False, dtype=tf.float32)
-
-        def call(self, inputs, **kwargs):
-            # your mul operation goes here
-            return -self.beta * inputs
+    z = Lambda(sampling, output_shape=(z_dim,), name='z')([z_mean, z_log_var])  # z = 1*96
 
     beta = kl_beta()
     encoder = Model(encoder_input, z, name='encoder')
 
     # decoder
 
-    decoder_latent_input = Input(shape=z_dim, name='z_sampling')                                # sampling (output de z)
+    decoder_latent_input = Input(shape=z_dim, name='z_sampling')  # sampling (output de z)
 
-    repeated_z = RepeatVector(time_step, name='repeated_z_tension')(decoder_latent_input)       # repeat = 64?*96
+    repeated_z = RepeatVector(time_step, name='repeated_z_tension')(decoder_latent_input)  # repeat = 64?*96
 
-    rnn1_output = GRU(rnn_dim, name='decoder_rnn1', return_sequences=True)(repeated_z)          # GRU = 64?*256
+    rnn1_output = GRU(rnn_dim, name='decoder_rnn1', return_sequences=True)(repeated_z)  # GRU = 64?*256
 
-    rnn2_output = GRU(rnn_dim, name='decoder_rnn2', return_sequences=True)(                     # GRU = 64?*256
+    rnn2_output = GRU(rnn_dim, name='decoder_rnn2', return_sequences=True)(  # GRU = 64?*256
         rnn1_output)
 
     kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)

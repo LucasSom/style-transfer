@@ -3,6 +3,7 @@
 *.idea/
 *data/
 pipeline_tests/logs/
+*saved_models*
 
 ### Template ###
 # Byte-compiled / optimized / DLL files

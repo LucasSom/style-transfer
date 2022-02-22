@@ -1,3 +1,5 @@
+import os
+import shutil
 from typing import List, Union
 
 import datetime
@@ -30,7 +32,7 @@ def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int,
     if isinstance(df, str):
         df = load_pickle(name=df, path=f"../data/preprocessed_data/")
 
-    vae = keras.models.load_model(f"saved_models/{model_name}/")
+    vae = keras.models.load_model(f"saved_models/{model_name}/", custom_objects=dict(kl_beta=build_model.kl_beta))
 
     with open(f"logs/{model_name}/initial_epoch", 'rt') as f:
         initial_epoch = int(f.read())
@@ -57,6 +59,8 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
             callbacks=[tensorboard_callback]
         )
 
+        # if save:
+        shutil.rmtree(f"saved_models/{model_name}/")
         vae.save(f"saved_models/{model_name}/")
 
         with open(f'logs/{model_name}/initial_epoch', 'w') as f:
