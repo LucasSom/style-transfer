@@ -6,6 +6,7 @@ import seaborn as sns
 from sklearn.manifold import TSNE
 
 from model.colab_tension_vae import params as guo_params
+from utils.files_utils import data_path
 
 
 def plot_train(callbacks, epoca_final):
@@ -14,7 +15,7 @@ def plot_train(callbacks, epoca_final):
         if 'loss' in k:
             plt.plot(v, label=k)
     plt.legend()
-    plt.savefig(f'logs/{guo_params.time_step / 16}bars_{epoca_final}epochs.png')
+    plt.savefig(data_path + f'logs/{guo_params.time_step / 16}bars_{epoca_final}epochs.png')
 
 
 def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2):

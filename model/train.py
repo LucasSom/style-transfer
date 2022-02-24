@@ -8,7 +8,7 @@ import pandas as pd
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model
-from utils.files_utils import load_pickle
+from utils.files_utils import load_pickle, data_path
 
 
 def get_targets(ds: np.ndarray) -> List[np.ndarray]:
@@ -22,6 +22,7 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
 def train_new_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt: int = 50):
     if isinstance(df, str):
         df = load_pickle(name=df, path=f"../data/preprocessed_data/")
+    os.mkdir(data_path + f"logs/{model_name}")
 
     vae = build_model.build_model()
 
@@ -34,7 +35,7 @@ def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int,
 
     vae = keras.models.load_model(f"saved_models/{model_name}/", custom_objects=dict(kl_beta=build_model.kl_beta))
 
-    with open(f"logs/{model_name}/initial_epoch", 'rt') as f:
+    with open(data_path + f"logs/{model_name}/initial_epoch", 'rt') as f:
         initial_epoch = int(f.read())
 
     return train(vae, df, model_name, initial_epoch, final_epoch, ckpt)
@@ -44,7 +45,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
     ds = np.stack([r.matrix for r in df['roll']])
     targets = get_targets(ds)
 
-    log_dir = f"logs/{model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = data_path + f"logs/{model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     callbacks_history = {}
@@ -63,7 +64,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
         shutil.rmtree(f"saved_models/{model_name}/")
         vae.save(f"saved_models/{model_name}/")
 
-        with open(f'logs/{model_name}/initial_epoch', 'w') as f:
+        with open(data_path + f'logs/{model_name}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
         print(f"Guardado hasta {i + ckpt}!!")
 

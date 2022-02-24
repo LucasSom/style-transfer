@@ -2,7 +2,7 @@
 *.pkl
 *.idea/
 *data/
-pipeline_tests/logs/
+data/logs/
 *saved_models*
 
 ### Template ###

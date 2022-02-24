@@ -6,7 +6,7 @@ import pretty_midi
 
 from model.colab_tension_vae.params import *
 
-tension_vae_dir = "/home/urania/Documentos/Tesis/src/style-transfer/model/colab_tension_vae/"
+tension_vae_dir = os.getcwd() + "/model/colab_tension_vae/"
 
 tensile_up_feature_vector = pickle.load(open(tension_vae_dir + 'model/tensile_up_feature_vector', 'rb'))
 diameter_up_feature_vector = pickle.load(open(tension_vae_dir + 'model/diameter_up_feature_vector', 'rb'))

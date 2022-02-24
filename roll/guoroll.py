@@ -8,9 +8,24 @@ lily_conv = m21.converter.subConverters.ConverterLilypond()
 
 
 class GuoRoll:
+    """
+    Class that represent a fragment of $n$ bars (8 as default, 4 in Guo's work) with attributes:
 
-    def __init__(self, matrix, song=None, compases=8):
-        self.compases = compases
+    - `matrix`: matrix of $16*bars 89$
+    - `bars`: number of bars per fragment (es el mismo para todo el dataset, con lo cual, podría eliminarse la redundancia en un trabajo futuro)
+    - `song`: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding (en un trabajo futuro podría cambiárselo por un singleton).
+    - `score`: score obtained from the matrix
+    - `midi`: Pretty MIDI obtained from the matrix
+
+    """
+
+    def __init__(self, matrix, song=None, bars=8):
+        """
+        :param matrix: matrix of `16*bars x 89` with n= la cantidad de compases
+        :param song: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding (en un trabajo futuro podría cambiárselo por un singleton).
+        :param bars: number of bars per fragment (es el mismo para todo el dataset, con lo cual, podría eliminarse la redundancia en un trabajo futuro)
+        """
+        self.bars = bars
         self.matrix = matrix
         self.song = song
         self.score = self._roll_to_score()

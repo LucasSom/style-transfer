@@ -35,7 +35,7 @@ def test_mapleaf(mapleleaf_ds):
     save_audios([(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug_outputs/audios/")
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
-    r = GuoRoll(df.roll[0].matrix, compases=8)
+    r = GuoRoll(df.roll[0].matrix, bars=8)
     assert pm_cmp(r.midi, r._roll_to_midi(df.roll[0].song.old_pm))
 
 
@@ -51,8 +51,8 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
 
-    r0 = GuoRoll(df.roll[0].matrix, compases=8)
-    r20 = GuoRoll(df.roll[20].matrix, compases=8)
+    r0 = GuoRoll(df.roll[0].matrix, bars=8)
+    r20 = GuoRoll(df.roll[20].matrix, bars=8)
     assert pm_cmp(r0.midi, r0._roll_to_midi(df.roll[0].song.old_pm))
     assert pm_cmp(r20.midi, r20._roll_to_midi(df.roll[20].song.old_pm))
 
