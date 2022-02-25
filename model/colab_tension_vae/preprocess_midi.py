@@ -5,8 +5,9 @@ import numpy as np
 import pretty_midi
 
 from model.colab_tension_vae.params import *
+from utils.files_utils import project_path
 
-tension_vae_dir = os.getcwd() + "/model/colab_tension_vae/"
+tension_vae_dir = project_path + "/model/colab_tension_vae/"
 
 tensile_up_feature_vector = pickle.load(open(tension_vae_dir + 'model/tensile_up_feature_vector', 'rb'))
 diameter_up_feature_vector = pickle.load(open(tension_vae_dir + 'model/diameter_up_feature_vector', 'rb'))

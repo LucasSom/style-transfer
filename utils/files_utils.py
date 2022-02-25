@@ -1,7 +1,8 @@
 import os
 import pickle
 
-data_path = os.getcwd() + '/data/'
+project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+data_path = project_path + '/data/'
 
 
 def datasets_name(ds):

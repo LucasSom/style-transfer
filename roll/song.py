@@ -12,4 +12,7 @@ class Song:
         matrices, _, old_pm, bars_skipped = preprocess_midi_wrapper(midi_file)
         self.old_pm = old_pm
         self.bars_skipped = bars_skipped
-        self.rolls = [GuoRoll(m, song=self, bars=compases) for m in matrices]
+        self.rolls = [
+            GuoRoll(m, song=self, bars=compases)
+            for m in matrices
+        ]

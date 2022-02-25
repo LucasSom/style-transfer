@@ -57,10 +57,9 @@ class GuoRoll:
                     n.offset = t / 4
                     n_part.append(n)
                 else:
-                    rest = np.nonzero(pitch_roll[:, t])[0][0]
                     dur = 0
                     t2 = t
-                    while t2 < rhythm_roll.shape[0] and pitch_roll[rest, t2] == 1:
+                    while t2 < rhythm_roll.shape[0] and rhythm_roll[t2] == 0:
                         dur += 1
                         t2 += 1
                     r = m21.note.Rest(duration=m21.duration.Duration(quarterLength=dur / 4))

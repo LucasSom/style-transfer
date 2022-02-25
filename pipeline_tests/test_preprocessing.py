@@ -2,7 +2,7 @@ import os
 
 from utils.debug_utils import pm_cmp
 from display_audio import save_audios
-from utils.files_utils import save_pickle, load_pickle
+from utils.files_utils import save_pickle, load_pickle, data_path
 from preprocessing import preprocess_data
 import pytest
 
@@ -18,6 +18,11 @@ def sonata15_mapleleaf_ds():
 @pytest.fixture
 def mapleleaf_ds():
     return {"ragtime_test": ["../data/debug/mapleleaf.mid"]}
+
+
+@pytest.fixture
+def bach_ds():
+    return {"bach": [data_path + "Bach/" + path for path in os.listdir(data_path + "Bach/")]}
 
 
 def test_not_cached(sonata15_mapleleaf_ds):
@@ -69,3 +74,8 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
                  (df["Titulo"][20], r20.midi, r20.song.old_pm)
                  ],
                 path="../data/debug_outputs/audios/")
+
+
+def test_preprocess_bach(bach_ds):
+    df = preprocess_data(bach_ds)
+    assert True
