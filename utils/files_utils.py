@@ -3,6 +3,7 @@ import pickle
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
+path_saved_models = project_path + '/model/saved_models/'
 
 
 def datasets_name(ds):
@@ -13,10 +14,12 @@ def datasets_name(ds):
 
 
 def save_pickle(df, name, path=data_path):
-    with open(path + name + '.pkl', 'wb') as f:
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    with open(os.path.join(path, name + ".pkl"), 'wb') as f:
         pickle.dump(df, f)
 
 
 def load_pickle(name, path=data_path):
-    with open(path + name + '.pkl', 'rb') as f:
+    with open(os.path.join(path, name + ".pkl"), 'rb') as f:
         return pickle.load(f)

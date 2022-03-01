@@ -1,6 +1,6 @@
 import pytest
 
-from model.train import train_new_model, train_model
+from model.train import train_new_model, continue_training
 from utils.files_utils import load_pickle
 from utils.plots_utils import plot_train
 
@@ -39,7 +39,7 @@ def test_new_model_1_epoch_pkl(model_name="test_new_model"):
 
 def test_train_model():
     epochs = 5
-    model, callbacks = train_model("mapleleaf_ds", "test_new_model", epochs, ckpt=2)
+    model, callbacks = continue_training("mapleleaf_ds", "test_new_model", epochs, ckpt=2)
     assert callbacks != {}
     assert set(callbacks.keys()) == {"decoder_loss", "decoder_1_loss", "decoder_2_loss", "decoder_3_loss", "loss"}
     for l in callbacks.values():
@@ -51,7 +51,7 @@ def test_complete_training():
     epoch_after_init = 1
 
     final_epoch_1 = 2
-    model, callbacks = train_model("mapleleaf_ds", "test_complete_training", final_epoch_1, ckpt=1)
+    model, callbacks = continue_training("mapleleaf_ds", "test_complete_training", final_epoch_1, ckpt=1)
     assert callbacks != {}
     assert set(callbacks.keys()) == {"decoder_loss", "decoder_1_loss", "decoder_2_loss", "decoder_3_loss", "loss"}
     for l in callbacks.values():
@@ -59,7 +59,7 @@ def test_complete_training():
         print(f"Después de la primera corrida: {len(l)}")
 
     final_epoch_2 = 4
-    model, callbacks = train_model("mapleleaf_ds", "test_complete_training", final_epoch_2, ckpt=1)
+    model, callbacks = continue_training("mapleleaf_ds", "test_complete_training", final_epoch_2, ckpt=1)
     assert callbacks != {}
     assert set(callbacks.keys()) == {"decoder_loss", "decoder_1_loss", "decoder_2_loss", "decoder_3_loss", "loss"}
     for l in callbacks.values():

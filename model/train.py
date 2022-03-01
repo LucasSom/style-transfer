@@ -21,24 +21,32 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
 
 def train_new_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt: int = 50):
     if isinstance(df, str):
-        df = load_pickle(name=df, path=f"../data/preprocessed_data/")
-    os.mkdir(data_path + f"logs/{model_name}")
+        df = load_pickle(name=df, path=data_path + "preprocessed_data/")
+    if not os.path.isdir(data_path + f"logs/{model_name}"):
+        os.makedirs(data_path + f"logs/{model_name}")
 
     vae = build_model.build_model()
 
     return train(vae, df, model_name, 0, final_epoch, ckpt)
 
 
-def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt: int = 50):
+def continue_training(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt: int = 50):
     if isinstance(df, str):
-        df = load_pickle(name=df, path=f"../data/preprocessed_data/")
+        df = load_pickle(name=df, path=data_path + "preprocessed_data/")
 
     vae = keras.models.load_model(f"saved_models/{model_name}/", custom_objects=dict(kl_beta=build_model.kl_beta))
 
     with open(data_path + f"logs/{model_name}/initial_epoch", 'rt') as f:
         initial_epoch = int(f.read())
 
-    return train(vae, df, model_name, initial_epoch, final_epoch, ckpt)
+    return train(vae, df, model_name, initial_epoch+initial_epoch, final_epoch, ckpt)
+
+
+def train_model(df: Union[pd.DataFrame, str], model_name: str, new_training: bool, final_epoch: int, ckpt: int = 50):
+    if new_training:
+        return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt)
+    else:
+        return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt)
 
 
 def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
@@ -60,9 +68,13 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
             callbacks=[tensorboard_callback]
         )
 
-        # if save:
-        shutil.rmtree(f"saved_models/{model_name}/")
-        vae.save(f"saved_models/{model_name}/")
+        path_to_save = f"saved_models/{model_name}/"
+        if os.path.isdir(path_to_save):
+            shutil.rmtree(path_to_save)
+        else:
+            os.makedirs(path_to_save)
+
+        vae.save(path_to_save)
 
         with open(data_path + f'logs/{model_name}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
