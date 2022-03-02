@@ -19,30 +19,27 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
     return [i0, i1, i2, i3]
 
 
-def train_new_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt: int = 50):
-    if isinstance(df, str):
-        df = load_pickle(name=df, path=data_path + "preprocessed_data/")
-    if not os.path.isdir(data_path + f"logs/{model_name}"):
-        os.makedirs(data_path + f"logs/{model_name}")
-
+def train_new_model(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50):
     vae = build_model.build_model()
 
     return train(vae, df, model_name, 0, final_epoch, ckpt)
 
 
-def continue_training(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt: int = 50):
-    if isinstance(df, str):
-        df = load_pickle(name=df, path=data_path + "preprocessed_data/")
-
-    vae = keras.models.load_model(f"saved_models/{model_name}/", custom_objects=dict(kl_beta=build_model.kl_beta))
+def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50):
+    vae = keras.models.load_model(data_path + f"saved_models/{model_name}/", custom_objects=dict(kl_beta=build_model.kl_beta))
 
     with open(data_path + f"logs/{model_name}/initial_epoch", 'rt') as f:
         initial_epoch = int(f.read())
 
-    return train(vae, df, model_name, initial_epoch+initial_epoch, final_epoch, ckpt)
+    return train(vae, df, model_name, initial_epoch, final_epoch+initial_epoch, ckpt)
 
 
 def train_model(df: Union[pd.DataFrame, str], model_name: str, new_training: bool, final_epoch: int, ckpt: int = 50):
+    if isinstance(df, str):
+        df = load_pickle(name=df, path=data_path + "preprocessed_data/")
+    if not os.path.isdir(data_path + f"saved_models/{model_name}"):
+        os.makedirs(data_path + f"saved_models/{model_name}")
+    
     if new_training:
         return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt)
     else:
@@ -50,6 +47,7 @@ def train_model(df: Union[pd.DataFrame, str], model_name: str, new_training: boo
 
 
 def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
+    print(f"Época inicial: {initial_epoch}. Época final: {final_epoch}")
     ds = np.stack([r.matrix for r in df['roll']])
     targets = get_targets(ds)
 
@@ -68,7 +66,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
             callbacks=[tensorboard_callback]
         )
 
-        path_to_save = f"saved_models/{model_name}/"
+        path_to_save = data_path + f"saved_models/{model_name}/"
         if os.path.isdir(path_to_save):
             shutil.rmtree(path_to_save)
         else:
