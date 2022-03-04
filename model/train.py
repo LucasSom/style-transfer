@@ -55,6 +55,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     callbacks_history = {}
+    callbacks_path = data_path + f"logs/{model_name}_{initial_epoch}.csv"
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         callbacks = vae.fit(
             x=ds,
@@ -79,9 +80,19 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
         print(f"Guardado hasta {i + ckpt}!!")
 
         for k, v in callbacks.history.items():
-            if 'loss' in k and k != "kl_loss":
+            if k != "kl_loss":
                 if k in callbacks_history:
                     callbacks_history[k].extend(v)
                 else:
                     callbacks_history[k] = v
-    return vae, callbacks_history
+
+        callbacks_df = pd.DataFrame(callbacks_history)
+        if os.path.isfile(callbacks_path):
+            prev_callbacks = pd.read_csv(callbacks_path)
+            new_callbacks = pd.concat([prev_callbacks, callbacks_df])
+        else:
+            new_callbacks = callbacks_df
+        new_callbacks.to_csv(callbacks_path)
+        print("Guardado el csv!!")
+
+    return vae

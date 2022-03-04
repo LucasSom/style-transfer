@@ -9,6 +9,7 @@ from model.colab_tension_vae import params as guo_params
 from utils.files_utils import data_path
 
 
+# TODO: plot de loss y plot de accuracies
 def plot_train(callbacks, epoca_final):
     plt.figure(figsize=(10, 10))
     for k, v in callbacks.items():

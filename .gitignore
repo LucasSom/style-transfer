@@ -3,7 +3,7 @@
 *.idea/
 *data/
 data/logs/
-*saved_models*
+data/saved_models
 
 ### Template ###
 # Byte-compiled / optimized / DLL files
