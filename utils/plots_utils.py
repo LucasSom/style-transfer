@@ -9,14 +9,18 @@ from model.colab_tension_vae import params as guo_params
 from utils.files_utils import data_path
 
 
-# TODO: plot de loss y plot de accuracies
-def plot_train(callbacks, epoca_final):
+def plot_metric(callbacks, epoca_final, metric: str):
     plt.figure(figsize=(10, 10))
     for k, v in callbacks.items():
-        if 'loss' in k:
+        if metric in k:
             plt.plot(v, label=k)
     plt.legend()
-    plt.savefig(data_path + f'logs/{guo_params.time_step / 16}bars_{epoca_final}epochs.png')
+    plt.savefig(data_path + f'logs/{guo_params.time_step / 16}bars_{epoca_final}epochs_{metric}.png')
+
+
+def plot_train(callbacks, epoca_final):
+    plot_metric(callbacks, epoca_final, 'loss')
+    plot_metric(callbacks, epoca_final, 'accuracy')
 
 
 def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2):
