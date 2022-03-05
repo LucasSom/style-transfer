@@ -9,8 +9,20 @@ from model.colab_tension_vae import util
 from roll.guoroll import GuoRoll
 
 
-def obtain_embeddings(df, vae):
-    df_emb = df.groupby('Titulo').sample()
+def obtain_embeddings(df: pd.DataFrame, vae, inplace=False):
+    """
+    Takes a DataFrame and a model, and applies the 'encoder' function to all rolls of the df.
+
+    :param df:
+    :param vae: trained model
+    :param inplace: if True, perform operation in-place.
+    :return: the input DataFrame with a new column 'Embedding' with the result of the encoding (ndarrays of shape (96,))
+    """
+    if inplace:
+        df = df.groupby('Titulo').sample()
+        df_emb = df
+    else:
+        df_emb = df.groupby('Titulo').sample()
     # df_sampled['Embedding'].iloc[0][0]
 
     t = vae.get_layer(name='encoder')(np.stack([r.matrix for r in df_emb['roll']]))
