@@ -45,7 +45,7 @@ class GuoRoll:
 
             t = 0
             while t < rhythm_roll.shape[0]:
-                if rhythm_roll[t] == 1:
+                if rhythm_roll[t] == 1:  # not rest
                     pitch = np.nonzero(pitch_roll[:, t])[0][0]
                     dur = 0
                     t2 = t
@@ -56,7 +56,7 @@ class GuoRoll:
                     n.quarterLength = dur / 4
                     n.offset = t / 4
                     n_part.append(n)
-                else:
+                else:  # rest
                     dur = 0
                     t2 = t
                     while t2 < rhythm_roll.shape[0] and rhythm_roll[t2] == 0:

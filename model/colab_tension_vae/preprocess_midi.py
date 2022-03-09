@@ -31,7 +31,8 @@ def beat_time(pm, beat_division=4):
     down_beat_indices = []
     for down_beat in down_beats:
         down_beat_indices.append(np.argwhere(divided_beats == down_beat)[0][0])
-        # descarta las síncopas
+        # descarta todo downbeat que no esté en una subdivisión del pulso
+        # en realidad no termina descartando nada, sino se rompería con el [0][0] de []
 
     return np.array(divided_beats), np.array(down_beat_indices)
 
@@ -190,7 +191,7 @@ def get_roll_with_continue(track_num, track, times):
             # melody track, ensure single melody line
             if previous_start_step > time_step_start:
                 continue
-            if previous_end_step == time_step_stop and previous_start_step == time_step_start:
+            if previous_end_step == time_step_stop and previous_start_step == time_step_start:  # si la nota se toca al mismo tiempo que la anterior y tienen la misma duración
                 continue
             piano_roll[note.pitch, time_step_start] = 1
             piano_roll[note.pitch, time_step_start + 1:time_step_stop] = 2
@@ -245,6 +246,7 @@ def preprocess_midi(midi_file, continued=True):
         return
 
     sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(SAMPLES_PER_BAR / 4))
+    # TODO implementar un assert: np.diff(down_beat_indices).min == np.diff(down_beat_indices).max
     # sixteenth_time: marca los instantes de tiempo en donde empieza una semicorchea
     # down_beat_indices: indica los índices de las notas del pm donde empieza cada compás
     #   Si hay síncopa o silencio entendería que no las marca

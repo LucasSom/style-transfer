@@ -51,6 +51,7 @@ def roll_to_pretty_midi(rolls, pm_old):
             if previous_m_pitch != -1:
                 ## set the end
 
+                # o es un silencio             o empieza la melodía  o cambia la nota               o llegó al final
                 if melody_pitch == melody_dim - 1 or melody_start or melody_pitch != previous_m_pitch or timestep == \
                         rolls.shape[0] - 1:
                     if previous_m_start:

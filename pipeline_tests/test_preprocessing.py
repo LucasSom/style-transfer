@@ -11,18 +11,28 @@ from roll.guoroll import GuoRoll
 
 @pytest.fixture
 def sonata15_mapleleaf_ds():
-    return {"mozart_test": ["../data/debug/sonata15-1-debug.mid"],
-            "ragtime_test": ["../data/debug/mapleleaf.mid"]}
+    return {"mozart_test": [data_path + "debug/sonata15-1-debug.mid"],
+            "ragtime_test": [data_path + "debug/mapleleaf.mid"]}
 
 
 @pytest.fixture
 def mapleleaf_ds():
-    return {"ragtime_test": ["../data/debug/mapleleaf.mid"]}
+    return {"ragtime_test": [data_path + "debug/mapleleaf.mid"]}
 
 
 @pytest.fixture
 def bach_ds():
     return {"bach": [data_path + "Bach/" + path for path in os.listdir(data_path + "Bach/")]}
+
+
+@pytest.fixture
+def breeze_ds():
+    return {"breeze_test": [data_path + "ragtime/breeze.mid"]}
+
+
+def test_breeze_preprocessing(breeze_ds):
+    df = preprocess_data(breeze_ds)
+    assert True
 
 
 def test_not_cached(sonata15_mapleleaf_ds):
