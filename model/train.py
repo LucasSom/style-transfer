@@ -82,7 +82,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
         callbacks_history = {k: v for k, v in callbacks.history.items() if k != "kl_loss"}
 
         callbacks_df = pd.DataFrame(callbacks_history)
-        prev_callbacks = pd.read_csv(callbacks_path) if i > 0 else pd.DataFrame()
+        prev_callbacks = pd.read_csv(callbacks_path) if os.path.isfile(callbacks_path) else pd.DataFrame()
         new_callbacks = pd.concat([prev_callbacks, callbacks_df])
         new_callbacks.to_csv(callbacks_path)
         print("Guardado el csv!!")
