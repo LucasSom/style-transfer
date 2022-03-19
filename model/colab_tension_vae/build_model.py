@@ -8,6 +8,7 @@ from tensorflow.python.keras import backend as K
 
 from model.colab_tension_vae.util import *
 import matplotlib.pyplot as plt
+from model.colab_tension_vae.params import configs
 
 plt.style.use('ggplot')
 
@@ -27,15 +28,16 @@ class kl_beta(tf.keras.layers.Layer):
         return {}
 
 
-def build_model():
-    encoder_input = Input(shape=(time_step, input_dim), name='encoder_input')
+def build_model(config_name: str):
+    c = configs[config_name]
+    encoder_input = Input(shape=(c.time_step, c.input_dim), name='encoder_input')
 
     # encoder
-    rnn1 = Bidirectional(GRU(rnn_dim, return_sequences=True), name='rnn1')(encoder_input)  # biGRU = 64?*512
-    rnn2 = Bidirectional(GRU(rnn_dim), name='rnn2')(rnn1)  # biGRU =   1*512
+    rnn1 = Bidirectional(GRU(c.rnn_dim, return_sequences=True), name='rnn1')(encoder_input)  # biGRU = 64?*512
+    rnn2 = Bidirectional(GRU(c.rnn_dim), name='rnn2')(rnn1)  # biGRU =   1*512
 
-    z_mean = Dense(z_dim, name='z_mean')(rnn2)  # Linear + ReLU = 1*96
-    z_log_var = Dense(z_dim, name='z_log_var')(rnn2)  # Linear + ReLU = 1*96
+    z_mean = Dense(c.z_dim, name='z_mean')(rnn2)  # Linear + ReLU = 1*96
+    z_log_var = Dense(c.z_dim, name='z_log_var')(rnn2)  # Linear + ReLU = 1*96
 
     def sampling(args):
         z_mean, z_log_var = args
@@ -46,20 +48,20 @@ def build_model():
         return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
     # espacio latente
-    z = Lambda(sampling, output_shape=(z_dim,), name='z')([z_mean, z_log_var])  # z = 1*96
+    z = Lambda(sampling, output_shape=(c.z_dim,), name='z')([z_mean, z_log_var])  # z = 1*96
 
     beta = kl_beta()
     encoder = Model(encoder_input, z, name='encoder')
 
     # decoder
 
-    decoder_latent_input = Input(shape=z_dim, name='z_sampling')  # sampling (output de z)
+    decoder_latent_input = Input(shape=c.z_dim, name='z_sampling')  # sampling (output de z)
 
-    repeated_z = RepeatVector(time_step, name='repeated_z_tension')(decoder_latent_input)  # repeat = 64?*96
+    repeated_z = RepeatVector(c.time_step, name='repeated_z_tension')(decoder_latent_input)  # repeat = 64?*96
 
-    rnn1_output = GRU(rnn_dim, name='decoder_rnn1', return_sequences=True)(repeated_z)  # GRU = 64?*256
+    rnn1_output = GRU(c.rnn_dim, name='decoder_rnn1', return_sequences=True)(repeated_z)  # GRU = 64?*256
 
-    rnn2_output = GRU(rnn_dim, name='decoder_rnn2', return_sequences=True)(  # GRU = 64?*256
+    rnn2_output = GRU(c.rnn_dim, name='decoder_rnn2', return_sequences=True)(  # GRU = 64?*256
         rnn1_output)
 
     kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
@@ -69,7 +71,7 @@ def build_model():
     kl_loss = 0.5 * kl_loss
 
     kl_loss = beta(kl_loss)
-    tensile_middle_output = TimeDistributed(Dense(tension_middle_dim, activation='elu'),
+    tensile_middle_output = TimeDistributed(Dense(c.tension_middle_dim, activation='elu'),
                                             name='tensile_strain_dense1')(rnn2_output)
 
     # tensile_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
@@ -81,28 +83,28 @@ def build_model():
     # diameter_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
     #                                  name='diameter_strain_dense2')(diameter_middle_output)
 
-    melody_rhythm_1 = TimeDistributed(Dense(start_middle_dim, activation='elu'),
+    melody_rhythm_1 = TimeDistributed(Dense(c.start_middle_dim, activation='elu'),
                                       name='melody_start_dense1')(rnn2_output)
-    melody_rhythm_output = TimeDistributed(Dense(melody_note_start_dim, activation='sigmoid'),
+    melody_rhythm_output = TimeDistributed(Dense(c.melody_note_start_dim, activation='sigmoid'),
                                            name='melody_start_dense2')(
         melody_rhythm_1)
 
-    melody_pitch_1 = TimeDistributed(Dense(melody_bass_dense_1_dim, activation='elu'),
+    melody_pitch_1 = TimeDistributed(Dense(c.melody_bass_dense_1_dim, activation='elu'),
                                      name='melody_pitch_dense1')(rnn2_output)
 
-    melody_pitch_output = TimeDistributed(Dense(melody_output_dim, activation='softmax'),
+    melody_pitch_output = TimeDistributed(Dense(c.melody_output_dim, activation='softmax'),
                                           name='melody_pitch_dense2')(melody_pitch_1)
 
-    bass_rhythm_1 = TimeDistributed(Dense(start_middle_dim, activation='elu'),
+    bass_rhythm_1 = TimeDistributed(Dense(c.start_middle_dim, activation='elu'),
                                     name='bass_start_dense1')(rnn2_output)
 
-    bass_rhythm_output = TimeDistributed(Dense(bass_note_start_dim, activation='sigmoid'),
+    bass_rhythm_output = TimeDistributed(Dense(c.bass_note_start_dim, activation='sigmoid'),
                                          name='bass_start_dense2')(
         bass_rhythm_1)
 
-    bass_pitch_1 = TimeDistributed(Dense(melody_bass_dense_1_dim, activation='elu'),
+    bass_pitch_1 = TimeDistributed(Dense(c.melody_bass_dense_1_dim, activation='elu'),
                                    name='bass_pitch_dense1')(rnn2_output)
-    bass_pitch_output = TimeDistributed(Dense(bass_output_dim, activation='softmax'),
+    bass_pitch_output = TimeDistributed(Dense(c.bass_output_dim, activation='softmax'),
                                         name='bass_pitch_dense2')(bass_pitch_1)
 
     decoder_output = [melody_pitch_output, melody_rhythm_output, bass_pitch_output, bass_rhythm_output,

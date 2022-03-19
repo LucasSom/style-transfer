@@ -1,27 +1,35 @@
-rnn_dim = 256
-input_dim = 89
+class VAEConfig_Base:
+  def __init__(self, bars: int):
+    self.SAMPLES_PER_BAR = 16
+    self.SEGMENT_BAR_LENGTH = bars  # 4*4 compases
 
-time_step = 64  # 64 = 4 compases
+    self.rnn_dim = 256
+    self.input_dim = 89
 
-start_middle_dim = 64
-melody_bass_dense_1_dim = 128
+    self.time_step = bars * self.SAMPLES_PER_BAR  # 64 = 4 compases
 
-melody_output_dim = 74
-melody_note_start_dim = 1
-bass_output_dim = 13
-bass_note_start_dim = 1
-# 89
+    self.start_middle_dim = self.time_step
+    self.melody_bass_dense_1_dim = 128
 
-tension_middle_dim = 128
-tension_output_dim = 1
+    self.melody_output_dim = 74
+    self.melody_note_start_dim = 1
+    self.bass_output_dim = 13
+    self.bass_note_start_dim = 1
+    # 89
 
-z_dim = 96  # espacio latente
+    self.tension_middle_dim = 128
+    self.tension_output_dim = 1
 
-TEMPO = 90
-melody_dim = melody_output_dim
-bass_dim = bass_output_dim
-velocity = 100
+    self.z_dim = 96  # espacio latente
 
-SAMPLES_PER_BAR = 16
-SEGMENT_BAR_LENGTH = 4  # 4*4 compases
-SLIDING_WINDOW = SEGMENT_BAR_LENGTH
+    self.TEMPO = 90
+    self.melody_dim = self.melody_output_dim
+    self.bass_dim = self.bass_output_dim
+    self.velocity = 100
+
+    self.SLIDING_WINDOW = self.SEGMENT_BAR_LENGTH
+
+configs = {
+  '4bar': VAEConfig_Base(4),
+  '8bar': VAEConfig_Base(8),
+}
