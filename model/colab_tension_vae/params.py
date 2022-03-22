@@ -1,5 +1,7 @@
 class VAEConfig_Base:
   def __init__(self, bars: int):
+    self.bars = bars
+
     self.SAMPLES_PER_BAR = 16
     self.SEGMENT_BAR_LENGTH = bars  # 4*4 compases
 

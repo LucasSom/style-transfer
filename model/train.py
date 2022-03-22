@@ -56,7 +56,6 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
     log_dir = data_path + f"logs/{model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         callbacks = vae.fit(
             x=ds,
@@ -81,10 +80,10 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
         print(f"Guardado hasta {i + ckpt}!!")
 
         print(callbacks)
-        breakpoint()
         callbacks_history = {k: v for k, v in callbacks.history.items() if k != "kl_loss"}
+        callbacks_history['epoch'] = list(np.arange(i, i + ckpt))
+        assert len(callbacks_history['epoch']) == len(callbacks_history['loss'])
         callbacks_df = pd.DataFrame(callbacks_history)
-        callbacks_df['epoch'] = np.arange(initial_epoch, i)
 
         callbacks_path = data_path + f"logs/{model_name}_{initial_epoch}.csv"
         if os.path.isfile(callbacks_path):
