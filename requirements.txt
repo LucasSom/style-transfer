@@ -1,0 +1,15 @@
+numpy
+tensorflow
+dfply
+pretty_midi
+pyfluidsynth
+pandas
+datetime
+typing
+music21
+matplotlib
+sklearn
+seaborn
+pytest
+IPython
+jupyter
