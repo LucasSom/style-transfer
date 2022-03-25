@@ -14,21 +14,21 @@ def result_sampling(rolls):
         timesteps = roll.shape[0]
         new_roll = np.zeros((roll.shape[0], 89))
         for step in range(timesteps):
-            melody_note = np.argmax(roll[step, :config().melody_output_dim])
-            melody_start = roll[step, config().melody_output_dim] > 0.5
+            melody_note = np.argmax(roll[step, :config.melody_output_dim])
+            melody_start = roll[step, config.melody_output_dim] > 0.5
             bass_note = np.argmax(roll[step,
-                                  config().melody_output_dim + config().melody_note_start_dim:
-                                  config().melody_output_dim
-                                  + config().melody_note_start_dim
-                                  + config().bass_output_dim])
-            bass_start = roll[step, config().melody_output_dim
-                              + config().melody_note_start_dim
-                              + config().bass_output_dim] > 0.5
+                                  config.melody_output_dim + config.melody_note_start_dim:
+                                  config.melody_output_dim
+                                  + config.melody_note_start_dim
+                                  + config.bass_output_dim])
+            bass_start = roll[step, config.melody_output_dim
+                              + config.melody_note_start_dim
+                              + config.bass_output_dim] > 0.5
 
             new_roll[step, melody_note] = 1
-            new_roll[step, config().melody_output_dim] = melody_start
-            new_roll[step, bass_note + config().melody_output_dim + config().melody_note_start_dim] = 1
-            new_roll[step, config().melody_output_dim + config().melody_note_start_dim + config().bass_output_dim] \
+            new_roll[step, config.melody_output_dim] = melody_start
+            new_roll[step, bass_note + config.melody_output_dim + config.melody_note_start_dim] = 1
+            new_roll[step, config.melody_output_dim + config.melody_note_start_dim + config.bass_output_dim] \
                 = bass_start
         new_rolls.append(new_roll)
     return np.array(new_rolls)
@@ -37,7 +37,7 @@ def result_sampling(rolls):
 def roll_to_pretty_midi(rolls, pm_old):
     melody_notes = []
     bass_notes = []
-    step_time = 60 / config().TEMPO / 4
+    step_time = 60 / config.TEMPO / 4
 
     previous_m_pitch = -1
     previous_b_pitch = -1
@@ -45,12 +45,12 @@ def roll_to_pretty_midi(rolls, pm_old):
     previous_b_start = False
 
     for timestep in range(rolls.shape[0]):
-        melody_pitch = np.where(rolls[timestep, :config().melody_dim] != 0)[0]
-        melody_start = rolls[timestep, config().melody_dim] != 0
+        melody_pitch = np.where(rolls[timestep, :config.melody_dim] != 0)[0]
+        melody_start = rolls[timestep, config.melody_dim] != 0
         bass_pitch = np.where(
-            rolls[timestep, config().melody_dim + 1:config().melody_dim + config().bass_dim + 1] != 0
+            rolls[timestep, config.melody_dim + 1:config.melody_dim + config.bass_dim + 1] != 0
         )[0]
-        bass_start = rolls[timestep, config().melody_dim + 1 + config().bass_dim] != 0
+        bass_start = rolls[timestep, config.melody_dim + 1 + config.bass_dim] != 0
 
         # not the emtpy pitch
         if len(melody_pitch) > 0:
@@ -60,7 +60,7 @@ def roll_to_pretty_midi(rolls, pm_old):
                 # set the end
 
                 # o es un silencio             o empieza la melodía  o cambia la nota               o llegó al final
-                if melody_pitch == config().melody_dim - 1 \
+                if melody_pitch == config.melody_dim - 1 \
                         or melody_start \
                         or melody_pitch != previous_m_pitch \
                         or timestep == rolls.shape[0] - 1:
@@ -71,7 +71,7 @@ def roll_to_pretty_midi(rolls, pm_old):
                         previous_m_start = False
 
             # set the start
-            if melody_pitch != config().melody_dim - 1:
+            if melody_pitch != config.melody_dim - 1:
 
                 if timestep == 0 or melody_start or rolls[timestep - 1, melody_pitch] == 0:
                     m_start_time = timestep * step_time
@@ -88,7 +88,7 @@ def roll_to_pretty_midi(rolls, pm_old):
 
             if previous_b_pitch != -1:
                 # set the end
-                if bass_pitch == config().bass_dim - 1 or bass_start or bass_pitch != previous_b_pitch or timestep == \
+                if bass_pitch == config.bass_dim - 1 or bass_start or bass_pitch != previous_b_pitch or timestep == \
                         rolls.shape[0] - 1:
                     if previous_b_start:
                         b_end_time = timestep * step_time
@@ -98,9 +98,9 @@ def roll_to_pretty_midi(rolls, pm_old):
                         previous_b_start = False
 
             # set the start
-            if bass_pitch != config().bass_dim - 1:
+            if bass_pitch != config.bass_dim - 1:
 
-                if timestep == 0 or bass_start or rolls[timestep - 1, bass_pitch + config().melody_dim + 1] == 0:
+                if timestep == 0 or bass_start or rolls[timestep - 1, bass_pitch + config.melody_dim + 1] == 0:
                     b_start_time = timestep * step_time
                     previous_b_start = True
 
@@ -115,7 +115,7 @@ def roll_to_pretty_midi(rolls, pm_old):
         return pm_new
 
     else:
-        pm = pretty_midi.PrettyMIDI(initial_tempo=config().TEMPO)
+        pm = pretty_midi.PrettyMIDI(initial_tempo=config.TEMPO)
         piano = pretty_midi.Instrument(program=1)
         piano.notes = melody_notes
         bass = pretty_midi.Instrument(program=33)

@@ -100,7 +100,7 @@ def test_preprocess_bach(bach_ds):
 def test_breeze_preprocessing_4bars(breeze_ds):
     init("4bar")
     df = preprocess_data(breeze_ds)
-    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config().SAMPLES_PER_BAR, 89)
+    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config.SAMPLES_PER_BAR, 89)
 
 
 def test_mapleaf_4bars(mapleleaf_ds):
@@ -117,7 +117,7 @@ def test_mapleaf_4bars(mapleleaf_ds):
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix)
     assert pm_cmp(r.midi, r._roll_to_midi(df.roll[0].song.old_pm))
-    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config().SAMPLES_PER_BAR, 89)
+    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config.SAMPLES_PER_BAR, 89)
 
 
 def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
@@ -132,7 +132,7 @@ def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
     r20 = GuoRoll(df.roll[20].matrix)
     assert pm_cmp(r0.midi, r0._roll_to_midi(df.roll[0].song.old_pm))
     assert pm_cmp(r20.midi, r20._roll_to_midi(df.roll[20].song.old_pm))
-    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config().SAMPLES_PER_BAR, 89)
+    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config.SAMPLES_PER_BAR, 89)
 
 
 def test_midis_from_df_4bars(sonata15_mapleleaf_ds):

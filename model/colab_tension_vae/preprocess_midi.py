@@ -41,10 +41,10 @@ def find_active_range(rolls, down_beat_indices, continued=False):
     Keep only bars with notes. Discard bars of rest
     """
     if down_beat_indices[1] - down_beat_indices[0] == 8:
-        interval = config().SEGMENT_BAR_LENGTH * 2
+        interval = config.SEGMENT_BAR_LENGTH * 2
         SAMPLES_PER_BAR = 8
     elif down_beat_indices[1] - down_beat_indices[0] == 16:
-        interval = config().SEGMENT_BAR_LENGTH
+        interval = config.SEGMENT_BAR_LENGTH
         SAMPLES_PER_BAR = 16
     else:
         return None
@@ -60,7 +60,7 @@ def find_active_range(rolls, down_beat_indices, continued=False):
     two_track_filled_bar = np.count_nonzero(track_filled[:2, :], axis=0) == 2
     filled_indices = []
 
-    for i in range(0, len(two_track_filled_bar) - interval + 1, config().SLIDING_WINDOW):
+    for i in range(0, len(two_track_filled_bar) - interval + 1, config.SLIDING_WINDOW):
         if continued or np.sum(two_track_filled_bar[i:i + interval]) == interval:
             filled_indices.append((i, i + interval))
 
@@ -129,14 +129,14 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
     for start, end in filled_indices:
         start_index = down_beat_indices[start]
         if end == len(down_beat_indices):
-            if roll_concat[start_index:, :].shape[0] < (config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH):
+            if roll_concat[start_index:, :].shape[0] < (config.SAMPLES_PER_BAR * config.SEGMENT_BAR_LENGTH):
                 fill_num = \
-                    config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH - roll_concat[start_index:, :].shape[0]
+                    config.SAMPLES_PER_BAR * config.SEGMENT_BAR_LENGTH - roll_concat[start_index:, :].shape[0]
                 fill_roll = np.vstack([roll_concat[start_index:, :], np.zeros((fill_num, 89))])
             else:
                 fill_roll = \
-                    roll_concat[start_index:start_index + config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH]
-            if fill_roll.shape[0] == (config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH):
+                    roll_concat[start_index:start_index + config.SAMPLES_PER_BAR * config.SEGMENT_BAR_LENGTH]
+            if fill_roll.shape[0] == (config.SAMPLES_PER_BAR * config.SEGMENT_BAR_LENGTH):
                 rolls.append(fill_roll)
             else:
                 print('skip last bars')
@@ -145,7 +145,7 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
             end_index = down_beat_indices[end]
             # select 4 bars
             if roll_concat[start_index:end_index, :].shape[0] \
-                    == (config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH):
+                    == (config.SAMPLES_PER_BAR * config.SEGMENT_BAR_LENGTH):
                 rolls.append(roll_concat[start_index:end_index, :])
             else:
                 print('skip')
@@ -250,7 +250,7 @@ def preprocess_midi(midi_file, continued=True):
         print('track number < 2, skip')
         return
 
-    sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(config().SAMPLES_PER_BAR / 4))
+    sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(config.SAMPLES_PER_BAR / 4))
     # TODO implementar un assert: np.diff(down_beat_indices).min == np.diff(down_beat_indices).max
     # sixteenth_time: marca los instantes de tiempo en donde empieza una semicorchea
     # down_beat_indices: indica los índices de las notas del pm donde empieza cada compás
@@ -318,11 +318,11 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
             first_4_bar = 0 if j == 0 else 1
             direction = 1 if j == 0 else -1
             direction = -1 * direction if first_up is False else direction
-            start_time_step = 128 * i + config().time_step * first_4_bar
+            start_time_step = 128 * i + config.time_step * first_4_bar
             print(f'number_of_iteration is {i}')
             # print(f'start_time_step is {start_time_step}')
             # print(f'j is {j}')
-            input_roll = np.expand_dims(pianoroll[start_time_step:start_time_step + config().time_step, :], 0)
+            input_roll = np.expand_dims(pianoroll[start_time_step:start_time_step + config.time_step, :], 0)
             # print(f'input shape is {input_roll.shape}')
             z = model.layers[1].predict(input_roll)
             curr_factor = direction * (np.random.uniform(-1, 1) + factor)

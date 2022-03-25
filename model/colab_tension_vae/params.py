@@ -48,25 +48,3 @@ def init(_config_name="8bar"):
 
     config_name = _config_name
     config = configs[_config_name]
-
-
-# init()
-
-"""
-
-
-# noinspection PyGlobalUndefined
-def init(config_name="8bar"):
-    global configs
-    global _config
-    configs = {
-        '4bar': VAEConfigBase(4),
-        '8bar': VAEConfigBase(8),
-    }
-
-    _config = configs[config_name]
-
-
-def config():
-    return _config
-    """
