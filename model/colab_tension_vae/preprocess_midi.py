@@ -1,10 +1,9 @@
-import os
 import pickle
 
 import numpy as np
 import pretty_midi
 
-from model.colab_tension_vae.params import *
+from model.colab_tension_vae.params import config
 from utils.files_utils import project_path
 
 tension_vae_dir = project_path + "/model/colab_tension_vae/"
@@ -42,10 +41,10 @@ def find_active_range(rolls, down_beat_indices, continued=False):
     Keep only bars with notes. Discard bars of rest
     """
     if down_beat_indices[1] - down_beat_indices[0] == 8:
-        interval = SEGMENT_BAR_LENGTH * 2
+        interval = config().SEGMENT_BAR_LENGTH * 2
         SAMPLES_PER_BAR = 8
     elif down_beat_indices[1] - down_beat_indices[0] == 16:
-        interval = SEGMENT_BAR_LENGTH
+        interval = config().SEGMENT_BAR_LENGTH
         SAMPLES_PER_BAR = 16
     else:
         return None
@@ -61,7 +60,7 @@ def find_active_range(rolls, down_beat_indices, continued=False):
     two_track_filled_bar = np.count_nonzero(track_filled[:2, :], axis=0) == 2
     filled_indices = []
 
-    for i in range(0, len(two_track_filled_bar) - interval + 1, SLIDING_WINDOW):
+    for i in range(0, len(two_track_filled_bar) - interval + 1, config().SLIDING_WINDOW):
         if continued or np.sum(two_track_filled_bar[i:i + interval]) == interval:
             filled_indices.append((i, i + interval))
 
@@ -130,12 +129,14 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
     for start, end in filled_indices:
         start_index = down_beat_indices[start]
         if end == len(down_beat_indices):
-            if roll_concat[start_index:, :].shape[0] < (SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH):
-                fill_num = SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH - roll_concat[start_index:, :].shape[0]
+            if roll_concat[start_index:, :].shape[0] < (config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH):
+                fill_num = \
+                    config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH - roll_concat[start_index:, :].shape[0]
                 fill_roll = np.vstack([roll_concat[start_index:, :], np.zeros((fill_num, 89))])
             else:
-                fill_roll = roll_concat[start_index:start_index + SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH]
-            if fill_roll.shape[0] == (SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH):
+                fill_roll = \
+                    roll_concat[start_index:start_index + config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH]
+            if fill_roll.shape[0] == (config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH):
                 rolls.append(fill_roll)
             else:
                 print('skip last bars')
@@ -143,7 +144,8 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
         else:
             end_index = down_beat_indices[end]
             # select 4 bars
-            if roll_concat[start_index:end_index, :].shape[0] == (SAMPLES_PER_BAR * SEGMENT_BAR_LENGTH):
+            if roll_concat[start_index:end_index, :].shape[0] \
+                    == (config().SAMPLES_PER_BAR * config().SEGMENT_BAR_LENGTH):
                 rolls.append(roll_concat[start_index:end_index, :])
             else:
                 print('skip')
@@ -152,6 +154,7 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
     return rolls, bars_skipped
 
 
+# noinspection PySimplifyBooleanCheck
 def get_roll_with_continue(track_num, track, times):
     if track.notes == []:
         return np.array([[]] * 128)  # 128 = cantidad de notas distintas de un midi
@@ -191,7 +194,8 @@ def get_roll_with_continue(track_num, track, times):
             # melody track, ensure single melody line
             if previous_start_step > time_step_start:
                 continue
-            if previous_end_step == time_step_stop and previous_start_step == time_step_start:  # si la nota se toca al mismo tiempo que la anterior y tienen la misma duración
+            if previous_end_step == time_step_stop and previous_start_step == time_step_start:
+                # si la nota se toca al mismo tiempo que la anterior y tienen la misma duración
                 continue
             piano_roll[note.pitch, time_step_start] = 1
             piano_roll[note.pitch, time_step_start + 1:time_step_stop] = 2
@@ -226,6 +230,7 @@ def get_piano_roll(pm, sample_times):
     """
 
     :param pm: pretty midi piano roll with at least 3 tracks
+    :param sample_times:
     :return: three piano rolls
     melody mono
     bass mono
@@ -245,7 +250,7 @@ def preprocess_midi(midi_file, continued=True):
         print('track number < 2, skip')
         return
 
-    sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(SAMPLES_PER_BAR / 4))
+    sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(config().SAMPLES_PER_BAR / 4))
     # TODO implementar un assert: np.diff(down_beat_indices).min == np.diff(down_beat_indices).max
     # sixteenth_time: marca los instantes de tiempo en donde empieza una semicorchea
     # down_beat_indices: indica los índices de las notas del pm donde empieza cada compás
@@ -313,11 +318,11 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
             first_4_bar = 0 if j == 0 else 1
             direction = 1 if j == 0 else -1
             direction = -1 * direction if first_up is False else direction
-            start_time_step = 128 * i + time_step * first_4_bar
+            start_time_step = 128 * i + config().time_step * first_4_bar
             print(f'number_of_iteration is {i}')
             # print(f'start_time_step is {start_time_step}')
             # print(f'j is {j}')
-            input_roll = np.expand_dims(pianoroll[start_time_step:start_time_step + time_step, :], 0)
+            input_roll = np.expand_dims(pianoroll[start_time_step:start_time_step + config().time_step, :], 0)
             # print(f'input shape is {input_roll.shape}')
             z = model.layers[1].predict(input_roll)
             curr_factor = direction * (np.random.uniform(-1, 1) + factor)
@@ -343,7 +348,7 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
             # print(f'diameter shape is {diameter.shape}')
             # print('\n')
 
-    start_time_step = 128 * (i + 1)
+    start_time_step = 128 * (number_of_iteration + 1)
     result_roll = np.vstack([result_roll, pianoroll[start_time_step:, :]])
 
     return result_roll, tensile_strain, diameter

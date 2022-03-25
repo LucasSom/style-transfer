@@ -5,6 +5,10 @@ from typing import List
 from data_statistics import SongStatistics
 
 
+# noinspection PyShadowingNames
+from model.colab_tension_vae.params import init
+
+
 def show_stats(files: List):
     for file in files:
         print("======================")
@@ -19,6 +23,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("No path passed to evaluate")
     else:
+        init()
         params = sys.argv[1:]
         for p in params:
             if os.path.isdir(p):

@@ -26,7 +26,6 @@ lily_conv = m21.converter.subConverters.ConverterLilypond()
 # current_df = load_pickle('df_head')
 current_df = preprocess_data()
 
-
 from IPython.display import display
 
 canciones_a_imprimir = filter_column(current_df, 'roll')
@@ -47,6 +46,5 @@ for nombre, score in scores.items():
         print(i)
         lily = lily_conv.write(s, fp=nombre, fmt='lilypond', subformats=['png'])
         display(Image(str(lily)))
-
 
 print("Finished")

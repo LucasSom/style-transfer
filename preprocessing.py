@@ -7,7 +7,7 @@ import dfply
 import pandas as pd
 
 from model.colab_tension_vae import util
-from model.colab_tension_vae.params import configs
+from model.colab_tension_vae.params import config, init
 from utils.files_utils import data_path, load_pickle, save_pickle
 from roll.song import Song
 
@@ -17,14 +17,14 @@ def df_roll_to_pm(matrices, pms):
     return [util.roll_to_pretty_midi(m, pm) for m, pm in zip(matrices, pms)]
 
 
-def preprocess_data(songs: Dict[str, List[str]], compases) -> pd.DataFrame:
+def preprocess_data(songs_dict: Dict[str, List[str]]) -> pd.DataFrame:
     data = [{'Autor': key,
              'Titulo': os.path.basename(path),
              'roll': roll,
              }
-            for key, paths in songs.items()
+            for key, paths in songs_dict.items()
             for path in paths
-            for roll in Song(midi_file=path, nombre=os.path.basename(path), compases=compases).rolls
+            for roll in Song(midi_file=path, nombre=os.path.basename(path)).rolls
             ]
 
     return pd.DataFrame(data)
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     else:
         file_name = None
         verbose = False
-        config = configs["4bar"]
+        config_name = "8bar"
 
         for o, arg in opts:
             if o == "-v":
@@ -61,20 +61,21 @@ if __name__ == "__main__":
                 usage()
                 sys.exit()
             elif o in ["-c", "--config"]:
-                config = configs[arg]
+                config_name = arg
             elif o in ["-d", "--datapath"]:
                 data_path = arg
             elif o in ("-f", "--file"):
                 file_name = arg
+        init(config_name)
 
         if file_name is None:
             file_name = "prep"
-            print(f"Using default output file name, ie, {file_name}-{config.bars}")
+            print(f"Using default output file name, ie, {file_name}-{config().bars}")
 
-        songs = {folder: [song for song in os.listdir(data_path+folder)] for folder in args }
+        songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
         try:
-            df = load_pickle(name=f"{file_name}-{config.bars}", path=data_path)
+            df = load_pickle(name=f"{file_name}-{config().bars}", path=data_path)
         except:
-            df = preprocess_data(songs, config.bars)
-            save_pickle(df, name=f"{file_name}-{config.bars}", path=data_path)
+            df = preprocess_data(songs)
+            save_pickle(df, name=f"{file_name}-{config().bars}", path=data_path)

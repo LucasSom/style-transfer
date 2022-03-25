@@ -59,6 +59,7 @@ def obtain_characteristics(df):
 
     # save_pickle(df_emb_car, 'df_emb_car')
 
+    # noinspection PyShadowingNames
     def limpiar_columnas(df):
         columnas_nan = set()
         for c in df.columns:

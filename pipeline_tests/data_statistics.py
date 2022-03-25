@@ -27,7 +27,6 @@ class SongStatistics:
 
         self.compases_salteados = bars_skipped
 
-
     def print_stats(self):
         print("Cambios de compás: ", self.cambios_de_compas)
         print("Tempo estimado (en bpm): ", self.tempo_estimado)

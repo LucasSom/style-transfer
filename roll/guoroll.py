@@ -2,7 +2,8 @@ import music21 as m21
 import numpy as np
 from IPython.core.display import display, Image
 
-from model.colab_tension_vae import util, params as guo_params
+from model.colab_tension_vae import util
+from model.colab_tension_vae.params import config
 
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
@@ -12,20 +13,23 @@ class GuoRoll:
     Class that represent a fragment of $n$ bars (8 as default, 4 in Guo's work) with attributes:
 
     - `matrix`: matrix of $16*bars 89$
-    - `bars`: number of bars per fragment (es el mismo para todo el dataset, con lo cual, podría eliminarse la redundancia en un trabajo futuro)
-    - `song`: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding (en un trabajo futuro podría cambiárselo por un singleton).
+    - `bars`: number of bars per fragment (es el mismo para todo el dataset, con lo cual,
+    podría eliminarse la redundancia en un trabajo futuro)
+    - `song`: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
+    (en un trabajo futuro podría cambiárselo por un singleton).
     - `score`: score obtained from the matrix
     - `midi`: Pretty MIDI obtained from the matrix
 
     """
 
-    def __init__(self, matrix, song=None, bars=8):
+    def __init__(self, matrix, song=None):
         """
         :param matrix: matrix of `16*bars x 89` with n= la cantidad de compases
-        :param song: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding (en un trabajo futuro podría cambiárselo por un singleton).
-        :param bars: number of bars per fragment (es el mismo para todo el dataset, con lo cual, podría eliminarse la redundancia en un trabajo futuro)
+        :param song: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
+        (en un trabajo futuro podría cambiárselo por un singleton).
+        (es el mismo para todo el dataset, con lo cual, podría eliminarse la redundancia en un trabajo futuro)
         """
-        self.bars = bars
+        self.bars = config().bars
         self.matrix = matrix
         self.song = song
         self.score = self._roll_to_score()
@@ -69,11 +73,11 @@ class GuoRoll:
                 t = t2
             return n_part
 
-        high_part = instrument_roll_to_part(self.matrix.T[guo_params.melody_dim],
-                                            self.matrix.T[:guo_params.melody_dim, :], 24)
+        high_part = instrument_roll_to_part(self.matrix.T[config().melody_dim],
+                                            self.matrix.T[:config().melody_dim, :], 24)
         low_part = instrument_roll_to_part(self.matrix.T[-1, :],
-                                           self.matrix.T[
-                                           guo_params.melody_dim + 1: guo_params.melody_dim + 1 + guo_params.bass_dim,
+                                           self.matrix.T[config().melody_dim + 1:
+                                                         config().melody_dim + 1 + config().bass_dim,
                                            :], 48)
         low_part.insert(0, m21.clef.BassClef())
 

@@ -19,8 +19,8 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
     return [i0, i1, i2, i3]
 
 
-def train_new_model(df: pd.DataFrame, model_name: str, config: str, final_epoch: int, ckpt: int = 50):
-    vae = build_model.build_model(config)
+def train_new_model(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50):
+    vae = build_model.build_model()
 
     return train(vae, df, model_name, 0, final_epoch, ckpt)
 
@@ -35,15 +35,19 @@ def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt:
     return train(vae, df, model_name, initial_epoch, final_epoch + initial_epoch, ckpt)
 
 
-def train_model(df: Union[pd.DataFrame, str], model_name: str, config: str, new_training: bool, final_epoch: int, ckpt: int = 50):
+def train_model(df: Union[pd.DataFrame, str],
+                model_name: str,
+                new_training: bool,
+                final_epoch: int,
+                ckpt=50):
     if isinstance(df, str):
         df = load_pickle(name=df, path=data_path + "preprocessed_data/")
-        
+
     if not os.path.isdir(data_path + f"saved_models/{model_name}"):
         os.makedirs(data_path + f"saved_models/{model_name}")
 
     if new_training:
-        return train_new_model(df=df, model_name=model_name, config=config, final_epoch=final_epoch, ckpt=ckpt)
+        return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt)
     else:
         return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt)
 
@@ -90,7 +94,8 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt):
             prev_callbacks = pd.read_csv(callbacks_path)
         else:
             prev_callbacks = pd.DataFrame()
-            with open(callbacks_path, 'w'): pass
+            with open(callbacks_path, 'w'):
+                pass
 
         new_callbacks = pd.concat([prev_callbacks, callbacks_df])
         new_callbacks.to_csv(callbacks_path)

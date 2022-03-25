@@ -23,6 +23,7 @@ def PlayMidi(midi_path, wav_path=None):
 # PlayMidi('/tmp/music21/tmp83sbvwxi.mid')
 
 # midis = list(zip(df['Titulo'], df['midi'], df['oldPM']))
+# noinspection PyShadowingBuiltins
 def save_audios(midis: List, path='./Evaluación/files/'):
     """
     Generate mp3 from midis. Example of midis parameter:
@@ -52,6 +53,7 @@ def save_audios(midis: List, path='./Evaluación/files/'):
         os.system(f"{fluidsynth_command} {file_name}_original.mid | {ffmpeg_command} {file_name}_original.mp3")
 
 
+# noinspection PyShadowingBuiltins
 def display_audios(midis, path='Evaluación/files/'):
     for nombre, id, _, _ in midis:
         audio_orig = PlayMidi(path + f'{nombre}_{id}_original.mid')
