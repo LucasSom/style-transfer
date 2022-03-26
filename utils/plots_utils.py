@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn.manifold import TSNE
 
-from model.colab_tension_vae.params import config
+import model.colab_tension_vae.params as params
 from utils.files_utils import data_path
 
 
@@ -15,7 +15,7 @@ def plot_metric(callbacks, epoca_final, metric: str):
         if metric in k:
             plt.plot(v, label=k)
     plt.legend()
-    plt.savefig(data_path + f'logs/{config.time_step / 16}bars_{epoca_final}epochs_{metric}.png')
+    plt.savefig(data_path + f'logs/{params.config.time_step / 16}bars_{epoca_final}epochs_{metric}.png')
 
 
 def plot_train(callbacks, epoca_final):

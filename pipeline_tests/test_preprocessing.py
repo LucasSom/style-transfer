@@ -1,6 +1,6 @@
 import os
 
-from model.colab_tension_vae.params import init, config
+import model.colab_tension_vae.params as params
 from utils.debug_utils import pm_cmp
 from display_audio import save_audios
 from utils.files_utils import save_pickle, load_pickle, data_path
@@ -32,7 +32,7 @@ def breeze_ds():
 
 
 def test_breeze_preprocessing(breeze_ds):
-    init("8bar")
+    params.init()
     df = preprocess_data(breeze_ds)
     assert True
 
@@ -42,7 +42,7 @@ def test_not_cached(sonata15_mapleleaf_ds):
 
 
 def test_mapleaf(mapleleaf_ds):
-    init("8bar")
+    params.init("8bar")
     try:
         df = load_pickle(name="mapleleaf_ds-8", path="../data/preprocessed_data/")
     except:
@@ -58,7 +58,7 @@ def test_mapleaf(mapleleaf_ds):
 
 
 def test_preprocess_data(sonata15_mapleleaf_ds):
-    init("8bar")
+    params.init("8bar")
     try:
         df = load_pickle(name="sonata15_mapleleaf_ds-8", path="../data/preprocessed_data/")
     except:
@@ -77,7 +77,7 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
 
 
 def test_midis_from_df(sonata15_mapleleaf_ds):
-    init("8bar")
+    params.init("8bar")
     try:
         df = load_pickle(name="sonata15_mapleleaf_ds-8", path="../data/preprocessed_data/")
     except:
@@ -92,19 +92,19 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
 
 
 def test_preprocess_bach(bach_ds):
-    init("8bar")
+    params.init("8bar")
     df = preprocess_data(bach_ds)
     assert True
 
 
 def test_breeze_preprocessing_4bars(breeze_ds):
-    init("4bar")
+    params.init("8bar")
     df = preprocess_data(breeze_ds)
-    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config.SAMPLES_PER_BAR, 89)
+    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
 
 
 def test_mapleaf_4bars(mapleleaf_ds):
-    init("4bar")
+    params.init("4bar")
     try:
         df = load_pickle(name="mapleleaf_ds-4", path="../data/preprocessed_data/")
     except:
@@ -113,15 +113,15 @@ def test_mapleaf_4bars(mapleleaf_ds):
 
     roll = df["roll"][0]
     save_audios([(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug_outputs/audios/")
-    assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
+    assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17 * 2
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix)
     assert pm_cmp(r.midi, r._roll_to_midi(df.roll[0].song.old_pm))
-    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config.SAMPLES_PER_BAR, 89)
+    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
 
 
 def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
-    init("4bar")
+    params.init("4bar")
     try:
         df = load_pickle(name="sonata15_mapleleaf_ds-4", path="../data/preprocessed_data/")
     except:
@@ -132,11 +132,11 @@ def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
     r20 = GuoRoll(df.roll[20].matrix)
     assert pm_cmp(r0.midi, r0._roll_to_midi(df.roll[0].song.old_pm))
     assert pm_cmp(r20.midi, r20._roll_to_midi(df.roll[20].song.old_pm))
-    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * config.SAMPLES_PER_BAR, 89)
+    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
 
 
 def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
-    init("4bar")
+    params.init("4bar")
     try:
         df = load_pickle(name="sonata15_mapleleaf_ds-4", path="../data/preprocessed_data/")
     except:
@@ -151,6 +151,6 @@ def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
 
 
 def test_preprocess_bach_4bars(bach_ds):
-    init("4bar")
+    params.init("4bar")
     df = preprocess_data(bach_ds)
     assert True

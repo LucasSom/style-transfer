@@ -3,7 +3,7 @@ import numpy as np
 from IPython.core.display import display, Image
 
 from model.colab_tension_vae import util
-from model.colab_tension_vae.params import config
+import model.colab_tension_vae.params as params
 
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
@@ -29,7 +29,7 @@ class GuoRoll:
         (en un trabajo futuro podría cambiárselo por un singleton).
         (es el mismo para todo el dataset, con lo cual, podría eliminarse la redundancia en un trabajo futuro)
         """
-        self.bars = config.bars
+        self.bars = params.config.bars
         self.matrix = matrix
         self.song = song
         self.score = self._roll_to_score()
@@ -73,11 +73,11 @@ class GuoRoll:
                 t = t2
             return n_part
 
-        high_part = instrument_roll_to_part(self.matrix.T[config.melody_dim],
-                                            self.matrix.T[:config.melody_dim, :], 24)
+        high_part = instrument_roll_to_part(self.matrix.T[params.config.melody_dim],
+                                            self.matrix.T[:params.config.melody_dim, :], 24)
         low_part = instrument_roll_to_part(self.matrix.T[-1, :],
-                                           self.matrix.T[config.melody_dim + 1:
-                                                         config.melody_dim + 1 + config.bass_dim,
+                                           self.matrix.T[params.config.melody_dim + 1:
+                                                         params.config.melody_dim + 1 + params.config.bass_dim,
                                            :], 48)
         low_part.insert(0, m21.clef.BassClef())
 

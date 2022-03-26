@@ -7,7 +7,7 @@ import dfply
 import pandas as pd
 
 from model.colab_tension_vae import util
-from model.colab_tension_vae.params import config, init
+import model.colab_tension_vae.params as params
 from utils.files_utils import data_path, load_pickle, save_pickle
 from roll.song import Song
 
@@ -66,16 +66,16 @@ if __name__ == "__main__":
                 data_path = arg
             elif o in ("-f", "--file"):
                 file_name = arg
-        init(config_name)
+        params.init(config_name)
 
         if file_name is None:
             file_name = "prep"
-            print(f"Using default output file name, ie, {file_name}-{config.bars}")
+            print(f"Using default output file name, ie, {file_name}-{params.config.bars}")
 
         songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
         try:
-            df = load_pickle(name=f"{file_name}-{config.bars}", path=data_path)
+            df = load_pickle(name=f"{file_name}-{params.config.bars}", path=data_path)
         except:
             df = preprocess_data(songs)
-            save_pickle(df, name=f"{file_name}-{config.bars}", path=data_path)
+            save_pickle(df, name=f"{file_name}-{params.config.bars}", path=data_path)

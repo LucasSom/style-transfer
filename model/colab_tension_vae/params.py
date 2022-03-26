@@ -47,4 +47,4 @@ def init(_config_name="8bar"):
     }
 
     config_name = _config_name
-    config = configs[_config_name]
+    config = configs[config_name]

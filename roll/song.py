@@ -1,4 +1,4 @@
-from model.colab_tension_vae.params import config
+import model.colab_tension_vae.params as params
 from model.colab_tension_vae.preprocess_midi import preprocess_midi_wrapper
 from roll.guoroll import GuoRoll
 
@@ -6,7 +6,7 @@ from roll.guoroll import GuoRoll
 class Song:
     def __init__(self, midi_file: str, nombre: str, pulso="negra", granularity="semicorchea"):
         self.nombre = nombre
-        self.compases = config.bars
+        self.compases = params.config.bars
         self.pulso = pulso
         self.granularity = granularity
 
