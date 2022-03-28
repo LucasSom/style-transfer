@@ -8,6 +8,7 @@ from IPython.core.display import Image
 from IPython.display import Audio, display
 
 from roll.guoroll import lily_conv
+from utils.files_utils import data_path
 
 
 def PlayMidi(midi_path, wav_path=None):
@@ -24,7 +25,7 @@ def PlayMidi(midi_path, wav_path=None):
 
 # midis = list(zip(df['Titulo'], df['midi'], df['oldPM']))
 # noinspection PyShadowingBuiltins
-def save_audios(midis: List, path='./Evaluación/files/'):
+def save_audios(midis: List, path=data_path + 'Evaluación/files/'):
     """
     Generate mp3 from midis. Example of midis parameter:
 
@@ -36,6 +37,9 @@ def save_audios(midis: List, path='./Evaluación/files/'):
         * oldPM: pretty midi of the original song
     :param path: where to save files
     """
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
     ids = Counter()
     for i, (nombre, pm, pm_original) in enumerate(midis):
         ids['nombre'] += 1
@@ -54,7 +58,7 @@ def save_audios(midis: List, path='./Evaluación/files/'):
 
 
 # noinspection PyShadowingBuiltins
-def display_audios(midis, path='Evaluación/files/'):
+def display_audios(midis, path=data_path + 'Evaluación/files/'):
     for nombre, id, _, _ in midis:
         audio_orig = PlayMidi(path + f'{nombre}_{id}_original.mid')
         audio = PlayMidi(path + f'{nombre}_{id}.mid')

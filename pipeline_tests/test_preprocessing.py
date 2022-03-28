@@ -2,7 +2,7 @@ import os
 
 import model.colab_tension_vae.params as params
 from utils.debug_utils import pm_cmp
-from display_audio import save_audios
+from utils.display_audio import save_audios
 from utils.files_utils import save_pickle, load_pickle, data_path
 from preprocessing import preprocess_data
 import pytest
