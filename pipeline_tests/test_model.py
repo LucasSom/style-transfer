@@ -11,7 +11,7 @@ cols = ['decoder_loss', 'decoder_1_loss', 'decoder_2_loss', 'decoder_3_loss', 'l
 
 @pytest.fixture
 def sonata15_mapleleaf_prep_8():
-    return load_pickle(name="sonata15_mapleleaf_ds", path="../data/preprocessed_data/")
+    return load_pickle(name="sonata15_mapleleaf_ds-8", path="../data/preprocessed_data/")
 
 
 @pytest.fixture
