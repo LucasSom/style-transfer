@@ -22,7 +22,7 @@ class GuoRoll:
 
     """
 
-    def __init__(self, matrix, song=None):
+    def __init__(self, matrix, song=None, verbose=False):
         """
         :param matrix: matrix of `16*bars x 89` with n= la cantidad de compases
         :param song: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
@@ -32,19 +32,19 @@ class GuoRoll:
         self.bars = params.config.bars
         self.matrix = matrix
         self.song = song
-        self.score = self._roll_to_score()
+        self.score = self._roll_to_score(verbose=verbose)
 
         if song is None:
-            self.midi = self._roll_to_midi(None)
+            self.midi = self._roll_to_midi(None, verbose=verbose)
         else:
-            self.midi = self._roll_to_midi(song.old_pm)
-        print(self.midi)
+            self.midi = self._roll_to_midi(song.old_pm, verbose=verbose)
+        if verbose: print(self.midi)
 
-    def _roll_to_midi(self, old_pm=None):
-        return util.roll_to_pretty_midi(self.matrix, old_pm)
+    def _roll_to_midi(self, old_pm=None, verbose=False):
+        return util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose)
 
-    def _roll_to_score(self):
-        def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24):
+    def _roll_to_score(self, verbose=False):
+        def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24, verbose=False):
             n_part = m21.stream.Part()
 
             t = 0
@@ -69,16 +69,16 @@ class GuoRoll:
                     r = m21.note.Rest(duration=m21.duration.Duration(quarterLength=dur / 4))
                     r.offset = t / 4
                     n_part.append(r)
-                    print(r.duration)
+                    if verbose: print(r.duration)
                 t = t2
             return n_part
 
         high_part = instrument_roll_to_part(self.matrix.T[params.config.melody_dim],
-                                            self.matrix.T[:params.config.melody_dim, :], 24)
+                                            self.matrix.T[:params.config.melody_dim, :], 24, verbose)
         low_part = instrument_roll_to_part(self.matrix.T[-1, :],
                                            self.matrix.T[params.config.melody_dim + 1:
                                                          params.config.melody_dim + 1 + params.config.bass_dim,
-                                           :], 48)
+                                           :], 48, verbose)
         low_part.insert(0, m21.clef.BassClef())
 
         full_score = m21.stream.Score([high_part, low_part])

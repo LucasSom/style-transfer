@@ -9,8 +9,8 @@ import model.colab_tension_vae.params as params
 from utils.files_utils import data_path
 
 
-def plot_metric(callbacks, epoca_final, metric: str):
-    plt.figure(figsize=(10, 10))
+def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
+    plt.figure(figsize=figsize)
     for k, v in callbacks.items():
         if metric in k:
             plt.plot(v, label=k)
@@ -18,9 +18,9 @@ def plot_metric(callbacks, epoca_final, metric: str):
     plt.savefig(data_path + f'logs/{params.config.time_step / 16}bars_{epoca_final}epochs_{metric}.png')
 
 
-def plot_train(callbacks, epoca_final):
-    plot_metric(callbacks, epoca_final, 'loss')
-    plot_metric(callbacks, epoca_final, 'accuracy')
+def plot_train(callbacks, epoca_final, figsize=(20, 10)):
+    plot_metric(callbacks, epoca_final, 'loss', figsize)
+    plot_metric(callbacks, epoca_final, 'accuracy', figsize)
 
 
 def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2):

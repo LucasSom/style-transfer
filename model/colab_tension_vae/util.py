@@ -34,7 +34,7 @@ def result_sampling(rolls):
     return np.array(new_rolls)
 
 
-def roll_to_pretty_midi(rolls, pm_old):
+def roll_to_pretty_midi(rolls, pm_old, verbose=False):
     melody_notes = []
     bass_notes = []
     step_time = 60 / params.config.TEMPO / 4
@@ -107,7 +107,7 @@ def roll_to_pretty_midi(rolls, pm_old):
                     previous_b_pitch = bass_pitch
 
     if pm_old is not None:
-        print(pm_old)
+        if verbose: print(pm_old)
         pm_new = copy.deepcopy(pm_old)
         pm_new.instruments[0].notes = melody_notes
         pm_new.instruments[1].notes = bass_notes

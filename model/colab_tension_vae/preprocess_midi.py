@@ -123,7 +123,7 @@ def stack_data(rolls):
     return concatenated_roll.transpose()
 
 
-def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
+def prepare_one_x(roll_concat, filled_indices, down_beat_indices, verbose=False):
     rolls = []
     bars_skipped = []
     for start, end in filled_indices:
@@ -139,7 +139,7 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
             if fill_roll.shape[0] == (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH):
                 rolls.append(fill_roll)
             else:
-                print('skip last bars')
+                if verbose: print('skip last bars')
                 bars_skipped.append(fill_roll)
         else:
             end_index = down_beat_indices[end]
@@ -148,7 +148,7 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices):
                     == (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH):
                 rolls.append(roll_concat[start_index:end_index, :])
             else:
-                print('skip')
+                if verbose: print('skip')
                 bars_skipped.append(roll_concat[start_index:end_index, :])
 
     return rolls, bars_skipped
@@ -243,11 +243,11 @@ def get_piano_roll(pm, sample_times):
 
 
 # TODO: Acá debería cambiarse todo por "matrix". Checkear con March (depende del nombre definitivo de la clase Roll)
-def preprocess_midi(midi_file, continued=True):
+def preprocess_midi(midi_file, continued=True, verbose=False):
     pm = pretty_midi.PrettyMIDI(midi_file)
 
     if len(pm.instruments) < 2:
-        print('track number < 2, skip')
+        if verbose: print('track number < 2, skip')
         return
 
     sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(params.config.SAMPLES_PER_BAR / 4))
@@ -276,14 +276,14 @@ def preprocess_midi(midi_file, continued=True):
     # Sin tuneo tiene tamaño 7. Con tuneo, 1
 
     if filled_indices is None:
-        print('not enough data for melody and bass track')
+        if verbose: print('not enough data for melody and bass track')
         return None
     else:
-        print("Tamaño de filled_indices:", len(filled_indices))
+        if verbose: print("Tamaño de filled_indices:", len(filled_indices))
 
     roll_concat = stack_data([melody_roll, bass_roll])
 
-    x, bars_skipped = prepare_one_x(roll_concat, filled_indices, down_beat_indices)
+    x, bars_skipped = prepare_one_x(roll_concat, filled_indices, down_beat_indices, verbose=verbose)
     x = np.array(x)
     return x, filled_indices, pm, bars_skipped
     # Sin tuneo: x es un ndarray de shape 7x64x89
@@ -358,8 +358,8 @@ if __name__ == '__main__':
     preprocess_midi('../../data/Mozart/sonata15-1-debug.mid')
 
 
-def preprocess_midi_wrapper(path):
-    pm = preprocess_midi(path)
+def preprocess_midi_wrapper(path, verbose=False):
+    pm = preprocess_midi(path, verbose=verbose)
     # print(pm)
     if pm is None:
         print(f'DEBUG: {path} preprocessing returns None')
