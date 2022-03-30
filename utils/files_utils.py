@@ -3,7 +3,8 @@ import pickle
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
-path_saved_models = project_path + '/model/saved_models/'
+preprocessed_data_path = data_path + 'preprocessed_data/'
+path_saved_models = data_path + 'model/saved_models/'
 
 
 def datasets_name(ds):

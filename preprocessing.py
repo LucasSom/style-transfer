@@ -9,7 +9,7 @@ import pandas as pd
 import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from roll.song import Song
-from utils.files_utils import data_path, save_pickle
+from utils.files_utils import data_path, save_pickle, preprocessed_data_path
 
 
 @dfply.make_symbolic
@@ -71,9 +71,9 @@ if __name__ == "__main__":
 
         if file_name is None:
             file_name = "prep"
-            print(f"Using default output file name, ie, {file_name}-{params.config.bars}")
+            print(f"Using default output file name, ie, {preprocessed_data_path + file_name}-{params.config.bars}")
 
         songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
         df = preprocess_data(songs, verbose=verbose)
-        save_pickle(df, name=f"{file_name}-{params.config.bars}", path=data_path)
+        save_pickle(df, name=f"{file_name}-{params.config.bars}", path=preprocessed_data_path)

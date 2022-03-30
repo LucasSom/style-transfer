@@ -10,7 +10,7 @@ import pandas as pd
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path
 
 
 def get_targets(ds: np.ndarray) -> List[np.ndarray]:
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     params.init(config_name)
 
     if file_name is None:
-        file_name = input(f"Insert path of file with the preprocessed data from {data_path}: ")
+        file_name = input(f"Insert path of file with the preprocessed data from {preprocessed_data_path}: ")
     if model_name is None:
         model_name = file_name
         print(f"Using default model name, ie, file name: {file_name}-{params.config.bars}")
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
     try:
-        df_preprocessed = load_pickle(name=f"{file_name}-{params.config.bars}", path=data_path)
+        df_preprocessed = load_pickle(name=f"{file_name}", path=preprocessed_data_path)
     except getopt.GetoptError as err:
         print(err)
         print("The program experimented problems loading the preprocessed dataset. "
