@@ -108,7 +108,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
 
 def usage():
-    print(f'Usage: preprocessing.py -d --datapath <data path> (by default, {data_path})\n'
+    print(f'Usage: train.py -d --datapath <data path> (by default, {data_path})\n'
           "| -c --config <config name> (by default, '4bar')\n"
           '| -f --file <file name where to save or load the preprocessing inside of the data path>\n'
           '| -m --model <name of the model to train>\n'
@@ -121,7 +121,7 @@ def usage():
 
 if __name__ == "__main__":
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hd:c:f:m:nv:",
+        opts, args = getopt.getopt(sys.argv[1:], "hd:c:f:m:ne:k:v:",
                                    ["help",
                                     "datapath=",
                                     "config=",
