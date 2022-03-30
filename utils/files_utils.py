@@ -5,7 +5,7 @@ project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
 preprocessed_data_path = data_path + 'preprocessed_data/'
 path_saved_models = data_path + 'model/saved_models/'
-
+logs_path = data_path + 'logs/'
 
 def datasets_name(ds):
     composed_name = ""

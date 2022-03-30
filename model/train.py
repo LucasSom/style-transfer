@@ -10,7 +10,7 @@ import pandas as pd
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path, path_saved_models, logs_path
 
 
 def get_targets(ds: np.ndarray) -> List[np.ndarray]:
@@ -28,10 +28,10 @@ def train_new_model(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: i
 
 
 def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50, verbose=2):
-    vae = keras.models.load_model(data_path + f"saved_models/{model_name}/",
+    vae = keras.models.load_model(path_saved_models + model_name,
                                   custom_objects=dict(kl_beta=build_model.kl_beta))
 
-    with open(data_path + f"logs/{model_name}/initial_epoch", 'rt') as f:
+    with open(f"{logs_path + model_name}/initial_epoch", 'rt') as f:
         initial_epoch = int(f.read())
 
     return train(vae, df, model_name, initial_epoch, final_epoch + initial_epoch, ckpt, verbose)
@@ -44,10 +44,10 @@ def train_model(df: Union[pd.DataFrame, str],
                 ckpt=50,
                 verbose=2):
     if isinstance(df, str):
-        df = load_pickle(name=df, path=data_path + "preprocessed_data/")
+        df = load_pickle(name=df, path=preprocessed_data_path + data_path)
 
-    if not os.path.isdir(data_path + f"saved_models/{model_name}"):
-        os.makedirs(data_path + f"saved_models/{model_name}")
+    if not os.path.isdir(path_saved_models + model_name):
+        os.makedirs(path_saved_models + model_name)
 
     if new_training:
         return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
@@ -60,7 +60,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     ds = np.stack([r.matrix for r in df['roll']])
     targets = get_targets(ds)
 
-    log_dir = data_path + f"logs/{model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = f"{logs_path + model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     for i in range(initial_epoch, final_epoch + 1, ckpt):
@@ -74,7 +74,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
             callbacks=[tensorboard_callback]
         )
 
-        path_to_save = data_path + f"saved_models/{model_name}/"
+        path_to_save = f"{path_saved_models + model_name}/"
         if os.path.isdir(path_to_save):
             shutil.rmtree(path_to_save)
         else:
@@ -82,7 +82,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
         vae.save(path_to_save)
 
-        with open(data_path + f'logs/{model_name}/initial_epoch', 'w') as f:
+        with open(f'{logs_path + model_name}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
         print(f"Guardado hasta {i + ckpt}!!")
 
@@ -92,7 +92,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
         assert len(callbacks_history['epoch']) == len(callbacks_history['loss'])
         callbacks_df = pd.DataFrame(callbacks_history)
 
-        callbacks_path = data_path + f"logs/{model_name}_{initial_epoch}.csv"
+        callbacks_path = f"{logs_path + model_name}_{initial_epoch}.csv"
         if os.path.isfile(callbacks_path):
             prev_callbacks = pd.read_csv(callbacks_path)
         else:
@@ -186,7 +186,7 @@ if __name__ == "__main__":
               "Try writing a name of an existing file.")
         sys.exit(1)
 
-    vae = train_model(
+    train_model(
         df=df_preprocessed,
         model_name=model_name,
         new_training=new_training,
