@@ -158,9 +158,9 @@ if __name__ == "__main__":
         elif o in ("-n", "--new_training"):
             new_training = True
         elif o in ("-e", "--epochs"):
-            epochs = arg
+            epochs = int(arg)
         elif o in ("-k", "--checkpoints"):
-            checkpt = arg
+            checkpt = int(arg)
         elif o == "-v":
             verbose = arg
 
