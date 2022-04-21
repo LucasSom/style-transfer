@@ -42,6 +42,7 @@ def init(_config_name="8bar"):
     global config_name
 
     configs = {
+        '1bar': VAEConfigBase(1),
         '4bar': VAEConfigBase(4),
         '8bar': VAEConfigBase(8),
     }

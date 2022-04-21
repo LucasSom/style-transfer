@@ -13,10 +13,8 @@ class GuoRoll:
     Class that represent a fragment of $n$ bars (8 as default, 4 in Guo's work) with attributes:
 
     - `matrix`: matrix of $16*bars 89$
-    - `bars`: number of bars per fragment (es el mismo para todo el dataset, con lo cual,
-    podría eliminarse la redundancia en un trabajo futuro)
+    - `bars`: number of bars per fragment
     - `song`: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
-    (en un trabajo futuro podría cambiárselo por un singleton).
     - `score`: score obtained from the matrix
     - `midi`: Pretty MIDI obtained from the matrix
 
@@ -24,10 +22,8 @@ class GuoRoll:
 
     def __init__(self, matrix, song=None, verbose=False):
         """
-        :param matrix: matrix of `16*bars x 89` with n= la cantidad de compases
+        :param matrix: matrix of `16*n x 89` with n=number of bars
         :param song: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
-        (en un trabajo futuro podría cambiárselo por un singleton).
-        (es el mismo para todo el dataset, con lo cual, podría eliminarse la redundancia en un trabajo futuro)
         """
         self.bars = params.config.bars
         self.matrix = matrix
@@ -73,20 +69,54 @@ class GuoRoll:
                 t = t2
             return n_part
 
-        high_part = instrument_roll_to_part(self.matrix.T[params.config.melody_dim],
-                                            self.matrix.T[:params.config.melody_dim, :], 24, verbose)
-        low_part = instrument_roll_to_part(self.matrix.T[-1, :],
-                                           self.matrix.T[params.config.melody_dim + 1:
-                                                         params.config.melody_dim + 1 + params.config.bass_dim,
-                                           :], 48, verbose)
+        high_part = instrument_roll_to_part(self.get_melody_changes().T, self.get_melody().T, 24, verbose)
+        low_part = instrument_roll_to_part(self.get_bass_changes().T, self.get_bass().T, 48, verbose)
         low_part.insert(0, m21.clef.BassClef())
 
         full_score = m21.stream.Score([high_part, low_part])
         return full_score
 
+    def get_melody(self):
+        return self.matrix[:, :params.config.melody_dim]
+
+    def get_melody_changes(self):
+        return self.matrix[:, params.config.melody_dim]
+
+    def get_bass(self):
+        return self.matrix[:, params.config.melody_dim + 1: -1]
+
+    def get_bass_changes(self):
+        padding = params.config.melody_dim + 1
+        return self.matrix[:, -1]
+
+    def get_adjacent_intervals(self, voice='both'):
+        def get_intervals(voice_part, changes):
+            intervals = []
+            prev_note = np.argmax(voice_part[0])
+            for i, c in enumerate(changes[1:], start=1):
+                if c:
+                    new_note = np.argmax(voice_part[i])
+                    if new_note == 73:  # it is a rest
+                        intervals.append('rest')
+                    else:
+                        intervals.append(new_note - prev_note)
+                        if intervals[-1] != 'rest':
+                            prev_note = new_note
+            return intervals
+
+        if voice == 'melody':
+            return get_intervals(self.get_melody(), self.get_melody_changes())
+        if voice == 'bass':
+            return get_intervals(self.get_bass(), self.get_bass_changes())
+        if voice == 'both':
+            return get_intervals(self.get_melody(), self.get_melody_changes()), \
+                   get_intervals(self.get_bass(), self.get_bass_changes())
+
     def display_score(self):
         lily = lily_conv.write(self.score, fmt='lilypond', fp='file', subformats=['png'])
         display(Image(str(lily)))
+        print("File saved in ", lily)
+        return lily
 
 
 def rolls_to_midis(rolls):
