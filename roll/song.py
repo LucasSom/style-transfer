@@ -1,3 +1,5 @@
+from typing import List
+
 import model.colab_tension_vae.params as params
 from model.colab_tension_vae.preprocess_midi import preprocess_midi_wrapper
 from roll.guoroll import GuoRoll
@@ -17,3 +19,6 @@ class Song:
             GuoRoll(m, song=self, verbose=verbose)
             for m in matrices
         ]
+
+    def get_adjacent_intervals(self, voice='melody') -> List[int]:
+        return [i for r in self.rolls for i in r.get_adjacent_intervals(voice)]

@@ -1,3 +1,5 @@
+from typing import List
+
 import music21 as m21
 import numpy as np
 from IPython.core.display import display, Image
@@ -89,7 +91,7 @@ class GuoRoll:
         padding = params.config.melody_dim + 1
         return self.matrix[:, -1]
 
-    def get_adjacent_intervals(self, voice='both'):
+    def get_adjacent_intervals(self, voice='melody') -> List[int]:
         def get_intervals(voice_part, changes):
             intervals = []
             prev_note = np.argmax(voice_part[0])
@@ -99,7 +101,10 @@ class GuoRoll:
                     if new_note == 73:  # it is a rest
                         intervals.append('rest')
                     else:
-                        intervals.append(new_note - prev_note)
+                        interval = new_note - prev_note
+                        while abs(interval) > 12:  # if the interval is compound, transform it to simple
+                            interval -= 12 if interval > 0 else -12
+                        intervals.append(interval)
                         if intervals[-1] != 'rest':
                             prev_note = new_note
             return intervals
@@ -108,9 +113,9 @@ class GuoRoll:
             return get_intervals(self.get_melody(), self.get_melody_changes())
         if voice == 'bass':
             return get_intervals(self.get_bass(), self.get_bass_changes())
-        if voice == 'both':
-            return get_intervals(self.get_melody(), self.get_melody_changes()), \
-                   get_intervals(self.get_bass(), self.get_bass_changes())
+        # if voice == 'both':
+        #     return get_intervals(self.get_melody(), self.get_melody_changes()), \
+        #            get_intervals(self.get_bass(), self.get_bass_changes())
 
     def display_score(self):
         lily = lily_conv.write(self.score, fmt='lilypond', fp='file', subformats=['png'])
