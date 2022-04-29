@@ -7,6 +7,7 @@ from typing import List, Union
 import datetime
 import numpy as np
 import pandas as pd
+from keras.callbacks import ModelCheckpoint
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
@@ -61,7 +62,21 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     targets = get_targets(ds)
 
     log_dir = f"{logs_path + model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    path_to_save = f"{path_saved_models + model_name}/"
+    if os.path.isdir(path_to_save):
+        shutil.rmtree(path_to_save)
+    else:
+        os.makedirs(path_to_save)
+
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    checkpoint = ModelCheckpoint(
+        file_path=path_to_save + 'ckpt/',
+        monitor='loss',
+        verbose=verbose > 1,
+        save_best_only=True,
+        mode='min',
+    )
 
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         callbacks = vae.fit(
@@ -71,14 +86,8 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
             workers=8,
             initial_epoch=i,
             epochs=i + ckpt,
-            callbacks=[tensorboard_callback]
+            callbacks=[tensorboard_callback, checkpoint]
         )
-
-        path_to_save = f"{path_saved_models + model_name}/"
-        if os.path.isdir(path_to_save):
-            shutil.rmtree(path_to_save)
-        else:
-            os.makedirs(path_to_save)
 
         vae.save(path_to_save)
 
