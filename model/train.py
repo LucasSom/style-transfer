@@ -71,7 +71,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     checkpoint = ModelCheckpoint(
-        file_path=path_to_save + 'ckpt/',
+        filepath=path_to_save + 'ckpt/',
         monitor='loss',
         verbose=verbose > 1,
         save_best_only=True,

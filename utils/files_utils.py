@@ -5,7 +5,7 @@ project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
 data_tests_path = data_path + 'tests/'
 preprocessed_data_path = data_path + 'preprocessed_data/'
-path_saved_models = data_path + 'model/saved_models/'
+path_saved_models = data_path + 'saved_models/'
 logs_path = data_path + 'logs/'
 
 
