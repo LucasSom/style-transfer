@@ -242,7 +242,6 @@ def get_piano_roll(pm, sample_times):
     return rolls
 
 
-# TODO: Acá debería cambiarse todo por "matrix". Checkear con March (depende del nombre definitivo de la clase Roll)
 def preprocess_midi(midi_file, continued=True, verbose=False):
     pm = pretty_midi.PrettyMIDI(midi_file)
 
@@ -251,14 +250,16 @@ def preprocess_midi(midi_file, continued=True, verbose=False):
         return
 
     sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(params.config.SAMPLES_PER_BAR / 4))
-    # TODO implementar un assert: np.diff(down_beat_indices).min == np.diff(down_beat_indices).max
+    if verbose and np.diff(down_beat_indices).min != np.diff(down_beat_indices).max:
+        print("Min and max from np.diff(down_beat_indices) differ:\n"
+              f"{np.diff(down_beat_indices).min} != {np.diff(down_beat_indices).max}")
     # sixteenth_time: marca los instantes de tiempo en donde empieza una semicorchea
     # down_beat_indices: indica los índices de las notas del pm donde empieza cada compás
     #   Si hay síncopa o silencio entendería que no las marca
-    rolls = get_piano_roll(pm, sixteenth_time)
+    matrices = get_piano_roll(pm, sixteenth_time)
 
-    melody_roll = rolls[0]
-    bass_roll = rolls[1]
+    melody_matrix = matrices[0]
+    bass_matrix = matrices[1]
 
     # if continued:
     #     filled_indices_debug = [
@@ -267,21 +268,21 @@ def preprocess_midi(midi_file, continued=True, verbose=False):
     #     # Queda [(0,16), (16, 32), (32,48), (48, 64), (64, 80), ...]
     #     # en lugar de [(16, 32), (48, 64), (64, 80), (96, 112), (112, 128)]
     #
-    #     filled_indices = find_active_range([melody_roll, bass_roll], down_beat_indices, continued)
+    #     filled_indices = find_active_range([melody_matrix, bass_matrix], down_beat_indices, continued)
     #     print("Al final filled_indices eran iguales?", filled_indices == filled_indices_debug[:-1])
     #     print("Mi vieja propuesta:", filled_indices_debug)
     #     print("La nueva propuesta:", filled_indices)
     # else:
-    filled_indices = find_active_range([melody_roll, bass_roll], down_beat_indices, continued)
+    filled_indices = find_active_range([melody_matrix, bass_matrix], down_beat_indices, continued)
     # Sin tuneo tiene tamaño 7. Con tuneo, 1
 
     if filled_indices is None:
         if verbose: print('not enough data for melody and bass track')
         return None
     else:
-        if verbose: print("Tamaño de filled_indices:", len(filled_indices))
+        if verbose: print("Size of filled_indices:", len(filled_indices))
 
-    roll_concat = stack_data([melody_roll, bass_roll])
+    roll_concat = stack_data([melody_matrix, bass_matrix])
 
     x, bars_skipped = prepare_one_x(roll_concat, filled_indices, down_beat_indices, verbose=verbose)
     x = np.array(x)

@@ -18,6 +18,13 @@ def df_roll_to_pm(matrices, pms, verbose=False):
 
 
 def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataFrame:
+    """
+    Preprocess subdatasets of midi files, creating a DataFrame of rolls prepared to use as dataset to train the model.
+
+    :param songs_dict: Dictionary of subdatasets. Key: name of subdataset. Value: name of each midi file.
+    :param verbose: Whether to print intermediate messages.
+    :return: DataFrame with 3 columns: 'Autor', 'Titulo' and 'roll' (the GuoRolls of each song).
+    """
     data = [{'Autor': key,
              'Titulo': os.path.basename(path),
              'roll': roll,
@@ -31,12 +38,16 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
 
 
 def usage():
-    print(f'Usage: preprocessing.py -d --datapath <data path> (by default, {data_path})\n'
-          "| -c --config <config name> (by default, '4bar')\n"
-          '| -f --file <file name where to save the preprocessing inside of the data path>\n'
-          '| -h --help\n'
-          '| -v --verbose\n'
-          '| <names of folders of the different data sets>\n')
+    print('Preprocess subdatasets of midi files, creating a DataFrame of rolls prepared to use as dataset to train the '
+          "model. This DataFrame has 3 columns: 'Author', 'Title' and 'roll' and is saved as a pickle file.\n\n"
+          '======== Usage ========\n'
+          'preprocessing.py -d --datapath <data path>\n'
+          "               | -c --config <config name> (by default, '4bar')\n"
+          '               | -f --file <file name where to save the preprocessing inside of the data path>\n'
+          '               | -h --help\n'
+          '               | -v --verbose\n'
+          '               | <names of folders of the different data sets>\n'
+          f'default data path: {data_path}')
 
 
 if __name__ == "__main__":
@@ -48,32 +59,43 @@ if __name__ == "__main__":
         usage()
         sys.exit(2)
 
+    if ('-h', '') in opts or ('', '--help') in opts:
+        usage()
+        sys.exit()
     if len(args) < 2:
-        print("Put name of at least 2 folders with songs")
+        print("ERROR: not enough arguments. Put name of at least 2 folders with songs")
+        usage()
+        sys.exit()
+
+    file_name = None
+    verbose = False
+    config_name = "4bar"
+
+    for o, arg in opts:
+        if o in ["-d", "--datapath"]:
+            data_path = arg
+        elif o in ["-c", "--config"]:
+            config_name = arg
+        elif o in ("-f", "--file"):
+            file_name = arg
+        elif o == "-v":
+            verbose = True
+    params.init(config_name)
+
+    if file_name is None:
+        file_name = "prep"
+        print(f"Using default output file name, ie, {preprocessed_data_path + file_name}-{params.config.bars}")
+        file_name = f"{preprocessed_data_path + file_name}-{params.config.bars}"
     else:
-        file_name = None
-        verbose = False
-        config_name = "4bar"
+        file_name = f"{file_name}-{params.config.bars}"
 
-        for o, arg in opts:
-            if o in ("-h", "--help"):
-                usage()
-                sys.exit()
-            elif o in ["-d", "--datapath"]:
-                data_path = arg
-            elif o in ["-c", "--config"]:
-                config_name = arg
-            elif o in ("-f", "--file"):
-                file_name = arg
-            elif o == "-v":
-                verbose = True
-        params.init(config_name)
-
-        if file_name is None:
-            file_name = "prep"
-            print(f"Using default output file name, ie, {preprocessed_data_path + file_name}-{params.config.bars}")
-
+    if os.path.exists(file_name):
+        print(f"The file {file_name} already exists. Skip it and try with other name again.")
+    else:
         songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
         df = preprocess_data(songs, verbose=verbose)
-        save_pickle(df, name=f"{file_name}-{params.config.bars}", path=preprocessed_data_path)
+        save_pickle(df, name=file_name, path=preprocessed_data_path)
+        print("=================================================================================\n",
+              f"Saved dataset preprocessed in {file_name}.pkl",
+              "=================================================================================")
