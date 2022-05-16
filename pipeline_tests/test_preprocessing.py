@@ -3,7 +3,7 @@ import os
 import model.colab_tension_vae.params as params
 from utils.debug_utils import pm_cmp
 from utils.display_audio import save_audios
-from utils.files_utils import save_pickle, load_pickle, data_path
+from utils.files_utils import save_pickle, load_pickle, data_path, preprocessed_data_path
 from preprocessing import preprocess_data
 import pytest
 
@@ -44,10 +44,10 @@ def test_not_cached(sonata15_mapleleaf_ds):
 def test_mapleaf(mapleleaf_ds):
     params.init("8bar")
     try:
-        df = load_pickle(name="mapleleaf_ds-8", path="../data/preprocessed_data/")
+        df = load_pickle(file_name=preprocessed_data_path + "mapleleaf_ds-8")
     except:
         df = preprocess_data(mapleleaf_ds)
-        save_pickle(df, name="mapleleaf_ds-8", path="../data/preprocessed_data/")
+        save_pickle(df, file_name=preprocessed_data_path + "mapleleaf_ds-8")
 
     roll = df["roll"][0]
     save_audios([(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug_outputs/audios/")
@@ -60,10 +60,10 @@ def test_mapleaf(mapleleaf_ds):
 def test_preprocess_data(sonata15_mapleleaf_ds):
     params.init("8bar")
     try:
-        df = load_pickle(name="sonata15_mapleleaf_ds-8", path="../data/preprocessed_data/")
+        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, name="sonata15_mapleleaf_ds-8", path="../data/preprocessed_data/")
+        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
 
     assert df[df["Autor"] == "mozart_test"].shape[0] <= 18
     assert df[df["Autor"] == "mozart_test"].shape[0] > 0
@@ -79,10 +79,10 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
 def test_midis_from_df(sonata15_mapleleaf_ds):
     params.init("8bar")
     try:
-        df = load_pickle(name="sonata15_mapleleaf_ds-8", path="../data/preprocessed_data/")
+        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, name="sonata15_mapleleaf_ds-8", path="../data/preprocessed_data/")
+        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
     save_audios([(df["Titulo"][0], r0.midi, r0.song.old_pm),
@@ -106,10 +106,10 @@ def test_breeze_preprocessing_4bars(breeze_ds):
 def test_mapleaf_4bars(mapleleaf_ds):
     params.init("4bar")
     try:
-        df = load_pickle(name="mapleleaf_ds-4", path="../data/preprocessed_data/")
+        df = load_pickle(file_name=preprocessed_data_path + "mapleleaf_ds-4")
     except:
         df = preprocess_data(mapleleaf_ds)
-        save_pickle(df, name="mapleleaf_ds-4", path="../data/preprocessed_data/")
+        save_pickle(df, file_name=preprocessed_data_path + "mapleleaf_ds-4")
 
     roll = df["roll"][0]
     save_audios([(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug_outputs/audios/")
@@ -123,10 +123,10 @@ def test_mapleaf_4bars(mapleleaf_ds):
 def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
     params.init("4bar")
     try:
-        df = load_pickle(name="sonata15_mapleleaf_ds-4", path="../data/preprocessed_data/")
+        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, name="sonata15_mapleleaf_ds-4", path="../data/preprocessed_data/")
+        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
 
     r0 = GuoRoll(df.roll[0].matrix)
     r20 = GuoRoll(df.roll[20].matrix)
@@ -138,10 +138,10 @@ def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
 def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
     params.init("4bar")
     try:
-        df = load_pickle(name="sonata15_mapleleaf_ds-4", path="../data/preprocessed_data/")
+        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, name="sonata15_mapleleaf_ds-4", path="../data/preprocessed_data/")
+        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
     save_audios([(df["Titulo"][0], r0.midi, r0.song.old_pm),

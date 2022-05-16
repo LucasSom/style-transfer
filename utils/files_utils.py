@@ -1,6 +1,8 @@
 import os
 import pickle
 
+import pandas as pd
+
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
 data_tests_path = data_path + 'tests/'
@@ -16,15 +18,25 @@ def datasets_name(ds):
     return composed_name
 
 
-def save_pickle(obj, name, path=data_path):
-    if not os.path.isdir(path):
-        os.makedirs(path)
-        print("Created directory ", path)
-    with open(os.path.join(path, name + ".pkl"), 'wb') as f:
+def save_pickle(obj: pd.DataFrame, file_name: str, verbose=False):
+    if os.path.splitext(file_name)[1] == '':
+        file_name += '.pkl'
+
+    dir = os.path.dirname(file_name)
+    if not os.path.isdir(dir) and dir is not '':
+        os.makedirs(dir)
+        if verbose: print("Created directory:", dir)
+
+    with open(file_name, 'wb') as f:
         pickle.dump(obj, f)
-        print("Saved as ", os.path.join(path, name + ".pkl"))
+        if verbose: print("Saved as:", file_name)
 
 
-def load_pickle(name, path=data_path):
-    with open(os.path.join(path, name + ".pkl"), 'rb') as f:
-        return pickle.load(f)
+def load_pickle(file_name: str, verbose=False):
+    if os.path.splitext(file_name)[1] == '':
+        file_name += '.pkl'
+
+    with open(file_name, 'rb') as f:
+        p = pickle.load(f)
+        if verbose: print("Loaded file:", f)
+        return p

@@ -1,13 +1,13 @@
 import pytest
 from tensorflow import keras
 
-from model.embeddings import obtain_embeddings
-from utils.files_utils import load_pickle, data_path
+from model.embeddings.embeddings import obtain_embeddings
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path
 
 
 @pytest.fixture
 def brmf_prep():
-    return load_pickle(name="bach_rag_moz_fres", path=data_path + "preprocessed_data/")
+    return load_pickle(file_name=preprocessed_data_path+"bach_rag_moz_fres")
 
 
 @pytest.fixture
@@ -52,12 +52,12 @@ save_pickle(caracteristicos_de_autores, 'caracteristicos_de_autores')
 # TRANSFERIR ESTILOS
 
 from utils.utils import exp_disponibles
-from model.embeddings import cambiar_estilo, get_embeddings_roll_df
+from model.embeddings import transform_embeddings, get_embeddings_roll_df
 
 #@title ¿Ya reconstruye? ¿Transferimos estilos o solo probamos la reconstrucción?
 transfer = False #@param {type:"boolean"}
 
-df_transfered = cambiar_estilo(df_emb_car, caracteristicos_de_autores, ds_original, ds_objetivo, escala=1) if transfer else df_emb_car
+df_transfered = transform_embeddings(df_emb_car, caracteristicos_de_autores, ds_original, ds_objetivo, escala=1) if transfer else df_emb_car
 # save_pickle(df_transfered, nombre_pickle)
 
 

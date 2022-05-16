@@ -95,7 +95,7 @@ if __name__ == "__main__":
         songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
         df = preprocess_data(songs, verbose=verbose)
-        save_pickle(df, name=file_name, path=preprocessed_data_path)
+        save_pickle(df, file_name=preprocessed_data_path+file_name, verbose=verbose)
         print("=================================================================================\n",
               f"Saved dataset preprocessed in {file_name}.pkl",
               "=================================================================================")

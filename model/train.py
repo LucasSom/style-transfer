@@ -22,38 +22,33 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
     return [i0, i1, i2, i3]
 
 
+def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt=50, verbose=2):
+    if isinstance(df, str):
+        df = load_pickle(file_name=preprocessed_data_path + df, verbose=verbose)
+
+    if not os.path.isdir(path_saved_models + model_name):
+        os.makedirs(path_saved_models + model_name)
+        return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
+    else:
+        return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
+
+
 def train_new_model(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50, verbose=2):
+    if verbose: print("Training new model")
     vae = build_model.build_model()
 
     return train(vae, df, model_name, 0, final_epoch, ckpt, verbose)
 
 
 def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50, verbose=2):
+    with open(f"{logs_path + model_name}/initial_epoch", 'rt') as f:
+        initial_epoch = int(f.read())
+    if verbose: print(f"Continuing training from {initial_epoch} epoch")
+
     vae = keras.models.load_model(path_saved_models + model_name,
                                   custom_objects=dict(kl_beta=build_model.kl_beta))
 
-    with open(f"{logs_path + model_name}/initial_epoch", 'rt') as f:
-        initial_epoch = int(f.read())
-
     return train(vae, df, model_name, initial_epoch, final_epoch + initial_epoch, ckpt, verbose)
-
-
-def train_model(df: Union[pd.DataFrame, str],
-                model_name: str,
-                new_training: bool,
-                final_epoch: int,
-                ckpt=50,
-                verbose=2):
-    if isinstance(df, str):
-        df = load_pickle(name=df, path=preprocessed_data_path + data_path)
-
-    if not os.path.isdir(path_saved_models + model_name):
-        os.makedirs(path_saved_models + model_name)
-
-    if new_training:
-        return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
-    else:
-        return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
 
 
 def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
@@ -121,7 +116,6 @@ def usage():
           "| -c --config <config name> (by default, '4bar')\n"
           '| -f --file <file name where to save or load the preprocessing inside of the data path>\n'
           '| -m --model <name of the model to train>\n'
-          '| -n --new_training (if train a new model)\n'
           '| -e --epochs <number of epochs to train>\n'
           '| -k --checkpoints <number of epochs between each checkpoint>\n'
           '| -h --help (print this help)\n'
@@ -136,7 +130,6 @@ if __name__ == "__main__":
                                     "config=",
                                     "file=",
                                     "model=",
-                                    "new_training",
                                     "epochs=",
                                     "checkpoints="
                                     "verbose="])
@@ -149,7 +142,6 @@ if __name__ == "__main__":
     file_name = model_name = None
     epochs = checkpt = 0
     verbose = 2
-    new_training = False
     config_name = "4bar"
 
     for o, arg in opts:
@@ -164,8 +156,6 @@ if __name__ == "__main__":
             file_name = arg
         elif o in ("-m", "--model"):
             model_name = arg
-        elif o in ("-n", "--new_training"):
-            new_training = True
         elif o in ("-e", "--epochs"):
             epochs = int(arg)
         elif o in ("-k", "--checkpoints"):
@@ -188,7 +178,7 @@ if __name__ == "__main__":
     songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
     try:
-        df_preprocessed = load_pickle(name=f"{file_name}", path=preprocessed_data_path)
+        df_preprocessed = load_pickle(file_name=f"{preprocessed_data_path}{file_name}", verbose=verbose)
     except getopt.GetoptError as err:
         print(err)
         print("The program experimented problems loading the preprocessed dataset. "
@@ -198,7 +188,6 @@ if __name__ == "__main__":
     train_model(
         df=df_preprocessed,
         model_name=model_name,
-        new_training=new_training,
         final_epoch=epochs,
         ckpt=checkpt,
         verbose=verbose

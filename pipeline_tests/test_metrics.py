@@ -13,7 +13,7 @@ def matrix_1bar():
 @pytest.fixture
 def roll_8bar_w_rest():
     init("8bar")
-    return load_pickle("roll_8bar_w_rest", data_tests_path)
+    return load_pickle(data_tests_path+"roll_8bar_w_rest")
 
 
 # def test_intervals_list_conversion_from_matrix(matrix_1bar):
