@@ -10,6 +10,17 @@ import model.colab_tension_vae.params as params
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
 
+def get_value(dur: int) -> str:
+    if dur == 1:
+        return 's'
+    if dur == 2:
+        return 'q'
+    if dur == 3:
+        return 'd'
+    if dur == 4:
+        return 'c'
+
+
 class GuoRoll:
     """
     Class that represent a fragment of $n$ bars (8 as default, 4 in Guo's work) with attributes:
@@ -116,6 +127,36 @@ class GuoRoll:
         # if voice == 'both':
         #     return get_intervals(self.get_melody(), self.get_melody_changes()), \
         #            get_intervals(self.get_bass(), self.get_bass_changes())
+
+
+    def get_adjacent_rithmic_patterns(self, voice='melody') -> List[str]:
+        def get_rp(voice_part, changes) -> List[str]:
+            rps = []
+            prev_note = 0
+            for i, c in enumerate(changes[1:], start=1):
+                if i % 4 == 0:
+                    rps.append(pattern)
+                    pattern = ''
+                    prev_note = i
+
+                if c:
+                    new_note = np.argmax(voice_part[i])
+                    if new_note == 73:  # it is a rest
+                        pattern += 'r'
+                    else:
+                        # cuántas semis ocurrieron entre la anterior nota y esta?
+                        pattern += get_value(i - prev_note)
+                        prev_note = i
+                        
+            return rps
+
+
+
+        if voice == 'melody':
+            return get_rp(self.get_melody(), self.get_melody_changes())
+        if voice == 'bass':
+            return get_rp(self.get_bass(), self.get_bass_changes())
+
 
     def display_score(self):
         lily = lily_conv.write(self.score, fmt='lilypond', fp='file', subformats=['png'])
