@@ -1,5 +1,6 @@
 import os
 import pickle
+from typing import Union
 
 import pandas as pd
 
@@ -18,7 +19,7 @@ def datasets_name(ds):
     return composed_name
 
 
-def save_pickle(obj: pd.DataFrame, file_name: str, verbose=False):
+def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
     if os.path.splitext(file_name)[1] == '':
         file_name += '.pkl'
 

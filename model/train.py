@@ -58,7 +58,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
     log_dir = f"{logs_path + model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    path_to_save = f"{path_saved_models + model_name}/"
+    path_to_save = f"{path_saved_models + model_name}/ckpt/"
     if os.path.isdir(path_to_save):
         shutil.rmtree(path_to_save)
     else:
@@ -66,7 +66,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     checkpoint = ModelCheckpoint(
-        filepath=path_to_save + 'ckpt/',
+        filepath=path_to_save,
         monitor='loss',
         verbose=verbose > 1,
         save_best_only=True,
@@ -84,7 +84,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
             callbacks=[tensorboard_callback, checkpoint]
         )
 
-        vae.save(path_to_save)
+        # vae.save(path_to_save)
 
         with open(f'{logs_path + model_name}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
