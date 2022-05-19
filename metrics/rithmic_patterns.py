@@ -3,9 +3,9 @@ from matplotlib import pyplot as plt
 
 
 def matrix_of_adjacent_rihmic_patterns(roll_or_song, voice='melody'):
-    intervals = roll_or_song.get_adjacent_rithmic_patterns(voice)
+    rps = roll_or_song.get_adjacent_rithmic_patterns(voice)
 
-    return np.histogram2d(intervals[:-1], intervals[1:])
+    return np.histogram2d(rps[:-1], rps[1:]) #A chequear
 
 
 def plot_matrix_of_adjacent_rithmic_patterns(roll_or_song, voice='melody'):
@@ -21,8 +21,5 @@ def plot_matrix_of_adjacent_rithmic_patterns(roll_or_song, voice='melody'):
 	(c, qq, qss, sqs, ssq, ds, sd, ssss, rrq, qrr, rqr, rrrs, rrsr, rsrr, srrr, rrrr)
 
 	"""
-    intervals = roll_or_song.get_adjacent_rithmic_patterns(voice)
-
-    p = plt.hist2d(intervals[:-1], intervals[1:])
-    plt.show()
-    return p
+    rps = roll_or_song.get_adjacent_rithmic_patterns(voice)
+    ...
