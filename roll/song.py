@@ -23,5 +23,5 @@ class Song:
     def get_adjacent_intervals(self, voice='melody') -> List[int]:
         return [i for r in self.rolls for i in r.get_adjacent_intervals(voice)]
 
-    def get_adjacent_rithmic_patterns(self, voice='melody') -> List[str]:
-        return [i for r in self.rolls for i in r.get_adjacent_rithmic_patterns(voice)]
+    def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
+        return [i for r in self.rolls for i in r.get_adjacent_rhythmic_patterns(voice)]

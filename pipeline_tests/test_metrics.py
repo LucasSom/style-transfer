@@ -13,7 +13,7 @@ def matrix_1bar():
 @pytest.fixture
 def roll_8bar_w_rest():
     init("8bar")
-    return load_pickle(data_tests_path+"roll_8bar_w_rest")
+    return load_pickle(data_tests_path + "roll_8bar_w_rest")
 
 
 # def test_intervals_list_conversion_from_matrix(matrix_1bar):
@@ -23,6 +23,17 @@ def roll_8bar_w_rest():
 
 
 def test_intervals_list_conversion_from_roll(roll_8bar_w_rest):
-
     intervals = roll_8bar_w_rest.get_adjacent_intervals(voice='melody')
     assert intervals == [0, 0, 0, 2, 2, 0, 0, 3, -7, 2, 2, -2, -2, 4, -2, 2, -4, 2, -3, 1, 0, 0, 2, -2, -1, -2]
+
+
+def test_rythmic_patters(roll_8bar_w_rest):
+    r_patterns = roll_8bar_w_rest.get_adjacent_rhythmic_patterns(voice='melody')
+    assert r_patterns == ['c', 'c', 'c', 'c',
+                          'c', 'c', 'c', 'rrrr',
+                          'c', 'c', 'c', 'qq',
+                          'c', 'c', 'c', 'c',
+                          'c', 'c', 'c', 'c',
+                          'c', 'c', 'c', 'rrrr',
+                          'c', 'c', 'c', 'c',
+                          'c', 'c', 'c', 'c']

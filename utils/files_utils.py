@@ -24,7 +24,7 @@ def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
         file_name += '.pkl'
 
     dir = os.path.dirname(file_name)
-    if not os.path.isdir(dir) and dir is not '':
+    if not os.path.isdir(dir) and dir != '':
         os.makedirs(dir)
         if verbose: print("Created directory:", dir)
 

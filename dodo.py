@@ -4,6 +4,7 @@ from tensorflow.keras.models import load_model
 
 from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
+from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import calculate_characteristics
 from model.embeddings.transfer import transfer_style_to
 from pipeline_tests.test_training import test_reconstruction
@@ -11,18 +12,22 @@ from model.train import train_model
 from preprocessing import preprocess_data
 from utils.files_utils import save_pickle, data_path, path_saved_models, load_pickle
 
-preprocessed_data = "data/preprocessed_data/bach_rag_moz_fres-8.pkl"  # TODO: Pasarlo a un archivo de configuracion
+
+def preprocessed_data(b):
+    return f"bach_rag_moz_fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+
+
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 
-
-models = ['brmf_4b', 'brmf_8b']
+models = {4: 'brmf_4b', 8: 'brmf_8b'}
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
 
 DOIT_CONFIG = {'verbosity': 2}
 
 
-def preprocess(folders, targets):
+def preprocess(b, folders, targets):
+    init(b)
     songs = {}
     for folder in folders:
         songs[folder] = [f"{folder}/{song}" for song in os.listdir(data_path + folder)]
@@ -33,25 +38,28 @@ def preprocess(folders, targets):
 def task_preprocess():
     """Preprocess dataset, considering the subdatasets referenced in the list at the top of this file"""
     # files = [f for sd in subdatasets for f in list(pathlib.Path(sd).glob('*.txt'))]
-    return {
-        # 'file_dep': files,
-        'actions': [(preprocess, [], {'folders': subdatasets})],
-        'targets': [preprocessed_data],
-        'uptodate': [os.path.isfile(preprocessed_data)]
-    }
+    for b in models:
+        yield {
+            # 'file_dep': files,
+            'name': f"{b}bars",
+            'actions': [(preprocess, [b], {'folders': subdatasets})],
+            'targets': [preprocessed_data(b)],
+            'uptodate': [os.path.isfile(preprocessed_data(b))]
+        }
 
 
+# TODO: Pasarle por parámetro a la tarea las épocas y el ckpt
 def task_train():
     """Trains the model"""
-    for model_name in models:
+    for b, model_name in models.items():
         for e in epochs:
             for c in checkpoints:
-                path_to_save = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
+                # path_to_save = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
                 yield {
                     'name': f"{model_name}-e{e}-ckpt{c}",
-                    'file_dep': [preprocessed_data],
-                    'actions': [(train_model, [preprocessed_data, model_name, e, c])],
-                    'targets': [path_to_save],
+                    'file_dep': [preprocessed_data(b)],
+                    'actions': [(train_model, [preprocessed_data(b), model_name, e, c])],
+                    # 'targets': [path_to_save],
                 }
 
 
@@ -62,13 +70,13 @@ def analyze_training(df, model_path, model_name):
 
 def task_test():
     """Shows the reconstruction of the model over an original song"""
-    for model_name in models:
+    for b, model_name in models.items():
         for e in epochs:
             model_path = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
             yield {
                 'name': f"{model_name}-e{e}",
-                'file_dep': [preprocessed_data, model_path],
-                'actions': [(analyze_training, [preprocessed_data, model_path, model_name])],
+                'file_dep': [preprocessed_data(b), model_path],
+                'actions': [(analyze_training, [preprocessed_data(b), model_path, model_name])],
             }
 
 
@@ -83,16 +91,15 @@ def do_embeddings(df, model_path, characteristics_path, emb_path):
 
 def task_embeddings():
     """Calculate the embeddings for each author/style and song"""
-    for model_name in models:
-
+    for b, model_name in models.items():
         model_path = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
         characteristics_path = f"{data_path}embeddings/{model_name}/authors_characteristics.pkl"
         emb_path = f"{data_path}embeddings/{model_name}/df_emb.pkl"
 
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data, model_path],
-            'actions': [(do_embeddings, [preprocessed_data, model_path, characteristics_path, emb_path])],
+            'file_dep': [preprocessed_data(b), model_path],
+            'actions': [(do_embeddings, [preprocessed_data(b), model_path, characteristics_path, emb_path])],
             'targets': [characteristics_path, emb_path]
         }
 
@@ -108,7 +115,7 @@ def do_transfer(df_emb, model_path, characteristics, orig, target, transferred_p
 
 def task_transfer_style():
     """Do the transference of style from a roll to another style"""
-    for model_name in models:
+    for model_name in models.values():
 
         model_path = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
         characteristics_path = f"{data_path}embeddings/{model_name}/authors_characteristics.pkl"
@@ -136,7 +143,7 @@ def calculate_metrics(trans_path, e_orig, e_dest):
 
 def task_metrics():
     """Calculate different metrics for a produced dataset"""
-    for model_name in models:
+    for model_name in models.values():
         for e_orig in subdatasets:
             for e_dest in subdatasets:
                 if e_orig != e_dest:
@@ -159,7 +166,7 @@ def do_evaluation(trans_path):
 
 def task_evaluation():
     """Evaluate the model considering the calculated metrics"""
-    for model_name in models:
+    for model_name in models.values():
         for e_orig in subdatasets:
             for e_dest in subdatasets:
                 if e_orig != e_dest:

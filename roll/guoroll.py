@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 import music21 as m21
@@ -128,11 +129,11 @@ class GuoRoll:
         #     return get_intervals(self.get_melody(), self.get_melody_changes()), \
         #            get_intervals(self.get_bass(), self.get_bass_changes())
 
-
-    def get_adjacent_rithmic_patterns(self, voice='melody') -> List[str]:
+    def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
         def get_rp(voice_part, changes) -> List[str]:
             rps = []
             prev_note = 0
+            pattern = ''
             for i, c in enumerate(changes[1:], start=1):
                 if i % 4 == 0:
                     rps.append(pattern)
@@ -147,21 +148,18 @@ class GuoRoll:
                         # cuántas semis ocurrieron entre la anterior nota y esta?
                         pattern += get_value(i - prev_note)
                         prev_note = i
-                        
+
             return rps
-
-
 
         if voice == 'melody':
             return get_rp(self.get_melody(), self.get_melody_changes())
         if voice == 'bass':
             return get_rp(self.get_bass(), self.get_bass_changes())
 
-
     def display_score(self):
         lily = lily_conv.write(self.score, fmt='lilypond', fp='file', subformats=['png'])
         display(Image(str(lily)))
-        print("File saved in ", lily)
+        print("File saved in ", os.path.abspath(lily))
         return lily
 
 

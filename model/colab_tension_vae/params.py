@@ -35,17 +35,19 @@ class VAEConfigBase:
 
 config_name = ''
 config = VAEConfigBase()
+configs = {
+    '1bar': VAEConfigBase(1),
+    '4bar': VAEConfigBase(4),
+    '8bar': VAEConfigBase(8),
+}
 
 
 def init(_config_name="8bar"):
     global config
     global config_name
 
-    configs = {
-        '1bar': VAEConfigBase(1),
-        '4bar': VAEConfigBase(4),
-        '8bar': VAEConfigBase(8),
-    }
+    if isinstance(_config_name, int):
+        _config_name = f"{_config_name}bar"
 
     config_name = _config_name
     config = configs[config_name]
