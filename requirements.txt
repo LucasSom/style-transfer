@@ -13,3 +13,4 @@ seaborn
 pytest
 IPython
 jupyter
+doit
