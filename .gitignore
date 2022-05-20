@@ -6,6 +6,7 @@ data/logs/
 data/saved_models
 font.sf2
 doit/
+.doit.db
 
 ### Template ###
 # Byte-compiled / optimized / DLL files
