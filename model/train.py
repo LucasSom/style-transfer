@@ -24,13 +24,13 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
 
 def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt=50, verbose=2):
     if isinstance(df, str):
-        df = load_pickle(file_name=preprocessed_data_path + df, verbose=verbose)
+        df = load_pickle(file_name=df, verbose=verbose)
 
-    if not os.path.isdir(path_saved_models + model_name):
-        os.makedirs(path_saved_models + model_name)
-        return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
-    else:
+    if os.path.isdir(path_saved_models + model_name) and os.path.isfile(f"{path_saved_models}{model_name}/initial_epoch"):
         return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
+    else:
+        if not os.path.isdir(path_saved_models + model_name): os.makedirs(path_saved_models + model_name)
+        return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
 
 
 def train_new_model(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50, verbose=2):

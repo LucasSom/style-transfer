@@ -10,11 +10,11 @@ from model.embeddings.transfer import transfer_style_to
 from pipeline_tests.test_training import test_reconstruction
 from model.train import train_model
 from preprocessing import preprocess_data
-from utils.files_utils import save_pickle, data_path, path_saved_models, load_pickle
+from utils.files_utils import save_pickle, data_path, path_saved_models, load_pickle, preprocessed_data_path
 
 
 def preprocessed_data(b):
-    return f"bach_rag_moz_fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+    return f"{preprocessed_data_path}bach_rag_moz_fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
 
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -52,6 +52,7 @@ def task_preprocess():
 def task_train():
     """Trains the model"""
     for b, model_name in models.items():
+        init(b)
         for e in epochs:
             for c in checkpoints:
                 # path_to_save = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
@@ -71,6 +72,7 @@ def analyze_training(df, model_path, model_name):
 def task_test():
     """Shows the reconstruction of the model over an original song"""
     for b, model_name in models.items():
+        init(b)
         for e in epochs:
             model_path = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
             yield {
@@ -92,6 +94,7 @@ def do_embeddings(df, model_path, characteristics_path, emb_path):
 def task_embeddings():
     """Calculate the embeddings for each author/style and song"""
     for b, model_name in models.items():
+        init(b)
         model_path = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
         characteristics_path = f"{data_path}embeddings/{model_name}/authors_characteristics.pkl"
         emb_path = f"{data_path}embeddings/{model_name}/df_emb.pkl"
