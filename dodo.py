@@ -14,7 +14,7 @@ from utils.files_utils import save_pickle, data_path, path_saved_models, load_pi
 
 
 def preprocessed_data(b):
-    return f"{preprocessed_data_path}bach_rag_moz_fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+    return f"{preprocessed_data_path}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
 
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -64,8 +64,9 @@ def task_train():
                 }
 
 
-def analyze_training(df, model_path, model_name):
+def analyze_training(df_path, model_path, model_name):
     model = load_model(model_path)
+    df = load_pickle(df_path)
     test_reconstruction(df, model, model_name)
 
 
@@ -82,8 +83,9 @@ def task_test():
             }
 
 
-def do_embeddings(df, model_path, characteristics_path, emb_path):
+def do_embeddings(df_path, model_path, characteristics_path, emb_path):
     model = load_model(model_path)
+    df = load_pickle(df_path)
 
     df_emb, authors_char = calculate_characteristics(df, model)
 
@@ -102,8 +104,9 @@ def task_embeddings():
         yield {
             'name': f"{model_name}",
             'file_dep': [preprocessed_data(b), model_path],
-            'actions': [(do_embeddings, [preprocessed_data(b), model_path, characteristics_path, emb_path])],
-            'targets': [characteristics_path, emb_path]
+            'actions': [(do_embeddings, [preprocessed_data(b), os.path.dirname(model_path), characteristics_path, emb_path])],
+            'targets': [characteristics_path, emb_path],
+            'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
         }
 
 
@@ -132,7 +135,7 @@ def task_transfer_style():
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [emb_path, model_path, characteristics_path],
                         'actions': [(do_transfer,
-                                     [emb_path, model_path, characteristics_path, e_orig, e_dest, transferred_path])],
+                                     [emb_path, os.path.dirname(model_path), characteristics_path, e_orig, e_dest, transferred_path])],
                         'targets': [transferred_path],
                         'verbosity': 2
                     }

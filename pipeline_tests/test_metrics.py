@@ -29,7 +29,7 @@ def test_intervals_list_conversion_from_roll(roll_8bar_w_rest):
 
 def test_rhythmic_patters(roll_8bar_w_rest):
     r_patterns = roll_8bar_w_rest.get_adjacent_rhythmic_patterns(voice='melody')
-    assert r_patterns == ['c', 'c', 'c', 'c',
+    correct_patterns = ['c', 'c', 'c', 'c',
                           'c', 'c', 'c', 'rrrr',
                           'c', 'c', 'c', 'qq',
                           'c', 'c', 'c', 'c',
@@ -37,3 +37,5 @@ def test_rhythmic_patters(roll_8bar_w_rest):
                           'c', 'c', 'c', 'rrrr',
                           'c', 'c', 'c', 'c',
                           'c', 'c', 'c', 'c']
+    assert len(r_patterns) == len(correct_patterns)
+    assert r_patterns == correct_patterns

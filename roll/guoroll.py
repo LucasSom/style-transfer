@@ -11,15 +11,7 @@ import model.colab_tension_vae.params as params
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
 
-def get_value(dur: int) -> str:
-    if dur == 1:
-        return 's'
-    if dur == 2:
-        return 'q'
-    if dur == 3:
-        return 'd'
-    if dur == 4:
-        return 'c'
+dur_to_value = 'rsqdc'
 
 
 class GuoRoll:
@@ -135,19 +127,22 @@ class GuoRoll:
             prev_note = 0
             pattern = ''
             for i, c in enumerate(changes[1:], start=1):
-                if i % 4 == 0:
-                    rps.append(pattern)
-                    pattern = ''
+                new_note = np.argmax(voice_part[i])
+
+                if new_note == 73 or i % 4 == 0 or c:
+
+                    # cuántas semis ocurrieron entre la anterior nota y esta?
+                    pattern += dur_to_value[i - prev_note]
                     prev_note = i
 
-                if c:
-                    new_note = np.argmax(voice_part[i])
-                    if new_note == 73:  # it is a rest
-                        pattern += 'r'
-                    else:
-                        # cuántas semis ocurrieron entre la anterior nota y esta?
-                        pattern += get_value(i - prev_note)
-                        prev_note = i
+                    if i % 4 == 0:
+                        rps.append(pattern)
+                        pattern = ''
+                    if new_note == 73:
+                        # la nueva nota es un silencio
+                        prev_note = i + 1
+            pattern += dur_to_value[len(changes) - prev_note]
+            rps.append(pattern)
 
             return rps
 

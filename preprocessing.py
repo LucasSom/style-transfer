@@ -31,7 +31,7 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
              }
             for key, paths in songs_dict.items()
             for path in paths
-            for roll in Song(midi_file=path, nombre=os.path.basename(path), verbose=verbose).rolls
+            for roll in Song(midi_file=data_path + path, nombre=os.path.basename(path), verbose=verbose).rolls
             ]
 
     return pd.DataFrame(data)

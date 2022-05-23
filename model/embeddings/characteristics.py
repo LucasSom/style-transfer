@@ -15,10 +15,7 @@ def obtain_characteristics(df, column='Autor') -> dict:
     types = set(df[column])
 
     characteristic_vectors = {
-        t: df_car[
-            (df_car['Tipo'] == column) &
-            (df_car['Titulo'] == t)
-            ]['Embedding'].values[0]
+        t: df_car[(df_car[column] == t)]['Embedding'].values[0]
         for t in types
     }
 
