@@ -116,7 +116,7 @@ def do_transfer(df_emb, model_path, characteristics, orig, target, transferred_p
     characteristics = load_pickle(characteristics)
 
     df_transfered = transfer_style_to(df_emb, model, characteristics, original_style=orig, target_style=target)
-    save_pickle(df_transfered, f"{transferred_path}_{orig}_{target}.pkl")
+    save_pickle(df_transfered, transferred_path)
 
 
 def task_transfer_style():
@@ -141,10 +141,10 @@ def task_transfer_style():
                     }
 
 
-def calculate_metrics(trans_path, e_orig, e_dest):
+def calculate_metrics(trans_path, e_orig, e_dest, metrics_file_path):
     df_transferred = load_pickle(trans_path)
     metrics = obtain_metrics(df_transferred, e_orig, e_dest)
-    save_pickle(metrics, f"{trans_path}-metrics.pkl")
+    save_pickle(metrics, metrics_file_path)
 
 
 def task_metrics():
@@ -154,20 +154,21 @@ def task_metrics():
             for e_dest in subdatasets:
                 if e_orig != e_dest:
                     transferred_path = f"{data_path}embeddings/{model_name}/df_transferred_{e_orig}_{e_dest}.pkl"
+                    metrics_file_path = f"{transferred_path}-metrics.pkl"
                     yield {
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [transferred_path],
-                        'actions': [(calculate_metrics, [transferred_path, e_orig, e_dest])],
-                        'targets': [f"{transferred_path}-metrics.pkl"],
+                        'actions': [(calculate_metrics, [transferred_path, e_orig, e_dest, metrics_file_path])],
+                        'targets': [metrics_file_path],
                         'verbosity': 2
                     }
 
 
-def do_evaluation(trans_path):
+def do_evaluation(trans_path, eval_path):
     df_transferred = load_pickle(trans_path)
     metrics = load_pickle(f"{trans_path}-metrics.pkl")
     evaluation_results = evaluate_model(df_transferred, metrics)
-    save_pickle(evaluation_results, f"{trans_path}-eval.pkl")
+    save_pickle(evaluation_results, eval_path)
 
 
 def task_evaluation():
@@ -177,10 +178,11 @@ def task_evaluation():
             for e_dest in subdatasets:
                 if e_orig != e_dest:
                     transferred_path = f"{data_path}embeddings/{model_name}/df_transferred_{e_orig}_{e_dest}.pkl"
+                    eval_file_path = f"{transferred_path}-eval.pkl"
                     yield {
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [transferred_path, f"{transferred_path}-metrics.pkl"],
                         'actions': [(do_evaluation, [transferred_path])],
-                        'targets': [f"{transferred_path}-eval.pkl"],
+                        'targets': [eval_file_path],
                         'verbosity': 2
                     }
