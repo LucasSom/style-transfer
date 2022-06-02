@@ -123,28 +123,9 @@ class GuoRoll:
 
     def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
         def get_rp(voice_part, changes) -> List[str]:
-            rps = []
-            prev_note = 0
-            pattern = ''
-            for i, c in enumerate(changes[1:], start=1):
-                new_note = np.argmax(voice_part[i])
-
-                if new_note == 73 or i % 4 == 0 or c:
-
-                    # cuántas semis ocurrieron entre la anterior nota y esta?
-                    pattern += dur_to_value[i - prev_note]
-                    prev_note = i
-
-                    if i % 4 == 0:
-                        rps.append(pattern)
-                        pattern = ''
-                    if new_note == 73:
-                        # la nueva nota es un silencio
-                        prev_note = i + 1
-            pattern += dur_to_value[len(changes) - prev_note]
-            rps.append(pattern)
-
-            return rps
+            return [ pattern[changes[i: i+4]] # pattern = dict [1001: str]
+                    for i in range(0, changes.size[0]-4, 4)
+                    ]
 
         if voice == 'melody':
             return get_rp(self.get_melody(), self.get_melody_changes())
