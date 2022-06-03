@@ -20,7 +20,7 @@ def get_reconstruction(df, model, inplace=False):
 
 def display_reconstruction(df, samples=5):
     for i, r in df.head(samples).iterrows():
-        print(r.roll.song.nombre)
+        print(r.roll.song.name)
         print("Original:")
         r.roll.display_score()
         print("Reconstrucción:")
