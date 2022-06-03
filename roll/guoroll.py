@@ -10,7 +10,6 @@ import model.colab_tension_vae.params as params
 
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
-
 dur_to_value = 'rsqdc'
 
 
@@ -123,9 +122,7 @@ class GuoRoll:
 
     def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
         def get_rp(voice_part, changes) -> List[str]:
-            return [ pattern[changes[i: i+4]] # pattern = dict [1001: str]
-                    for i in range(0, changes.size[0]-4, 4)
-                    ]
+            return [changes[i: i + 4] for i in range(0, changes.size, 4)]
 
         if voice == 'melody':
             return get_rp(self.get_melody(), self.get_melody_changes())
