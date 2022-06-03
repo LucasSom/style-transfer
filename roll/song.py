@@ -7,8 +7,8 @@ from roll.guoroll import GuoRoll
 
 class Song:
     def __init__(self, midi_file: str, nombre: str, pulso="negra", granularity="semicorchea", verbose=False):
-        self.nombre = nombre
-        self.compases = params.config.bars
+        self.name = nombre
+        self.bars = params.config.bars
         self.pulso = pulso
         self.granularity = granularity
 

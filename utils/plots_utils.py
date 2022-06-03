@@ -59,3 +59,10 @@ def plot_tsne(df, tsne_ds):
 
     sns.relplot(x='dim_1', y='dim_2', hue='Titulo', style='Tipo', data=tsne_result_df, kind='scatter', height=6)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
+
+
+def get_confusion_matrix(intervals, song, voice):
+    p = plt.hist2d(intervals[:-1], intervals[1:])
+    plt.title(f"{song.name}-{voice}")
+    plt.show()
+    return p

@@ -121,13 +121,13 @@ class GuoRoll:
         #            get_intervals(self.get_bass(), self.get_bass_changes())
 
     def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
-        def get_rp(voice_part, changes) -> List[str]:
-            return [changes[i: i + 4] for i in range(0, changes.size, 4)]
+        def get_rp(changes) -> List[str]:
+            return [pattern_to_str(changes[i: i + 4]) for i in range(0, changes.size, 4)]
 
         if voice == 'melody':
-            return get_rp(self.get_melody(), self.get_melody_changes())
+            return get_rp(self.get_melody_changes())
         if voice == 'bass':
-            return get_rp(self.get_bass(), self.get_bass_changes())
+            return get_rp(self.get_bass_changes())
 
     def display_score(self):
         lily = lily_conv.write(self.score, fmt='lilypond', fp='file', subformats=['png'])
@@ -142,3 +142,10 @@ def rolls_to_midis(rolls):
 
 def get_scores_from_roll(roll):
     return [r.score for r in roll]
+
+
+def pattern_to_str(pattern):
+    s = ""
+    for i in pattern:
+        s += str(int(i))
+    return s
