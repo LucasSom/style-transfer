@@ -1,10 +1,11 @@
 import numpy as np
 import pytest
+from matplotlib import pyplot as plt
 
 from evaluation.metrics.intervals import plot_matrix_of_adjacent_intervals
-from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmic_patterns
+from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmic_patterns, pattern_to_int
 from model.colab_tension_vae.params import init
-from roll.guoroll import GuoRoll, pattern_to_str
+from roll.guoroll import GuoRoll
 from roll.song import Song
 from utils.files_utils import data_tests_path, load_pickle, data_path
 
@@ -79,11 +80,25 @@ def test_plot_interval_matrix():
     init(4)
     s = Song(midi_file=f"{data_path}Mozart/sonata15-1-debug.mid", nombre="sonata15")
     plot_matrix_of_adjacent_intervals(s, 'melody')
+    plt.show()
     plot_matrix_of_adjacent_intervals(s, 'bass')
+    plt.show()
+
+
+def test_pattern_to_int():
+    assert pattern_to_int('0000') == 0
+    assert pattern_to_int('0001') == 1
+    assert pattern_to_int('0010') == 2
+    assert pattern_to_int('1000') == 8
+    assert pattern_to_int('1001') == 9
+    assert pattern_to_int('0110') == 6
+    assert pattern_to_int('1111') == 15
 
 
 def test_plot_rhythmic_matrix():
     init(4)
     s = Song(midi_file=f"{data_path}Mozart/sonata15-1-debug.mid", nombre="sonata15")
     plot_matrix_of_adjacent_rhythmic_patterns(s, 'melody')
+    plt.show()
     plot_matrix_of_adjacent_rhythmic_patterns(s, 'bass')
+    plt.show()

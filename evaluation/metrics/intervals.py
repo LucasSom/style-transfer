@@ -1,6 +1,5 @@
 import numpy as np
-
-from utils.plots_utils import get_confusion_matrix
+from matplotlib import pyplot as plt
 
 
 def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):
@@ -12,4 +11,6 @@ def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):
 def plot_matrix_of_adjacent_intervals(song, voice='melody'):
     intervals = song.get_adjacent_intervals(voice)
 
-    return get_confusion_matrix(intervals, song, voice)
+    p = plt.hist2d(intervals[:-1], intervals[1:])
+    plt.title(f"{song.name}-{voice}-intervals")
+    return p
