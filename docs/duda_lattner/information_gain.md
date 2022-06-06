@@ -55,7 +55,6 @@ would define it as:
 
 * $p(v_n | v_{n-1}) = \frac{\sum_{k=t}^{T-1} \sum_{k=0}^K \delta(v_{nt}^k = v_n, v_{(n-1)t}^k = v_{n-1})}{
                             \sum_{k=t}^{T-1} \sum_{k=0}^K \delta(v_{(n-1)t}^k = v_{n-1})}$
-
 We greatly appreciate the time taken to read this and thank you for any further
 clarification that can be provided.
 
