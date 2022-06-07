@@ -39,7 +39,7 @@ class GuoRoll:
             self.midi = self._roll_to_midi(None, verbose=verbose)
         else:
             self.midi = self._roll_to_midi(song.old_pm, verbose=verbose)
-        if verbose: print(self.midi)
+        if verbose: print(f"Created: {self.midi}")
 
     def _roll_to_midi(self, old_pm=None, verbose=False):
         return util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose)
