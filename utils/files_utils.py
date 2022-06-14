@@ -41,3 +41,44 @@ def load_pickle(file_name: str, verbose=False):
         p = pickle.load(f)
         if verbose: print("Loaded file:", f)
         return p
+
+
+def get_metrics_path(transferred_path: str):
+    metrics_file_path = f"{transferred_path}-metrics.pkl"
+    return metrics_file_path
+
+
+def get_transferred_path(e_dest: str, e_orig: str, model_name: str):
+    transferred_path = f"{data_path}embeddings/{model_name}/df_transferred_{e_orig}_{e_dest}.pkl"
+    return transferred_path
+
+
+def get_emb_path(model_name: str):
+    emb_path = f"{data_path}embeddings/{model_name}/df_emb.pkl"
+    return emb_path
+
+
+def get_characteristics_path(model_name: str):
+    characteristics_path = f"{data_path}embeddings/{model_name}/authors_characteristics.pkl"
+    return characteristics_path
+
+
+def get_model_path(model_name: str):
+    model_path = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
+    return model_path
+
+
+def get_eval_path(transferred_path: str):
+    eval_path = f"{transferred_path}-eval.pkl"
+    return eval_path
+
+
+def get_audios_path(model_name=None, e_orig=None, e_dest=None):
+    if model_name is None:
+        path = os.path.join(data_path, "Audios/")
+    else:
+        path = os.path.join(data_path, model_name, "Audios/")
+
+    if e_orig is None and e_dest is None:
+        return path
+    return os.path.join(path, f"{e_orig}_to_{e_dest}/")

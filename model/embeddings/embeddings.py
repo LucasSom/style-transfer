@@ -49,14 +49,14 @@ def obtain_std(embeddings):
     return np.vstack(embeddings).std(axis=0)
 
 
-def transform_embeddings(df, caracteristicos: dict, original: str, objetivo: str, sample=1, scale=1):
-    v_original = caracteristicos[original]
-    v_goal = caracteristicos[objetivo]
+def transform_embeddings(df, characteristics: dict, original: str, target: str, scale=1, sample=1):
+    v_original = characteristics[original]
+    v_goal = characteristics[target]
 
     return (df
             >> dfply.mask(dfply.X['Autor'] == original)
             >> dfply.group_by('Titulo', 'Autor')
-            # >> dfply.sample(sample)
+            >> dfply.sample(sample)
             >> dfply.mutate(Mutacion_add=dfply.X['Embedding'].apply(lambda e: e + v_goal * scale))
             >> dfply.mutate(Mutacion_add_sub=dfply.X['Embedding'].apply(lambda e: e - v_original * scale))
             )

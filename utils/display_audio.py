@@ -21,8 +21,16 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
+def get_midis(df, path=f"{data_path}Audios/", verbose=0):
+    rolls_generated = df[df.columns[-1]]
+    if verbose:
+        print("Column to generate midi:", df.columns[-1])
+    midis = [r.midi for r in rolls_generated]
+    save_audios(df['Titulo'], midis, path=path, verbose=verbose)
+
+
 # noinspection PyShadowingBuiltins
-def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_path + 'Audios/', verbose=False)\
+def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_path + 'Audios/', verbose=0)\
         -> List[str]:
     """
     Generate mp3 from midis.
@@ -31,14 +39,14 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
     :param midis: list of pretty midis to convert to mp3.
     :param oldPMs: pretty midis of the original song.
     :param path: where to save the files.
-    :param verbose: bool
+    :param verbose: 0 = no verbose; 1 = only project actions; 2 = all processes.
     :return: list of names (inside path) of the mp3 files saved.
     """
     if not os.path.isdir(path):
         os.makedirs(path)
 
-    fluidsynth_cmd = f"fluidsynth {'-v ' if verbose else ' '}-a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
-    ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose else 'quiet'} -f s32le -i -"
+    fluidsynth_cmd = f"fluidsynth {'-v ' if verbose==2 else ' '}-a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
+    ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose==2 else 'quiet'} -f s32le -i -"
 
     files = []
     ids = Counter()
