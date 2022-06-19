@@ -91,7 +91,6 @@ class GuoRoll:
         return self.matrix[:, params.config.melody_dim + 1: -1]
 
     def get_bass_changes(self):
-        padding = params.config.melody_dim + 1
         return self.matrix[:, -1]
 
     def get_adjacent_intervals(self, voice='melody') -> List[int]:

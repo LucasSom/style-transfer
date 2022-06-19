@@ -3,6 +3,7 @@ import pytest
 from matplotlib import pyplot as plt
 
 from evaluation.metrics.intervals import plot_matrix_of_adjacent_intervals
+from evaluation.metrics.plagiarism import dumb_pitch_plagiarism
 from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmic_patterns, pattern_to_int
 from model.colab_tension_vae.params import init
 from roll.guoroll import GuoRoll
@@ -13,6 +14,16 @@ from utils.files_utils import data_tests_path, load_pickle, data_path
 @pytest.fixture
 def matrix_4bar():
     return np.loadtxt(data_tests_path + "matrix_4bar.csv", delimiter=",", dtype=int)
+
+
+@pytest.fixture
+def matrix_4bar_diff():
+    return np.loadtxt(data_tests_path + "matrix_4bar_diff.csv", delimiter=",", dtype=int)
+
+
+@pytest.fixture
+def matrix_4bar_rest_diff():
+    return np.loadtxt(data_tests_path + "matrix_4bar_rest_diff.csv", delimiter=",", dtype=int)
 
 
 @pytest.fixture
@@ -102,3 +113,26 @@ def test_plot_rhythmic_matrix():
     plt.show()
     plot_matrix_of_adjacent_rhythmic_patterns(s, 'bass')
     plt.show()
+
+
+def test_dumb_plagiarism_0():
+    init(4)
+    s = Song(midi_file=f"{data_path}Mozart/sonata15-1-debug.mid", nombre="sonata15")
+    assert dumb_pitch_plagiarism(s.rolls[0], s.rolls[0]) == (0, 0)
+
+
+def test_dumb_plagiarism_little_diffs(matrix_4bar, matrix_4bar_diff):
+    init(4)
+    roll_4bar = GuoRoll(matrix_4bar)
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff)
+    assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_diff) == (3, 2)
+
+
+def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_rest_diff):
+    init(4)
+    roll_4bar = GuoRoll(matrix_4bar)
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff)
+    roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff)
+    assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff) == (12, 12)
+    assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff, rest_value=100) == (100, 100)
+    assert dumb_pitch_plagiarism(roll_4bar_diff, roll_4bar_rest_diff) == (15, 14)
