@@ -35,6 +35,7 @@ def preprocess(b, folders, targets):
     songs = {}
     for folder in folders:
         songs[folder] = [f"{folder}/{song}" for song in os.listdir(data_path + folder)]
+    # TODO(march): Falta pasar b como parámetro
     df = preprocess_data(songs)
     save_pickle(df, targets[0])
 
@@ -78,12 +79,14 @@ def task_test():
     """Shows the reconstruction of the model over an original song"""
     for b, model_name in models.items():
         init(b)
+        # TODO(march): ¿porque las epocas?
         for e in epochs:
             model_path = get_model_path(model_name)
             yield {
                 'name': f"{model_name}-e{e}",
                 'file_dep': [preprocessed_data(b), model_path],
                 'actions': [(analyze_training, [preprocessed_data(b), model_path, model_name])],
+                # TODO(march): Falta target
             }
 
 

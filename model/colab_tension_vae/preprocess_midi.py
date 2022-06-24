@@ -130,12 +130,12 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices, verbose=False)
         start_index = down_beat_indices[start]
         if end == len(down_beat_indices):
             if roll_concat[start_index:, :].shape[0] < (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH):
-                fill_num = \
-                    params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH - roll_concat[start_index:, :].shape[0]
+                fill_num = (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH 
+                            - roll_concat[start_index:, :].shape[0])
                 fill_roll = np.vstack([roll_concat[start_index:, :], np.zeros((fill_num, 89))])
             else:
-                fill_roll = \
-                    roll_concat[start_index:start_index + params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH]
+                end_index = start_index + params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH
+                fill_roll = roll_concat[start_index:end_index]
             if fill_roll.shape[0] == (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH):
                 rolls.append(fill_roll)
             else:
@@ -249,13 +249,13 @@ def preprocess_midi(midi_file, continued=True, verbose=False):
         if verbose: print('track number < 2, skip')
         return
 
+    # sixteenth_time: marca los instantes de tiempo en donde empieza una semicorchea
+    # down_beat_indices: indica los índices estos tiempos donde empieza cada compás
+    #   Si hay síncopa o silencio entendería que no las marca
     sixteenth_time, down_beat_indices = beat_time(pm, beat_division=int(params.config.SAMPLES_PER_BAR / 4))
     if verbose and np.diff(down_beat_indices).min != np.diff(down_beat_indices).max:
         print("Min and max from np.diff(down_beat_indices) differ:\n"
               f"{np.diff(down_beat_indices).min} != {np.diff(down_beat_indices).max}")
-    # sixteenth_time: marca los instantes de tiempo en donde empieza una semicorchea
-    # down_beat_indices: indica los índices de las notas del pm donde empieza cada compás
-    #   Si hay síncopa o silencio entendería que no las marca
     matrices = get_piano_roll(pm, sixteenth_time)
 
     melody_matrix = matrices[0]
@@ -273,6 +273,10 @@ def preprocess_midi(midi_file, continued=True, verbose=False):
     #     print("Mi vieja propuesta:", filled_indices_debug)
     #     print("La nueva propuesta:", filled_indices)
     # else:
+
+    # filled_indices: lista de tuplas de índices de down_beat_indices que
+    #   forman las ventanas de análisis. Estas tienen un intervalo dado por
+    #   SAMPLES_PER_BAR y un salto dado por SLIDING_WINDOW
     filled_indices = find_active_range([melody_matrix, bass_matrix], down_beat_indices, continued)
     # Sin tuneo tiene tamaño 7. Con tuneo, 1
 
@@ -282,8 +286,11 @@ def preprocess_midi(midi_file, continued=True, verbose=False):
     else:
         if verbose: print("Size of filled_indices:", len(filled_indices))
 
+    # matriz dim x tiempo en fromato guo (73 melodía + silencio + ritmo,
+    # 12 bajo + silencio + ritmo)
     roll_concat = stack_data([melody_matrix, bass_matrix])
 
+    # recorta roll_concat en los frames dados por filled_indices
     x, bars_skipped = prepare_one_x(roll_concat, filled_indices, down_beat_indices, verbose=verbose)
     x = np.array(x)
     return x, filled_indices, pm, bars_skipped

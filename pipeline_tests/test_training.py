@@ -1,5 +1,5 @@
 from model.embeddings.embeddings import obtain_embeddings, get_embeddings_roll_df
-from utils.files_utils import load_pickle, data_path, save_pickle
+from utils.files_utils import load_pickle, data_path, save_pickle, get_reconstruction_path
 
 
 def test_reconstruction(df, model, model_name, samples=5, inplace=False, verbose=False):
@@ -7,7 +7,7 @@ def test_reconstruction(df, model, model_name, samples=5, inplace=False, verbose
         df_reconstructed = load_pickle(file_name=f"{data_path}embeddings/{model_name}-recons", verbose=verbose)
     except:
         df_reconstructed = get_reconstruction(df, model, inplace=inplace)
-        save_pickle(df_reconstructed, f"{data_path}embeddings/{model_name}")
+        save_pickle(df_reconstructed, get_reconstruction_path(model_name))
 
     display_reconstruction(df_reconstructed, samples=samples)
 

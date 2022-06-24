@@ -62,9 +62,13 @@ def get_characteristics_path(model_name: str):
     characteristics_path = f"{data_path}embeddings/{model_name}/authors_characteristics.pkl"
     return characteristics_path
 
+def get_reconstruction_path(model_name: str):
+    return os.path.join(data_path, 'reconstruction', model_name,
+                        'reconstruction.pkl')
+
 
 def get_model_path(model_name: str):
-    model_path = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
+    model_path = f"{path_saved_models + model_name}/ckpt/"
     return model_path
 
 
