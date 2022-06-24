@@ -1,6 +1,7 @@
 import getopt
 import os
 import sys
+import p_tqdm
 from typing import List, Dict
 
 import dfply
@@ -25,13 +26,21 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
     :param verbose: Whether to print intermediate messages.
     :return: DataFrame with 3 columns: 'Autor', 'Titulo' and 'roll' (the GuoRolls of each song).
     """
+    paths = [(key, os.path.basename(path), path)
+             for key, paths in songs_dict.items()
+             for path in paths]
+
+    def f(author, title, path):
+        song = Song(midi_file=data_path + path, nombre=os.path.basename(path), verbose=verbose)
+        return (author, title, song)
+
+    rolls_list = p_tqdm.p_map(f, *zip(*paths))
     data = [{'Autor': key,
              'Titulo': os.path.basename(path),
              'roll': roll,
              }
-            for key, paths in songs_dict.items()
-            for path in paths
-            for roll in Song(midi_file=data_path + path, nombre=os.path.basename(path), verbose=verbose).rolls
+            for author, title, song in rolls_list
+            for roll in song.rolls
             ]
 
     return pd.DataFrame(data)
