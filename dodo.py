@@ -95,15 +95,13 @@ def task_test():
     """Shows the reconstruction of the model over an original song"""
     for b, model_name in models.items():
         init(b)
-        # TODO(march): ¿porque las epocas?
-        for e in epochs:
-            model_path = get_model_path(model_name)
-            yield {
-                'name': f"{model_name}-e{e}",
-                'file_dep': [preprocessed_data(b), model_path],
-                'actions': [(analyze_training, [preprocessed_data(b), model_path, model_name])],
-                # TODO(march): Falta target
-            }
+        model_path = get_model_path(model_name)
+        yield {
+            'name': f"{model_name}",
+            'file_dep': [preprocessed_data(b), model_path],
+            'actions': [(analyze_training, [preprocessed_data(b), model_path, model_name])],
+            'target': [model_path]
+        }
 
 
 def do_embeddings(df_path, model_path, characteristics_path, emb_path):
