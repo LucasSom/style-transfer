@@ -28,9 +28,11 @@ def obtain_embeddings(df: pd.DataFrame, vae, inplace=False) -> pd.DataFrame:
             df = df.groupby('Titulo').sample()
         AttributeError: 'str' object has no attribute 'groupby'
         """
+        # TODO (March): Poner seed
         df = df.groupby('Titulo').sample()
         df_emb = df
     else:
+        # TODO (March): Poner seed
         df_emb = df.groupby('Titulo').sample()
     # df_sampled['Embedding'].iloc[0][0]
 
@@ -77,6 +79,7 @@ def get_embeddings_roll_df(df_in, vae, column='Embedding', name_new_column='NewR
     df = df_in if inplace else copy.deepcopy(df_in)
 
     if type(column) == list:
+        # TODO(march): esto pisa df constantemente, salvo que se haga inplace
         for c, n in zip(column, name_new_column):
             df = get_embeddings_roll_df(df_in, vae, column=c, name_new_column=n, inplace=inplace)
         return df
