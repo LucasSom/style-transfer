@@ -1,4 +1,5 @@
 import os
+import glob
 from typing import List
 
 import music21 as m21
@@ -7,6 +8,7 @@ from IPython.core.display import display, Image
 
 from model.colab_tension_vae import util
 import model.colab_tension_vae.params as params
+
 
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
@@ -128,9 +130,14 @@ class GuoRoll:
         if voice == 'bass':
             return get_rp(self.get_bass_changes())
 
-    def display_score(self):
-        lily = lily_conv.write(self.score, fmt='lilypond', fp='file', subformats=['png'])
-        display(Image(str(lily)))
+    def display_score(self, do_display=True, fp='file'):
+        lily = lily_conv.write(self.score, fmt='lilypond', fp=fp, subformats=['png'])
+        if do_display:
+            display(Image(str(lily)))
+        files = glob.glob(os.path.splitext(lily)[0]+ '*')
+        for f in files:
+            if f != lily:
+                os.remove(f)
         print("File saved in ", os.path.abspath(lily))
         return lily
 
