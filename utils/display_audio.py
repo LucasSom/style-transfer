@@ -21,12 +21,15 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def get_midis(df, path=f"{data_path}Audios/", verbose=0):
-    rolls_generated = df[df.columns[-1]]
+def get_midis(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=0):
+    column = df.columns[-1] if column is None else column
+    rolls_generated = df[column]
     if verbose:
         print("Column to generate midi:", df.columns[-1])
     midis = [r.midi for r in rolls_generated]
-    save_audios(df['Titulo'], midis, path=path, verbose=verbose)
+    titles = (df['Titulo'] if suffix is None 
+              else df['Titulo'].map(lambda t: f'{t}_{suffix}'))
+    save_audios(titles, midis, path=path, verbose=verbose)
 
 
 # noinspection PyShadowingBuiltins
@@ -55,7 +58,7 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
         ids['name'] += 1
         id = ids['name']
 
-        file_name = path + f'{name}_{id}'
+        file_name = os.path.join(path, f'{name}_{id}')
         pm.write(file_name + '.mid')
 
         # we convert the created midi to mp3 reading with fluidsynth and bringing it to ffmpeg
