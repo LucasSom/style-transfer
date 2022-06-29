@@ -43,6 +43,11 @@ def load_pickle(file_name: str, verbose=False):
         return p
 
 
+def get_preproc_small_path(b):
+    return os.path.join(data_path, 'preprocessed_data', 
+                        f'bach-rag-moz-fres-{b}_small.pkl')
+
+
 def get_metrics_path(transferred_path: str):
     metrics_file_path = f"{transferred_path}-metrics.pkl"
     return metrics_file_path

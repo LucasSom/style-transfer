@@ -14,3 +14,5 @@ pytest
 IPython
 jupyter
 doit
+verbosity
+p_tqdm

@@ -14,7 +14,7 @@ from preprocessing import preprocess_data
 from utils.display_audio import get_midis
 from utils.files_utils import save_pickle, data_path, load_pickle, preprocessed_data_path, \
     get_metrics_path, get_transferred_path, get_emb_path, get_characteristics_path, get_model_path, get_eval_path, \
-    get_audios_path
+    get_audios_path, get_preproc_small_path
 
 
 def preprocessed_data(b):
@@ -24,6 +24,7 @@ def preprocessed_data(b):
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 
 models = {4: 'brmf_4b', 8: 'brmf_8b'}
+models = {4: 'brmf_4b'}
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
 
@@ -35,7 +36,6 @@ def preprocess(b, folders, targets):
     songs = {}
     for folder in folders:
         songs[folder] = [f"{folder}/{song}" for song in os.listdir(data_path + folder)]
-    # TODO(march): Falta pasar b como parámetro
     df = preprocess_data(songs)
     save_pickle(df, targets[0])
 
@@ -53,6 +53,23 @@ def task_preprocess():
         }
 
 
+def task_preprocess_small():
+    def action(pickle_path, targets):
+        data = load_pickle(pickle_path)
+        data['roll'] = data['roll'].apply(lambda x: x.matrix)
+
+        save_pickle(data, targets[0])
+
+    for b in models:
+        yield {
+            # 'file_dep': files,
+            'name': f"{b}bars",
+            'actions': [(action, [preprocessed_data(b)])],
+            'targets': [get_preproc_small_path(b)],
+            'uptodate': [os.path.isfile(preprocessed_data(b))]
+        }
+
+
 # TODO: Pasarle por parámetro a la tarea las épocas y el ckpt
 def task_train():
     """Trains the model"""
@@ -63,7 +80,7 @@ def task_train():
                 # path_to_save = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
                 yield {
                     'name': f"{model_name}-e{e}-ckpt{c}",
-                    'file_dep': [preprocessed_data(b)],
+                    'file_dep': [get_preproc_small_path(b)],
                     'actions': [(train_model, [preprocessed_data(b), model_name, e, c])],
                     # 'targets': [path_to_save],
                 }

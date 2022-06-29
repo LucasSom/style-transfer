@@ -35,8 +35,8 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
         return (author, title, song)
 
     rolls_list = p_tqdm.p_map(f, *zip(*paths))
-    data = [{'Autor': key,
-             'Titulo': os.path.basename(path),
+    data = [{'Autor': author,
+             'Titulo': title,
              'roll': roll,
              }
             for author, title, song in rolls_list

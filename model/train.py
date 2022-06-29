@@ -7,7 +7,11 @@ from typing import List, Union
 import datetime
 import numpy as np
 import pandas as pd
-from keras.callbacks import ModelCheckpoint
+try:
+    from keras.callbacks import ModelCheckpoint
+except ImportError:
+    from tensorflow.keras.callbacks import ModelCheckpoint
+
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
