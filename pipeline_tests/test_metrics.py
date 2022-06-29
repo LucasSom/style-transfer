@@ -136,3 +136,8 @@ def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_r
     assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff) == (12, 12)
     assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff, rest_value=100) == (100, 100)
     assert dumb_pitch_plagiarism(roll_4bar_diff, roll_4bar_rest_diff) == (15, 14)
+
+
+# TODO
+def test_rhythm_dumb_plagiarism():
+    pass
