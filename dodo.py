@@ -1,6 +1,5 @@
 import os
 
-import verbosity as verbosity
 from tensorflow.keras.models import load_model
 
 from evaluation.evaluation import evaluate_model

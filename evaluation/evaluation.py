@@ -1,4 +1,4 @@
-from metrics.plagiarism import sort_by_general_plagiarism, get_most_similar_roll
+from evaluation.metrics.plagiarism import sort_by_general_plagiarism, get_most_similar_roll
 
 
 def evaluate_model(df, metrics):
