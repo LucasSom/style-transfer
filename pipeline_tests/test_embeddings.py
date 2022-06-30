@@ -6,8 +6,8 @@ from utils.files_utils import load_pickle, data_path, preprocessed_data_path
 
 
 @pytest.fixture
-def brmf_prep():
-    return load_pickle(file_name=preprocessed_data_path+"bach_rag_moz_fres")
+def brmf4_prep():
+    return load_pickle(file_name=preprocessed_data_path+"bach_rag_moz_fres-4")
 
 
 @pytest.fixture
