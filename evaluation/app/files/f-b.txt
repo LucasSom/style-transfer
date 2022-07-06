@@ -1,0 +1,3 @@
+Aparición de cromatismos en las 2 voces. (*)
+
+Podría haber cierto desorden rítmico: si en Frescobaldi las voces van "por su cuenta" y en Bach tienen bastante correlación, se esperaría ver cierto ajuste entre las 2. El problema es que si se tiende al "estilo Bach" se perdería la independencia de la canción de Frescobaldi, y viceversa, si se mantiene mucho la independencia de las voces se pierde la homorritmia entre las voces. Tiene sentido este problema si consideramos que corresponden a texturas musicales diferentes.
