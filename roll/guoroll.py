@@ -9,7 +9,6 @@ from IPython.core.display import display, Image
 from model.colab_tension_vae import util
 import model.colab_tension_vae.params as params
 
-
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
 dur_to_value = 'rsqdc'
@@ -134,7 +133,7 @@ class GuoRoll:
         lily = lily_conv.write(self.score, fmt='lilypond', fp=fp, subformats=['png'])
         if do_display:
             display(Image(str(lily)))
-        files = glob.glob(os.path.splitext(lily)[0]+ '*')
+        files = glob.glob(os.path.splitext(lily)[0] + '*')
         for f in files:
             if f != lily:
                 os.remove(f)
@@ -155,3 +154,9 @@ def pattern_to_str(pattern):
     for i in pattern:
         s += str(int(i))
     return s
+
+
+class GuoRollSmall:
+
+    def __init__(self, roll: GuoRoll):
+        self.matrix = roll.matrix

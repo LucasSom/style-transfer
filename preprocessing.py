@@ -32,7 +32,7 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
 
     def f(author, title, path):
         song = Song(midi_file=data_path + path, nombre=os.path.basename(path), verbose=verbose)
-        return (author, title, song)
+        return author, title, song
 
     rolls_list = p_tqdm.p_map(f, *zip(*paths))
     data = [{'Autor': author,

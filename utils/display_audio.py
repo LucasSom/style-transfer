@@ -21,15 +21,15 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def get_midis(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=0):
+def get_midis(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=0) -> List[str]:
     column = df.columns[-1] if column is None else column
     rolls_generated = df[column]
     if verbose:
         print("Column to generate midi:", df.columns[-1])
     midis = [r.midi for r in rolls_generated]
-    titles = (df['Titulo'] if suffix is None 
-              else df['Titulo'].map(lambda t: f'{t}_{suffix}'))
-    save_audios(titles, midis, path=path, verbose=verbose)
+    titles = (df['Titulo'] if suffix is None
+              else df['Titulo'].map(lambda t: f'{os.path.splitext(t)[0]}_{suffix}'))
+    return save_audios(titles, midis, path=path, verbose=verbose)
 
 
 # noinspection PyShadowingBuiltins
@@ -48,11 +48,12 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
     if not os.path.isdir(path):
         os.makedirs(path)
 
-    fluidsynth_cmd = f"fluidsynth {'-v ' if verbose==2 else ' '}-a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
+    fluidsynth_cmd = f"fluidsynth {'-v' if verbose==2 else ''} -a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
     ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose==2 else 'quiet'} -f s32le -i -"
 
     files = []
     ids = Counter()
+    titles = [os.path.splitext(t)[0] for t in titles]
     for i, (name, pm) in enumerate(zip(titles, midis)):
 
         ids['name'] += 1
