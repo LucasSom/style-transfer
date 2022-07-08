@@ -170,7 +170,7 @@ def task_transfer_style():
                     }
 
 
-def generate_audios(transferred_path, orig, dest, audios_path, suffix=None, column=None):
+def generate_audios(transferred_path, audios_path, suffix=None, column=None, orig=None, dest=None):
     df_transferred = load_pickle(transferred_path)
     get_midis(df_transferred, audios_path, column=column, suffix=suffix, verbose=1)
     make_html(df_transferred, orig=orig, targets=[dest], audios_path=audios_path)
@@ -192,7 +192,7 @@ def task_sample_audios():
         yield {
             'name': f'{model_name}-reconstruction',
             'file_dep': [recon_path],
-            'actions': [(generate_audios, (recon_path, audios_path, 'recon'))],
+            'actions': [(generate_audios, (recon_path, audios_path, 'recon', 'Embedding-NewRoll'))],
             'uptodate': [False]
         }
         for e_orig in subdatasets:
@@ -203,8 +203,8 @@ def task_sample_audios():
                     yield {
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [transferred_path, recon_path],
-                        'actions': [(generate_audios, [transferred_path, e_orig, e_dest,
-                                                       audios_path, suffix])],
+                        'actions': [(generate_audios, [transferred_path,
+                                                       audios_path, suffix, e_orig, e_dest])],
                         'verbosity': 2,
                         'uptodate': [False]
                     }

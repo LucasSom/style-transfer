@@ -160,3 +160,4 @@ class GuoRollSmall:
 
     def __init__(self, roll: GuoRoll):
         self.matrix = roll.matrix
+        self.midi = roll.midi

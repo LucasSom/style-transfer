@@ -74,8 +74,8 @@ def make_body(original_style: str, songs: dict) -> str:
 def make_html(df_transferred, orig, targets, audios_path=f"{data_path}Audios/"):
     songs = {
         t: [{'title': os.path.splitext(r.Titulo)[0],
-             'path_orig': f"{audios_path}/{os.path.splitext(r.Titulo)[0]}_orig.mp3",
-             'path_recon': f"{audios_path}/{os.path.splitext(r.Titulo)[0]}_recon.mp3",
+             'path_orig': f"{audios_path}/{os.path.splitext(r.Titulo)[0]}_orig_{i+1}.mp3",
+             'path_recon': f"{audios_path}/{os.path.splitext(r.Titulo)[0]}_recon_{i+1}.mp3",
              'path_transformed': f"{audios_path}/{os.path.splitext(r.Titulo)[0]}_{orig}_to_{t}_{i+1}.mp3"
              }
             for i, (_, r) in enumerate(df_transferred.iterrows())

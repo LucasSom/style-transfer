@@ -45,7 +45,7 @@ def load_pickle(file_name: str, verbose=False):
 
 
 def get_preproc_small_path(b):
-    return os.path.join(data_path, 'preprocessed_data', 
+    return os.path.join(data_path, 'preprocessed_data',
                         f'bach-rag-moz-fres-{b}_small.pkl')
 
 
@@ -68,6 +68,7 @@ def get_characteristics_path(model_name: str):
     characteristics_path = f"{data_path}embeddings/{model_name}/authors_characteristics.pkl"
     return characteristics_path
 
+
 def get_reconstruction_path(model_name: str):
     return os.path.join(data_path, 'reconstruction', model_name,
                         'reconstruction.pkl')
@@ -76,7 +77,7 @@ def get_reconstruction_path(model_name: str):
 def get_model_path(model_name: str):
     model_path = f"{path_saved_models + model_name}/ckpt/"
     model_pb_path = os.path.join(model_path, 'saved_model.pb')
-    return (model_path, model_pb_path)
+    return model_path, model_pb_path
 
 
 def get_eval_path(transferred_path: str):
