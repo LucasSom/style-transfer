@@ -10,7 +10,7 @@ import pandas as pd
 import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from roll.song import Song
-from utils.files_utils import data_path, save_pickle, preprocessed_data_path
+from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path
 
 
 @dfply.make_symbolic
@@ -31,7 +31,8 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
              for path in paths]
 
     def f(author, title, path):
-        song = Song(midi_file=data_path + path, nombre=os.path.basename(path), verbose=verbose)
+        song = Song(midi_file=os.path.join(datasets_path, path), 
+                    nombre=os.path.basename(path), verbose=verbose)
         return author, title, song
 
     rolls_list = p_tqdm.p_map(f, *zip(*paths))

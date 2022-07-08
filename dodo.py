@@ -203,8 +203,11 @@ def task_sample_audios():
                     yield {
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [transferred_path, recon_path],
-                        'actions': [(generate_audios, [transferred_path,
-                                                       audios_path, suffix, e_orig, e_dest])],
+                        'actions': [(generate_audios, 
+                                     [transferred_path, audios_path], 
+                                     dict(suffix=suffix, orig=e_orig, 
+                                          dest=e_dest)
+                                    )],
                         'verbosity': 2,
                         'uptodate': [False]
                     }
