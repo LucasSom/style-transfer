@@ -30,7 +30,8 @@ def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int,
     if isinstance(df, str):
         df = load_pickle(file_name=df, verbose=verbose)
 
-    if os.path.isdir(path_saved_models + model_name) and os.path.isfile(f"{path_saved_models}{model_name}/initial_epoch"):
+    if os.path.isdir(path_saved_models + model_name) and \
+            os.path.isfile(f"{path_saved_models}{model_name}/initial_epoch"):
         return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
     else:
         if not os.path.isdir(path_saved_models + model_name): os.makedirs(path_saved_models + model_name)
