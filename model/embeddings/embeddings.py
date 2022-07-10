@@ -98,3 +98,9 @@ def matrix_sets_to_matrices(matrix_sets: list):
         sampled_matrix = np.reshape(sampled_matrix, (-1, sampled_matrix.shape[-1]))
         matrices.append(sampled_matrix)
     return matrices
+
+
+def get_reconstruction(df, model, inplace=False):
+    df_emb = obtain_embeddings(df, model, inplace)
+    get_embeddings_roll_df(df_emb, model, inplace=True)
+    return df_emb

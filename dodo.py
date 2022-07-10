@@ -9,7 +9,8 @@ from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import calculate_characteristics
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
-from pipeline_tests.test_training import get_reconstruction, test_reconstruction
+from pipeline_tests.test_training import test_reconstruction
+from model.embeddings.embeddings import get_reconstruction
 from preprocessing import preprocess_data
 from roll.guoroll import GuoRollSmall
 from utils.display_audio import get_midis

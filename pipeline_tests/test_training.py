@@ -1,4 +1,4 @@
-from model.embeddings.embeddings import obtain_embeddings, get_embeddings_roll_df
+from model.embeddings.embeddings import get_reconstruction
 from utils.files_utils import load_pickle, data_path, save_pickle, get_reconstruction_path
 
 
@@ -10,12 +10,6 @@ def test_reconstruction(df, model, model_name, samples=5, inplace=False, verbose
         save_pickle(df_reconstructed, get_reconstruction_path(model_name))
 
     display_reconstruction(df_reconstructed, samples=samples)
-
-
-def get_reconstruction(df, model, inplace=False):
-    df_emb = obtain_embeddings(df, model, inplace)
-    get_embeddings_roll_df(df_emb, model, inplace=True)
-    return df_emb
 
 
 def display_reconstruction(df, samples=5):
