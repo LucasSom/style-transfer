@@ -33,7 +33,7 @@ def breeze_ds():
 
 def test_breeze_preprocessing(breeze_ds):
     params.init()
-    df = preprocess_data(breeze_ds)
+    preprocess_data(breeze_ds)
     assert True
 
 
@@ -50,7 +50,7 @@ def test_mapleaf(mapleleaf_ds):
         save_pickle(df, file_name=preprocessed_data_path + "mapleleaf_ds-8")
 
     roll = df["roll"][0]
-    save_audios(None, [(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug_outputs/audios/")
+    save_audios([df["Titulo"][0]], [roll.midi], [roll.song.old_pm], path="../data/debug_outputs/audios/")
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix)
@@ -85,14 +85,15 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
         save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
-    save_audios(None, [(df["Titulo"][0], r0.midi, r0.song.old_pm),
-                       (df["Titulo"][20], r20.midi, r20.song.old_pm)
-                       ], path="../data/debug_outputs/audios/")
+    save_audios([df["Titulo"][0], df["Titulo"][20]],
+                [r0.midi, r20.midi],
+                [r0.song.old_pm, r20.song.old_pm],
+                path="../data/debug_outputs/audios/")
 
 
 def test_preprocess_bach(bach_ds):
     params.init("8bar")
-    df = preprocess_data(bach_ds)
+    preprocess_data(bach_ds)
     assert True
 
 
@@ -111,7 +112,7 @@ def test_mapleaf_4bars(mapleleaf_ds):
         save_pickle(df, file_name=preprocessed_data_path + "mapleleaf_ds-4")
 
     roll = df["roll"][0]
-    save_audios(None, [(df["Titulo"][0], roll.midi, roll.song.old_pm)], path="../data/debug_outputs/audios/")
+    save_audios([df["Titulo"][0]], [roll.midi], [roll.song.old_pm], path="../data/debug_outputs/audios/")
     assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17 * 2
     assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix)
@@ -143,12 +144,13 @@ def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
         save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
-    save_audios(None, [(df["Titulo"][0], r0.midi, r0.song.old_pm),
-                       (df["Titulo"][20], r20.midi, r20.song.old_pm)
-                       ], path="../data/debug_outputs/audios/")
+    save_audios([df["Titulo"][0], df["Titulo"][20]],
+                [r0.midi, r20.midi],
+                [r0.song.old_pm, r20.song.old_pm],
+                path="../data/debug_outputs/audios/")
 
 
 def test_preprocess_bach_4bars(bach_ds):
     params.init("4bar")
-    df = preprocess_data(bach_ds)
+    preprocess_data(bach_ds)
     assert True

@@ -10,6 +10,7 @@ import pandas as pd
 import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from roll.song import Song
+from utils import files_utils
 from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path
 
 
@@ -80,6 +81,7 @@ if __name__ == "__main__":
     file_name = None
     verbose = False
     config_name = "4bar"
+    data_path = files_utils.data_path
 
     for o, arg in opts:
         if o in ["-d", "--datapath"]:

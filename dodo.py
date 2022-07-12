@@ -7,9 +7,9 @@ from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import calculate_characteristics
+from model.embeddings.embeddings import get_reconstruction
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
-from pipeline_tests.test_training import get_reconstruction, test_reconstruction
 from preprocessing import preprocess_data
 from roll.guoroll import GuoRollSmall
 from utils.display_audio import get_midis
@@ -56,6 +56,7 @@ def task_preprocess():
 
 def task_preprocess_small():
     """Preprocess a reduced dataset, considering the subdatasets referenced in the list at the top of this file"""
+
     def action(pickle_path, targets):
         data = load_pickle(pickle_path)
         data['roll'] = data['roll'].apply(GuoRollSmall)
@@ -88,7 +89,7 @@ def task_train():
                 }
 
 
-def analyze_training(df_path, model_path, model_name, targets):
+def analyze_training(df_path, model_path, targets):
     model = load_model(model_path)
     df = load_pickle(df_path)
     df_reconstructed = get_reconstruction(df, model, inplace=False)
@@ -103,7 +104,7 @@ def task_test():
         yield {
             'name': f"{model_name}",
             'file_dep': [get_preproc_small_path(b), model_pb_path],
-            'actions': [(analyze_training, [get_preproc_small_path(b), model_path, model_name])],
+            'actions': [(analyze_training, [get_preproc_small_path(b), model_path])],
             'targets': [get_reconstruction_path(model_name)]
         }
 
@@ -185,8 +186,7 @@ def task_sample_audios():
         yield {
             'name': f'{model_name}-orig',
             'file_dep': [recon_path],
-            'actions': [(generate_audios, (recon_path, audios_path, 'orig',
-                                           'roll'))],
+            'actions': [(generate_audios, (recon_path, audios_path, 'orig', 'roll'))],
             'uptodate': [False]
         }
         yield {
@@ -203,11 +203,11 @@ def task_sample_audios():
                     yield {
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [transferred_path, recon_path],
-                        'actions': [(generate_audios, 
-                                     [transferred_path, audios_path], 
-                                     dict(suffix=suffix, orig=e_orig, 
+                        'actions': [(generate_audios,
+                                     [transferred_path, audios_path],
+                                     dict(suffix=suffix, orig=e_orig,
                                           dest=e_dest)
-                                    )],
+                                     )],
                         'verbosity': 2,
                         'uptodate': [False]
                     }
@@ -233,8 +233,7 @@ def task_sample_sheets():
         yield {
             'name': f'{model_name}-orig',
             'file_dep': [recon_path],
-            'actions': [(generate_sheets, (recon_path, audios_path, 'orig',
-                                           'roll'))],
+            'actions': [(generate_sheets, (recon_path, audios_path, 'orig', 'roll'))],
             'uptodate': [False]
         }
         yield {
@@ -251,8 +250,7 @@ def task_sample_sheets():
                     yield {
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [transferred_path, recon_path],
-                        'actions': [(generate_sheets, [transferred_path,
-                                                       audios_path, suffix])],
+                        'actions': [(generate_sheets, [transferred_path, audios_path, suffix])],
                         'verbosity': 2,
                         'uptodate': [False]
                     }

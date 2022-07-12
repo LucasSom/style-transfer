@@ -31,7 +31,8 @@ def make_table(target: str, songs: List[dict]) -> str:
 
       <figure><table>
         <thead>
-        <tr><th>Nombre de canción</th><th>Original</th><th>Reconstrucción</th><th>A {target}</th><th>Opinión</th></tr></thead>
+        <tr><th>Nombre de canción</th><th>Original</th><th>Reconstrucción</th><th>A {target}</th><th>Opinión</th></tr>
+        </thead>
         <tbody>
         """
     for s in songs:
@@ -58,6 +59,7 @@ def make_table(target: str, songs: List[dict]) -> str:
 
 def make_body(original_style: str, songs: dict) -> str:
     file = f"""<body id="css-zen-garden">
+    <div class="page-wrapper">
     
     <h1>Tabla de audios coder-decoder</h1>
     

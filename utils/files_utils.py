@@ -24,10 +24,10 @@ def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
     if os.path.splitext(file_name)[1] == '':
         file_name += '.pkl'
 
-    dir = os.path.dirname(file_name)
-    if not os.path.isdir(dir) and dir != '':
-        os.makedirs(dir)
-        if verbose: print("Created directory:", dir)
+    directory = os.path.dirname(file_name)
+    if not os.path.isdir(directory) and directory != '':
+        os.makedirs(directory)
+        if verbose: print("Created directory:", directory)
 
     with open(file_name, 'wb') as f:
         pickle.dump(obj, f)

@@ -129,8 +129,9 @@ def prepare_one_x(roll_concat, filled_indices, down_beat_indices, verbose=False)
     for start, end in filled_indices:
         start_index = down_beat_indices[start]
         if end == len(down_beat_indices):
-            if roll_concat[start_index:, :].shape[0] < (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH):
-                fill_num = (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH 
+            if roll_concat[start_index:, :].shape[0] < (
+                    params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH):
+                fill_num = (params.config.SAMPLES_PER_BAR * params.config.SEGMENT_BAR_LENGTH
                             - roll_concat[start_index:, :].shape[0])
                 fill_roll = np.vstack([roll_concat[start_index:, :], np.zeros((fill_num, 89))])
             else:

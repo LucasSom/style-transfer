@@ -28,8 +28,9 @@ def result_sampling(rolls):
             new_roll[step, melody_note] = 1
             new_roll[step, params.config.melody_output_dim] = melody_start
             new_roll[step, bass_note + params.config.melody_output_dim + params.config.melody_note_start_dim] = 1
-            new_roll[step, params.config.melody_output_dim + params.config.melody_note_start_dim + params.config.bass_output_dim] \
-                = bass_start
+            new_roll[step, params.config.melody_output_dim +
+                     params.config.melody_note_start_dim +
+                     params.config.bass_output_dim] = bass_start
         new_rolls.append(new_roll)
     return np.array(new_rolls)
 
@@ -88,8 +89,8 @@ def roll_to_pretty_midi(rolls, pm_old, verbose=False):
 
             if previous_b_pitch != -1:
                 # set the end
-                if bass_pitch == params.config.bass_dim - 1 or bass_start or bass_pitch != previous_b_pitch or timestep == \
-                        rolls.shape[0] - 1:
+                if bass_pitch == params.config.bass_dim - 1 or bass_start or bass_pitch != previous_b_pitch or \
+                        timestep == rolls.shape[0] - 1:
                     if previous_b_start:
                         b_end_time = timestep * step_time
                         #                         print(f'bass pitch is {previous_b_pitch + 24}')
@@ -164,6 +165,7 @@ def setup_musescore(musescore_path=None):
 
 def is_ipython():
     try:
+        from IPython import get_ipython
         get_ipython()
     except:
         return False
