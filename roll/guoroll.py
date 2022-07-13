@@ -156,8 +156,8 @@ def pattern_to_str(pattern):
     return s
 
 
-class GuoRollSmall:
+class GuoRollSmall(GuoRoll):
 
     def __init__(self, roll: GuoRoll):
         self.matrix = roll.matrix
-        self.midi = roll.midi
+        self.score = roll.score
