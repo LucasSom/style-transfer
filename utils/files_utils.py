@@ -6,12 +6,12 @@ import pandas as pd
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
-datasets_path = os.path.join(data_path, 'datasets')
+datasets_path = os.path.join(data_path, 'Audios')
 data_tests_path = data_path + 'tests/'
 preprocessed_data_path = data_path + 'preprocessed_data/'
 path_saved_models = data_path + 'saved_models/'
 logs_path = data_path + 'logs/'
-
+audios_path = os.path.join(data_path, 'Audios')
 
 def datasets_name(ds):
     composed_name = ""

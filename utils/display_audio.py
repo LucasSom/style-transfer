@@ -1,14 +1,13 @@
 import os
 import subprocess
 import tempfile
-from collections import Counter
 from typing import List
 
 from IPython.core.display import Image
 from IPython.display import Audio, display
 
 from roll.guoroll import lily_conv
-from utils.files_utils import data_path
+from utils.files_utils import data_path, audios_path
 
 
 def PlayMidi(midi_path, wav_path=None):
@@ -52,15 +51,10 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
     ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose==2 else 'quiet'} -f s32le -i -"
 
     files = []
-    ids = Counter()
     titles = [os.path.splitext(t)[0] for t in titles]
     for i, (name, pm) in enumerate(zip(titles, midis)):
-
-        ids['name'] += 1
-        id = ids['name']
-
-        file_name = os.path.join(path, f'{name}_{id}')
-        pm.write(file_name + '.mid')
+        file_name = os.path.join(path, name)
+        pm.write(f'{file_name}.mid')
 
         # we convert the created midi to mp3 reading with fluidsynth and bringing it to ffmpeg
         os.system(f"{fluidsynth_cmd} {file_name}.mid | {ffmpeg_cmd} {file_name}.mp3")
@@ -78,18 +72,34 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
 
 
 # noinspection PyShadowingBuiltins
-def display_audios(midi_files, path=data_path + 'Audios/'):
+def display_audio(song, fmt=None):
     """
-    :param midi_files: names of midi files (if they were created with save_audios function, they would have the format
-    '{name}_{id}.mp3').
-    :param path: where the mp3 files are saved.
+    :param song: name of file (if fmt is not None, extension is ignored).
+    :param fmt: format of files to use as file extension.
     """
-    for mf in midi_files:
-        audio = PlayMidi(path + mf)
-        print(f"Listen the fabulous {mf}:")
-        display(audio)
+    if fmt is not None:
+        song = f'{os.path.splitext(song)[0]}.{fmt}'
+    audio = PlayMidi(song)
+    # print(f"Listen the fabulous {s}:")
+    display(audio)
 
 
 def display_score(s):
     lily = lily_conv.write(s, fmt='lilypond', fp='file', subformats=['png'])
     display(Image(str(lily)))
+
+
+def display_results(song_name, model_name, orig, target, fmt=None):
+    dir_path = os.path.join(audios_path, model_name)
+    orig_song = os.path.join(dir_path, song_name) + '_orig'
+    reconstructed_song = os.path.join(dir_path, song_name) + '_recon'
+    transformed_song = os.path.join(dir_path, song_name) + f'_{orig}_to_{target}'
+    results = {'original': orig_song,
+               'reconstrucción': reconstructed_song,
+               'transformado': transformed_song,
+               }
+
+    for t, s in results.items():
+        print(f"{song_name} {t}:")
+        display_audio(s, fmt=fmt)
+        display_score(s)
