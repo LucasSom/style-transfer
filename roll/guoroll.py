@@ -161,3 +161,4 @@ class GuoRollSmall(GuoRoll):
     def __init__(self, roll: GuoRoll):
         self.matrix = roll.matrix
         self.score = roll.score
+        self.midi = None
