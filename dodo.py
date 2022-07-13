@@ -222,7 +222,7 @@ def generate_sheets(transferred_path, sheets_path, suffix=None, column=None):
     rolls = df_transferred[column]
     for title, roll in zip(titles, rolls):
         sheet_path = os.path.join(sheets_path, title + '.pdf')
-        roll.display_score(fp=sheet_path)
+        roll.display_score(do_display=False, fp=sheet_path)
 
 
 def task_sample_sheets():

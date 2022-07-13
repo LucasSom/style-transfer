@@ -135,7 +135,7 @@ class GuoRoll:
             display(Image(str(lily)))
         files = glob.glob(os.path.splitext(lily)[0] + '*')
         for f in files:
-            if f != lily:
+            if not (f.endswith('png') or f.endswith('pdf')):
                 os.remove(f)
         print("File saved in ", os.path.abspath(lily))
         return lily
