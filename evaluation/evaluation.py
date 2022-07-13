@@ -35,5 +35,5 @@ def evaluate_intervals_distribution():
     ...
 
 
-def save_opinion(song_name, target, opinion, musicalidad, nuevo_estilo, respeto_del_original):
+def save_opinion(song_name, target, opinion):
     ...
