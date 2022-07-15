@@ -364,7 +364,7 @@ def four_bar_iterate(pianoroll, model, feature_vectors,
 
 
 if __name__ == '__main__':
-    preprocess_midi('../../data/Audios/Mozart/sonata15-1-debug.mid')
+    preprocess_midi('../../data/datasets/Mozart/sonata15-1-debug.mid')
 
 
 def preprocess_midi_wrapper(path, verbose=False):

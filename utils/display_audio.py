@@ -7,7 +7,7 @@ from IPython.core.display import Image
 from IPython.display import Audio, display
 
 from roll.guoroll import lily_conv
-from utils.files_utils import data_path, audios_path
+from utils.files_utils import data_path, root_file_name, get_audios_path
 
 
 def PlayMidi(midi_path, wav_path=None):
@@ -27,7 +27,7 @@ def get_midis(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=
         print("Column to generate midi:", df.columns[-1])
     midis = [r.midi for r in rolls_generated]
     titles = (df['Titulo'] if suffix is None
-              else df['Titulo'].map(lambda t: f'{os.path.splitext(t)[0]}_{suffix}'))
+              else df['Titulo'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
     return save_audios(titles, midis, path=path, verbose=verbose)
 
 
@@ -51,7 +51,7 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
     ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose==2 else 'quiet'} -f s32le -i -"
 
     files = []
-    titles = [os.path.splitext(t)[0] for t in titles]
+    titles = [root_file_name(t) for t in titles]
     for i, (name, pm) in enumerate(zip(titles, midis)):
         file_name = os.path.join(path, name)
         pm.write(f'{file_name}.mid')
@@ -78,19 +78,18 @@ def display_audio(song, fmt=None):
     :param fmt: format of files to use as file extension.
     """
     if fmt is not None:
-        song = f'{os.path.splitext(song)[0]}.{fmt}'
+        song = f'{root_file_name(song)}.{fmt}'
     audio = PlayMidi(song)
     # print(f"Listen the fabulous {s}:")
     display(audio)
 
 
-def display_score(s):
-    lily = lily_conv.write(s, fmt='lilypond', fp='file', subformats=['png'])
-    display(Image(str(lily)))
-
-
 def display_results(song_name, model_name, orig, target, fmt=None):
-    dir_path = os.path.join(audios_path, model_name)
+    def _display_score(song):
+        lily = lily_conv.write(song, fmt='lilypond', fp='file', subformats=['png'])
+        display(Image(str(lily)))
+
+    dir_path = os.path.join(get_audios_path(model_name))
     orig_song = os.path.join(dir_path, song_name) + '_orig'
     reconstructed_song = os.path.join(dir_path, song_name) + '_recon'
     transformed_song = os.path.join(dir_path, song_name) + f'_{orig}_to_{target}'
@@ -102,4 +101,4 @@ def display_results(song_name, model_name, orig, target, fmt=None):
     for t, s in results.items():
         print(f"{song_name} {t}:")
         display_audio(s, fmt=fmt)
-        display_score(s)
+        _display_score(s)

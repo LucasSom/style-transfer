@@ -6,12 +6,20 @@ import pandas as pd
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
-datasets_path = os.path.join(data_path, 'Audios')
+datasets_path = os.path.join(data_path, 'datasets')
 data_tests_path = data_path + 'tests/'
 preprocessed_data_path = data_path + 'preprocessed_data/'
 path_saved_models = data_path + 'saved_models/'
 logs_path = data_path + 'logs/'
-audios_path = os.path.join(data_path, 'Audios')
+
+
+def root_file_name(p):
+    return os.path.splitext(p)[0]
+
+
+def file_extension(p):
+    return os.path.splitext(p)[1]
+
 
 def datasets_name(ds):
     composed_name = ""
@@ -21,7 +29,7 @@ def datasets_name(ds):
 
 
 def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
-    if os.path.splitext(file_name)[1] == '':
+    if file_extension(file_name) == '':
         file_name += '.pkl'
 
     directory = os.path.dirname(file_name)
@@ -35,7 +43,7 @@ def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
 
 
 def load_pickle(file_name: str, verbose=False):
-    if os.path.splitext(file_name)[1] == '':
+    if file_extension(file_name) == '':
         file_name += '.pkl'
 
     with open(file_name, 'rb') as f:
@@ -54,7 +62,7 @@ def get_metrics_path(transferred_path: str):
     return metrics_file_path
 
 
-def get_transferred_path(e_dest: str, e_orig: str, model_name: str):
+def get_transferred_path(e_orig: str, e_dest: str, model_name: str):
     transferred_path = f"{data_path}embeddings/{model_name}/df_transferred_{e_orig}_{e_dest}.pkl"
     return transferred_path
 
@@ -89,8 +97,30 @@ def get_audios_path(model_name=None, e_orig=None, e_dest=None):
     if model_name is None:
         path = os.path.join(data_path, "Audios/")
     else:
-        path = os.path.join(data_path, "Audios/", model_name)
+        path = os.path.join(data_path, model_name, "Audios/")
 
     if e_orig is None and e_dest is None:
         return path
     return os.path.join(path, f"{e_orig}_to_{e_dest}/")
+
+
+def get_sheets_path(model_name: str = None, original_style: str = None, target_style: str = None, orig=False):
+    """
+    :param model_name: name of the containing folder inside the data directory.
+    :param original_style: name of style of the original song.
+    :param target_style: name of transferred style.
+    :param orig: if original_style and target_style are None, determines the suffix between 'orig' and 'recon'.
+    """
+    if model_name is None:
+        path = os.path.join(data_path, "sheets/")
+    else:
+        path = os.path.join(data_path, model_name, "sheets/")
+
+    if original_style is None and target_style is None:
+        path = os.path.join(path, f"{'orig' if orig else 'recon'}/")
+    else:
+        path = os.path.join(path, f"{original_style}_to_{target_style}/")
+
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    return path

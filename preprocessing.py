@@ -11,7 +11,7 @@ import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from roll.song import Song
 from utils import files_utils
-from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path
+from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path, root_file_name
 
 
 @dfply.make_symbolic
@@ -38,7 +38,7 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
 
     rolls_list = p_tqdm.p_map(f, *zip(*paths))
     data = [{'Autor': author,
-             'Titulo': title,
+             'Titulo': root_file_name(title),
              'roll': roll,
              }
             for author, title, song in rolls_list
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     if os.path.exists(file_name):
         print(f"The file {file_name} already exists. Skip it and try with other name again.")
     else:
-        songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
+        songs = {folder: [f"{folder}/{song}" for song in os.listdir(data_path + folder)] for folder in args}
 
         df = preprocess_data(songs, verbose=verbose)
         save_pickle(df, file_name=preprocessed_data_path+file_name, verbose=verbose)

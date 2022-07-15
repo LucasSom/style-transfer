@@ -8,6 +8,7 @@ from IPython.core.display import display, Image
 
 from model.colab_tension_vae import util
 import model.colab_tension_vae.params as params
+from utils.files_utils import root_file_name
 
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
@@ -129,14 +130,18 @@ class GuoRoll:
         if voice == 'bass':
             return get_rp(self.get_bass_changes())
 
-    def display_score(self, do_display=True, fp='file'):
-        lily = lily_conv.write(self.score, fmt='lilypond', fp=fp, subformats=['png'])
+    def display_score(self, file_name='file', fmt='png', do_display=True):
+        # file_name += f'.{fmt}'
+        lily = lily_conv.write(self.score, fmt='lilypond', fp=file_name, subformats=[fmt])
+
         if do_display:
             display(Image(str(lily)))
-        files = glob.glob(os.path.splitext(lily)[0] + '*')
+
+        files = glob.glob(root_file_name(lily) + '*')
         for f in files:
             if not (f.endswith('png') or f.endswith('pdf')):
                 os.remove(f)
+
         print("File saved in ", os.path.abspath(lily))
         return lily
 
