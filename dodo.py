@@ -65,7 +65,7 @@ def task_preprocess_small():
 
     for b in models:
         yield {
-            # 'file_dep': files,
+            'file_dep': [preprocessed_data(b)],
             'name': f"{b}bars",
             'actions': [(action, [preprocessed_data(b)])],
             'targets': [get_preproc_small_path(b)],
