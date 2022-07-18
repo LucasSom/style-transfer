@@ -97,7 +97,8 @@ def roll_to_pretty_midi(rolls, pm_old, verbose=False):
                     if previous_b_start:
                         b_end_time = timestep * step_time
                         #                         print(f'bass pitch is {previous_b_pitch + 24}')
-                        bass_notes.append(pretty_midi.Note(velocity=100, pitch=previous_b_pitch + 36,
+                        bass_notes.append(pretty_midi.Note(velocity=100,
+                                                           pitch=previous_b_pitch + 36, # Subo los bajos una octava más
                                                            start=b_start_time, end=b_end_time))
                         previous_b_start = False
 
@@ -122,7 +123,7 @@ def roll_to_pretty_midi(rolls, pm_old, verbose=False):
         pm = pretty_midi.PrettyMIDI(initial_tempo=params.config.TEMPO)
         piano = pretty_midi.Instrument(program=1)
         piano.notes = melody_notes
-        bass = pretty_midi.Instrument(program=33)
+        bass = pretty_midi.Instrument(program=1)
         bass.notes = bass_notes
         pm.instruments.append(piano)
         pm.instruments.append(bass)
