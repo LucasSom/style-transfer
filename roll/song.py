@@ -6,7 +6,8 @@ from roll.guoroll import GuoRoll
 
 
 class Song:
-    def __init__(self, midi_file: str, nombre: str, pulso="negra", granularity="semicorchea", verbose=False):
+    def __init__(self, midi_file: str, nombre: str, audio_path: str, pulso="negra", granularity="semicorchea",
+                 verbose=False):
         self.name = nombre
         self.bars = params.config.bars
         self.pulso = pulso
@@ -16,8 +17,8 @@ class Song:
         self.old_pm = old_pm
         self.bars_skipped = bars_skipped
         self.rolls = [
-            GuoRoll(m, song=self, verbose=verbose)
-            for m in matrices
+            GuoRoll(m, f"{nombre}_{i}", audio_path=audio_path, song=self, verbose=verbose)
+            for i, m in enumerate(matrices)
         ]
 
     def get_adjacent_intervals(self, voice='melody') -> List[int]:

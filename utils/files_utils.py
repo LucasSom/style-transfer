@@ -7,10 +7,12 @@ import pandas as pd
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_path = project_path + '/data/'
 datasets_path = os.path.join(data_path, 'datasets')
+datasets_debug_path = os.path.join(datasets_path, 'debug')
 data_tests_path = data_path + 'tests/'
 preprocessed_data_path = data_path + 'preprocessed_data/'
 path_saved_models = data_path + 'saved_models/'
-logs_path = data_path + 'logs/'
+logs_path = os.path.join(data_path, 'logs/')
+original_audios_path = os.path.join(preprocessed_data_path, 'original_audios')
 
 
 def root_file_name(p):
@@ -94,13 +96,13 @@ def get_eval_path(transferred_path: str):
 
 
 def get_audios_path(model_name=None, e_orig=None, e_dest=None):
-    if model_name is None:
-        path = os.path.join(data_path, "Audios/")
-    else:
-        path = os.path.join(data_path, model_name, "Audios/")
+    if model_name is None:  # ie, original
+        return original_audios_path
 
-    if e_orig is None and e_dest is None:
-        return path
+    path = os.path.join(data_path, model_name, "Audios/")
+
+    if e_orig is None and e_dest is None:  # ie, reconstruction
+        return os.path.join(path, "reconstruction/")
     return os.path.join(path, f"{e_orig}_to_{e_dest}/")
 
 

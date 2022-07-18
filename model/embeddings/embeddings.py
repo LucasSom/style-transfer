@@ -7,6 +7,7 @@ import pandas as pd
 
 from model.colab_tension_vae import util
 from roll.guoroll import GuoRoll
+from utils.files_utils import get_audios_path
 
 
 def obtain_embeddings(df: pd.DataFrame, vae, inplace=False) -> pd.DataFrame:
@@ -65,11 +66,11 @@ def transform_embeddings(df, characteristics: dict, original: str, target: str, 
 
 
 @dfply.make_symbolic
-def embeddings_to_rolls(embeddings, vae) -> List[GuoRoll]:
+def embeddings_to_rolls(embeddings, original_rolls, suffix, audio_path, vae) -> List[GuoRoll]:
     decoded_matrices = decode_embeddings(embeddings, vae)
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
-    rolls = [GuoRoll(m) for m in matrices]
+    rolls = [GuoRoll(m, f"{o_r.name}-{suffix}", audio_path=audio_path) for m, o_r in zip(matrices, original_rolls)]
 
     return rolls
 
@@ -84,8 +85,10 @@ def get_embeddings_roll_df(df_in, vae, column='Embedding', name_new_column='NewR
             df = get_embeddings_roll_df(df_in, vae, column=c, name_new_column=n, inplace=inplace)
         return df
 
-    rolls = embeddings_to_rolls(df[column], vae)
-    df[f"{column}-{name_new_column}"] = rolls
+    new_name_suffix = f"{column}-{name_new_column}"
+    audio_path = get_audios_path(vae.name)
+    rolls = embeddings_to_rolls(df[column], df['roll'], new_name_suffix, audio_path, vae)
+    df[new_name_suffix] = rolls
 
     return df
 

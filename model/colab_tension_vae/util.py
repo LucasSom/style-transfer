@@ -60,7 +60,10 @@ def roll_to_pretty_midi(rolls, pm_old, verbose=False):
             if previous_m_pitch != -1:
                 # set the end
 
-                # o es un silencio             o empieza la melodía  o cambia la nota               o llegó al final
+                # o es un silencio
+                # o empieza la melodía
+                # o cambia la nota
+                # o llegó al final
                 if melody_pitch == params.config.melody_dim - 1 \
                         or melody_start \
                         or melody_pitch != previous_m_pitch \

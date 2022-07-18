@@ -2,7 +2,7 @@ import pytest
 from tensorflow import keras
 
 from model.embeddings.embeddings import obtain_embeddings
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path
+from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ df_emb
 
 
 def test_obtain_embeddings(brmf_prep, model_name):
-    vae = keras.models.load_model(data_path + f"saved_models/{model_name}/")
+    vae = keras.models.load_model(path_saved_models + model_name)
 
     df_emb = obtain_embeddings(brmf_prep, vae)
 

@@ -11,7 +11,7 @@ import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from roll.song import Song
 from utils import files_utils
-from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path, root_file_name
+from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path, root_file_name, original_audios_path
 
 
 @dfply.make_symbolic
@@ -32,8 +32,10 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
              for path in paths]
 
     def f(author, title, path):
-        song = Song(midi_file=os.path.join(datasets_path, path), 
-                    nombre=os.path.basename(path), verbose=verbose)
+        song = Song(midi_file=os.path.join(datasets_path, path),
+                    nombre=os.path.basename(path),
+                    audio_path=original_audios_path,
+                    verbose=verbose)
         return author, title, song
 
     rolls_list = p_tqdm.p_map(f, *zip(*paths))
@@ -81,11 +83,11 @@ if __name__ == "__main__":
     file_name = None
     verbose = False
     config_name = "4bar"
-    data_path = files_utils.data_path
+    _data_path = files_utils.data_path
 
     for o, arg in opts:
         if o in ["-d", "--datapath"]:
-            data_path = arg
+            _data_path = arg
         elif o in ["-c", "--config"]:
             config_name = arg
         elif o in ("-f", "--file"):
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     if os.path.exists(file_name):
         print(f"The file {file_name} already exists. Skip it and try with other name again.")
     else:
-        songs = {folder: [f"{folder}/{song}" for song in os.listdir(data_path + folder)] for folder in args}
+        songs = {folder: [f"{folder}/{song}" for song in os.listdir(_data_path + folder)] for folder in args}
 
         df = preprocess_data(songs, verbose=verbose)
         save_pickle(df, file_name=preprocessed_data_path+file_name, verbose=verbose)

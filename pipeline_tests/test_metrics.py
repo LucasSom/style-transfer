@@ -8,7 +8,7 @@ from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmi
 from model.colab_tension_vae.params import init
 from roll.guoroll import GuoRoll
 from roll.song import Song
-from utils.files_utils import data_tests_path, load_pickle, data_path
+from utils.files_utils import data_tests_path, load_pickle, original_audios_path, datasets_debug_path
 
 
 @pytest.fixture
@@ -77,7 +77,7 @@ def test_rhythmic_patters_choral_bass(roll_8bar_w_rest):
 
 def test_rhythmic_patterns_multiple(matrix_4bar):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar)
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
     r_patterns = roll_4bar.get_adjacent_rhythmic_patterns(voice='melody')
     correct_patterns = ['1010', '1101', '0000', '0110',
                         '1110', '1001', '0001', '0110',
@@ -89,7 +89,7 @@ def test_rhythmic_patterns_multiple(matrix_4bar):
 
 def test_plot_interval_matrix():
     init(4)
-    s = Song(midi_file=f"{data_path}Mozart/sonata15-1-debug.mid", nombre="sonata15")
+    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15", audio_path=original_audios_path)
     plot_matrix_of_adjacent_intervals(s, 'melody')
     plt.show()
     plot_matrix_of_adjacent_intervals(s, 'bass')
@@ -108,7 +108,7 @@ def test_pattern_to_int():
 
 def test_plot_rhythmic_matrix():
     init(4)
-    s = Song(midi_file=f"{data_path}Mozart/sonata15-1-debug.mid", nombre="sonata15")
+    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15", audio_path=original_audios_path)
     plot_matrix_of_adjacent_rhythmic_patterns(s, 'melody')
     plt.show()
     plot_matrix_of_adjacent_rhythmic_patterns(s, 'bass')
@@ -117,22 +117,22 @@ def test_plot_rhythmic_matrix():
 
 def test_dumb_plagiarism_0():
     init(4)
-    s = Song(midi_file=f"{data_path}Mozart/sonata15-1-debug.mid", nombre="sonata15")
+    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15", audio_path=original_audios_path)
     assert dumb_pitch_plagiarism(s.rolls[0], s.rolls[0]) == (0, 0)
 
 
 def test_dumb_plagiarism_little_diffs(matrix_4bar, matrix_4bar_diff):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar)
-    roll_4bar_diff = GuoRoll(matrix_4bar_diff)
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff')
     assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_diff) == (3, 2)
 
 
 def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_rest_diff):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar)
-    roll_4bar_diff = GuoRoll(matrix_4bar_diff)
-    roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff)
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff')
+    roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff, 'matrix_4bar_rest_diff')
     assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff) == (12, 12)
     assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff, rest_value=100) == (100, 100)
     assert dumb_pitch_plagiarism(roll_4bar_diff, roll_4bar_rest_diff) == (15, 14)

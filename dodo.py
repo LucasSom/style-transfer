@@ -12,10 +12,10 @@ from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing import preprocess_data
 from roll.guoroll import GuoRollSmall
-from utils.display_audio import get_midis
+from utils.audio_management import generate_audios
 from utils.files_utils import save_pickle, datasets_path, load_pickle, preprocessed_data_path, \
     get_metrics_path, get_transferred_path, get_emb_path, get_characteristics_path, get_model_path, get_eval_path, \
-    get_audios_path, get_preproc_small_path, get_reconstruction_path, get_sheets_path
+    get_audios_path, get_preproc_small_path, get_reconstruction_path, get_sheets_path, data_path
 
 
 def preprocessed_data(b):
@@ -31,8 +31,8 @@ checkpoints = [50, 100]
 DOIT_CONFIG = {'verbosity': 2}
 
 
-def preprocess(b, folders, targets):
-    init(b)
+def preprocess(bars, folders, targets):
+    init(bars)
     songs = {}
     for folder in folders:
         songs[folder] = [f"{folder}/{song}"
@@ -91,6 +91,7 @@ def task_train():
 
 def analyze_training(df_path, model_path, targets):
     model = load_model(model_path)
+    model.name = os.path.basename(model_path)
     df = load_pickle(df_path)
     df_reconstructed = get_reconstruction(df, model, inplace=False)
     save_pickle(df_reconstructed, targets[0])
@@ -171,9 +172,9 @@ def task_transfer_style():
                     }
 
 
-def generate_audios(transferred_path, audios_path, suffix=None, column=None, orig=None, dest=None):
+def audio_generation(transferred_path, audios_path, suffix=None, column=None, orig=None, dest=None):
     df_transferred = load_pickle(transferred_path)
-    get_midis(df_transferred, audios_path, column=column, suffix=suffix, verbose=1)
+    generate_audios(df_transferred, audios_path, column=column, suffix=suffix, verbose=1)
     make_html(df_transferred, orig=orig, targets=[dest], audios_path=audios_path)
     # TODO: Que targets solo tome al target.
 
@@ -186,13 +187,13 @@ def task_sample_audios():
         yield {
             'name': f'{model_name}-orig',
             'file_dep': [recon_path],
-            'actions': [(generate_audios, (recon_path, audios_path, 'orig', 'roll'))],
+            'actions': [(audio_generation, (recon_path, audios_path, 'orig', 'roll'))],
             'uptodate': [False]
         }
         yield {
             'name': f'{model_name}-reconstruction',
             'file_dep': [recon_path],
-            'actions': [(generate_audios, (recon_path, audios_path, 'recon', 'Embedding-NewRoll'))],
+            'actions': [(audio_generation, (recon_path, audios_path, 'recon', 'Embedding-NewRoll'))],
             'uptodate': [False]
         }
         for e_orig in subdatasets:
@@ -203,7 +204,7 @@ def task_sample_audios():
                     yield {
                         'name': f"{model_name}-{e_orig}_to_{e_dest}",
                         'file_dep': [transferred_path, recon_path],
-                        'actions': [(generate_audios,
+                        'actions': [(audio_generation,
                                      [transferred_path, audios_path],
                                      dict(suffix=suffix, orig=e_orig,
                                           dest=e_dest)

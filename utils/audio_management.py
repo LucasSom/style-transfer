@@ -3,11 +3,15 @@ import subprocess
 import tempfile
 from typing import List
 
+import music21 as m21
+import pretty_midi
 from IPython.core.display import Image
 from IPython.display import Audio, display
 
-from roll.guoroll import lily_conv
 from utils.files_utils import data_path, root_file_name, get_audios_path
+
+
+lily_conv = m21.converter.subConverters.ConverterLilypond()
 
 
 def PlayMidi(midi_path, wav_path=None):
@@ -20,7 +24,7 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def get_midis(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=0) -> List[str]:
+def generate_audios(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=0) -> List[str]:
     column = df.columns[-1] if column is None else column
     rolls_generated = df[column]
     if verbose:
@@ -31,7 +35,6 @@ def get_midis(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=
     return save_audios(titles, midis, path=path, verbose=verbose)
 
 
-# noinspection PyShadowingBuiltins
 def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_path + 'Audios/', verbose=0)\
         -> List[str]:
     """
@@ -44,34 +47,42 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
     :param verbose: 0 = no verbose; 1 = only project actions; 2 = all processes.
     :return: list of names (inside path) of the mp3 files saved.
     """
-    if not os.path.isdir(path):
-        os.makedirs(path)
-
-    fluidsynth_cmd = f"fluidsynth {'-v' if verbose==2 else ''} -a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
-    ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose==2 else 'quiet'} -f s32le -i -"
-
     files = []
     titles = [root_file_name(t) for t in titles]
+
     for i, (name, pm) in enumerate(zip(titles, midis)):
-        file_name = os.path.join(path, name)
-        pm.write(f'{file_name}.mid')
-
-        # we convert the created midi to mp3 reading with fluidsynth and bringing it to ffmpeg
-        os.system(f"{fluidsynth_cmd} {file_name}.mid | {ffmpeg_cmd} {file_name}.mp3")
-        files.append(f'{file_name}.mp3')
-        if verbose: print(f"Created {file_name}.mp3")
-
-        if oldPMs is not None:
-            pm_original = oldPMs[i]
-            pm_original.write(file_name + '_original.mid')
-            os.system(f"{fluidsynth_cmd} {file_name}_original.mid | {ffmpeg_cmd} {file_name}_original.mp3")
-            files.append(f'{file_name}_original.mp3')
-            if verbose: print(f"Created {file_name}_orginal.mp3")
+        if oldPMs is None:
+            files.append(save_audio(name, pm, path, verbose=verbose))
+        else:
+            files.append(save_audio(name, pm, path, oldPMs[i], verbose))
 
     return files
 
 
-# noinspection PyShadowingBuiltins
+def save_audio(name: str, pm: pretty_midi.PrettyMIDI, path: str, oldPM=None, verbose=0):
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    fluids_cmd = f"fluidsynth {'-v' if verbose == 2 else ''} -a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
+    ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose == 2 else 'quiet'} -f s32le -i -"
+
+    file_name = os.path.join(path, name)
+    pm.write(f'{file_name}.mid')
+    # we convert the created midi to mp3 reading with fluidsynth and bringing it to ffmpeg
+    os.system(f"{fluids_cmd} {file_name}.mid | {ffmpeg_cmd} {file_name}.mp3")
+
+    if verbose:
+        print(f"Created {file_name}.mp3")
+    if oldPM is not None:
+        pm_original = oldPM
+        pm_original.write(file_name + '_original.mid')
+        os.system(f"{fluids_cmd} {file_name}_original.mid | {ffmpeg_cmd} {file_name}_original.mp3")
+        if verbose:
+            print(f"Created {file_name}_original.mp3")
+        return f'{file_name}_original.mp3'
+
+    return f'{file_name}.mp3'
+
+
 def display_audio(song, fmt=None):
     """
     :param song: name of file (if fmt is not None, extension is ignored).

@@ -6,6 +6,7 @@ def test_reconstruction(df, model, model_name, samples=5, inplace=False, verbose
     try:
         df_reconstructed = load_pickle(file_name=f"{data_path}embeddings/{model_name}-recons", verbose=verbose)
     except:
+        model.name = model_name
         df_reconstructed = get_reconstruction(df, model, inplace=inplace)
         save_pickle(df_reconstructed, get_reconstruction_path(model_name))
 
