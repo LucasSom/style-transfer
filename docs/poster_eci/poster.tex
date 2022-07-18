@@ -1,0 +1,364 @@
+% Gemini theme
+% https://github.com/anishathalye/gemini
+
+\documentclass[final]{beamer}
+
+% ====================
+% Packages
+% ====================
+
+\usepackage[T1]{fontenc}
+\usepackage{relsize}
+\usepackage{lmodern}
+\usepackage[size=a0,orientation=portrait,scale=1.0]{beamerposter}
+\usetheme{gemini}
+\usecolortheme{mitmarch}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{natbib}
+\usepackage{paralist}
+\usepackage{subcaption}
+\usepackage{multicol}
+\usepackage{todonotes}
+
+% ====================
+% Lengths
+% ====================
+
+% If you have N columns, choose \sepwidth and \colwidth such that
+% (N+1)*\sepwidth + N*\colwidth = \paperwidth
+\newlength{\sepwidth}
+\newlength{\colwidth}
+\setlength{\sepwidth}{0.025\paperwidth}
+\setlength{\colwidth}{0.3\paperwidth}
+
+\newcommand{\separatorcolumn}[1][\sepwidth]{\begin{column}{#1}\end{column}}
+\newcommand{\hemph}[1]{{\color{mitred}#1}}
+
+% ====================
+% Title
+% ====================
+
+\title{
+  Título
+}
+\subtitle{
+  Subtítulo (si hay)
+}
+
+\author{Lucas Somacal \inst{1} \and Martin A. Miguel \inst{1,2}} 
+
+\institute[shortinst]{\inst{1} Universidad de Buenos Aires. Facultad de
+Ciencias Exactas y Naturales. Departamento de Computaci\'on. Buenos Aires,
+Argentina \samelineand \inst{2} CONICET-Universidad de Buenos Aires. Instituto
+de Investigaci\'on en Ciencias de la Computaci\'on (ICC). Buenos Aires,
+Argentina \inst{3} Laboratorio de Neurociencia Integrativa. Universidad Torcuato Di Tella.
+    Buenos Aires, Argentina.}
+
+% ====================
+% Body
+% ====================
+
+\begin{document}
+\begin{frame}[t]
+    \begin{columns}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.02\textwidth}
+        %\hspace{-1.125cm}
+        {\color{darkgray} \huge \rotatebox{90}{\textbf{\parbox{10cm}{
+            \centering 
+            \emph{TL}; DR}}}}
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.52\textwidth}
+        \vspace{1.5cm}
+        {\Huge
+
+        \centering
+
+      \emph{Resumen} super corto
+
+        }
+        \vspace{2cm}
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.4\textwidth}
+        {\large
+        \vspace{0.3cm}
+        \begin{table}
+          \caption*{\large FIGURA PRINCIPAL}
+          \missingfigure{FIGURA PRINCIPAL}
+        \end{table}
+        }
+    \end{column}
+    \separatorcolumn[0.01\textwidth]
+    \end{columns}
+    %% Row: TL; DR %%
+    \begin{columns}[T]
+    \separatorcolumn[0.02\textwidth]
+        \begin{column}{0.02\textwidth}
+        \vspace{12cm} %\hspace{-1.125cm}
+        {\color{darkgray} \huge \rotatebox{90}{\textbf{
+            \centering 
+            3' Speech
+        }}
+            }
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+        \begin{column}{0.94\textwidth}
+        \begin{column}{\textwidth}
+            \vspace{2cm}
+            \huge
+            {\usebeamercolor[fg]{item} Grand goal:} reach a computational model
+            to analyze affect in music.
+            \vspace{2cm}
+        \end{column}
+        \begin{column}{0.30\textwidth}
+        \begin{largeblock}{Anteriormente...}
+            \begin{itemize}
+            \setlength\itemsep{1em}
+              \item Referencias previas
+
+            \end{itemize}
+        \end{largeblock}
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.30\textwidth}
+        \begin{largeblock}{Nuestra propuesta}
+            \begin{itemize}
+            \setlength\itemsep{1.2em}
+              \item Propuestas
+            \end{itemize}
+        \end{largeblock}
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.30\textwidth}
+        \begin{largeblock}{Funcionó?}
+            \begin{itemize}
+            \setlength\itemsep{1em}
+            \item Breves resultados
+           \end{itemize}
+        \end{largeblock}
+    \end{column}
+    \end{column}
+    \separatorcolumn[0.01\textwidth]
+    \end{columns}
+
+    %% Row: The Results %%
+    \vspace{-1cm}
+    \begin{beamercolorbox}[wd=\pagewidth]{separator}
+    %\end{beamercolorbox}
+    \vspace{6pt}
+    \begin{columns}[T]
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.02\textwidth}
+        \vspace{3.25cm}
+        {\color{darkgray} \huge \rotatebox{90}{\textbf{Resultados}}}
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}[t]{0.38\textwidth}
+      THT's pulse clarity correlates significantly with various datasets.
+
+      \vspace{0.7cm}
+      \hspace{-0.5cm}%
+      \missingfigure{Resultado A}
+    \end{column}
+    \begin{column}[t]{0.24\textwidth}
+      THT's pulse clarity correlations are comparable with other models of
+      pulse clarity.
+
+      \missingfigure{Resultado B}
+
+    \end{column}
+        \separatorcolumn[0.01\textwidth]
+        \begin{column}[t]{0.23\textwidth}
+    THT's pulse clarity presents an inverted U-shaped relationship with
+            musicality and need-to-move responses in the Rhythms dataset.
+        \missingfigure{Resultado C}
+
+    \end{column}
+    \separatorcolumn[0.01\textwidth]
+    \end{columns}
+    \vspace{6pt}
+    %\begin{beamercolorbox}[bg, ht=6pt]{separator}
+    \end{beamercolorbox}
+
+    %% Row: Details %%
+    \begin{columns}[T]
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.02\textwidth}
+        \vspace{14cm}
+        {\color{darkgray} \huge \rotatebox{90}{\textbf{The Details}}}
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.93\textwidth}
+    \begin{column}{0.5\textwidth}
+    \begin{block}{The Model}
+        {\small
+        THT is an agent-based model. Each agent keeps tabs on a tactus
+        hypothesis and hence are named \emph{hypothesis trackers}. A possible
+        tactus is represented by a phase ($\rho$) and a period ($\delta$).
+        Trackers are created and updated while listening to the rhythm.
+        Hypotheses have a \emph{certainty score} in [0, 1]. Hypotheses
+        parameters and score evolve overtime.
+
+        }
+
+    \end{block}
+    \begin{block}{\normalsize \emph{Future Work}}
+      \begin{minipage}{0.37\textwidth}
+      {\small
+        The pulse clarity curve should be evaluated and calibrated on
+        rhythmic stimuli that varies through time.
+      }
+      \vspace{1cm}
+      \par{}
+      {\footnotesize
+        Figure presents example of the evaluation to-be performed,
+        comparing pulse clarity with tapping variability in the MIREX
+        dataset. 
+      }
+      \end{minipage}
+      \begin{minipage}{0.62\textwidth}
+      \raggedleft
+      \end{minipage}
+    \end{block}
+    \end{column}
+    \separatorcolumn[0.02\textwidth]
+    \begin{column}{0.472\textwidth}
+        \begin{block}{The Datasets}
+            {\small
+            \begin{columns}
+            \begin{column}{0.49\textwidth}
+            
+            \vspace{0.7em}
+            \hemph{Rhythms:}
+            \begin{itemize}
+              \item {\usebeamercolor[fg]{item}Task:} tap the beat freely while
+            listening to rhythmic examples of varied difficulty.
+              \item 33 ~30-second rhythmic stimuli of varying complexity (5
+                isochronous, 11 from \cite{fitch2007perception}, 7 from
+                \cite{povel1985perception} and 10 new)
+              \item 30 participants of varying musical training (mean 4.85 years,
+                sd=3.90)
+              \item Participants also reported tapping difficulty, musicality of
+                the stimulus and the feeling of needing to move.
+              \item Pulse clarity was estiimated as negative tapping difficulty
+                (PC) and negative inter-tap interval entropy (ITI-E)                
+            \end{itemize}
+            \end{column}
+            \begin{column}{0.49\textwidth}
+              \hemph{MIREX: \nocite{website:mirex}}
+                \begin{itemize}
+                \item 20 30-second musical excerpts of various musical genres
+                \item 40 annotators
+                \item Participants tapped to a self selected beat. Pulse clarity was
+                 estimated as the negative inter-tap interval entropy (ITI-E)                
+               \end{itemize}
+              \hemph{Soundtracks \citep{lartillot2008multi, eerola2020dataset}:} 
+                \begin{itemize}
+                  \item 100 5-minute excerpts of soundtracks
+                  \item 25 musically trained annotators
+                  \item Participants provided pulse clarity ratings (PC)
+                \end{itemize}
+            \end{column}
+          \end{columns}
+            }
+        \end{block}
+        \begin{block}{Comparison models}
+          {\small
+          \begin{itemize}
+            \item \hemph{MIRToolbox \citep{lartillot2008matlab}:} estimates
+              periodicities of a onset activation function obtained from the audio
+              signal. Here we use MIRToolbox 1.7.2 (model 1).
+            \item \hemph{MAIPC (under review):} provides various estimates of pulse
+              clarity from the inner workings of a deep-learning beat tracking
+              model. Here we use the entropy of the distribution of possible
+              beats estimated in the model from \cite{krebs2015efficient}.
+          \end{itemize}
+          }
+        \end{block}
+        \begin{block}{\normalsize References}
+{ \scriptsize
+\bibliographystyle{abbrvnat}
+\bibliography{references-index} % Use the example bibliography file sample.bib
+}
+        \end{block}
+    \end{column}
+    \end{column}
+    \separatorcolumn[0.01\textwidth]
+    \end{columns}
+
+    %% Row: Else %%
+%    \begin{columns}[T]
+%    \separatorcolumn[0.01\textwidth]
+%    \begin{column}{0.48\textwidth}
+%        \begin{block}{\normalsize Abstract}
+%        \small
+%Music has a unique capability to evoke emotions. A very interesting one is that
+%of tension. Tension arises in a situation of dissonance and uncertainty that
+%yearns for resolution. This is a kind of affect that develops in time, given
+%that it is dependent on expectations about what will happen next. Specifically
+%in rhythms, two concepts have been explored that relate to the comfort and
+%understanding of music: pulse clarity and rhythm complexity. Several
+%computational models have been introduced to analyze these concepts. In most
+%cases their analysis is static -- i.e. full passage is studied -- and does not
+%consider how they evolve in time. We present THT, a novel beat tracking model,
+%that given the onset times of a rhythmic passage provides continuous
+%information of which tacti are most reasonable and how salient they are. It
+%works by tracking multiple tactus hypothesis overtime and providing a score
+%designed to reflect confidence on the tactus. In this work we set to evaluate
+%the output of the THT model as a proxy for pulse clarity. The mean of the
+%continuous tactus confidence curve was taken as the pulse clarity score of the
+%model and we performed a beat tapping experiment to evaluate our metric. The
+%experiment consisted of asking participants (N=28) to tap the subjective beat
+%while listening to 33 rhythmic passages. After each trial they were asked about
+%the task's difficulty as a subjective measure of clarity. We also calculated
+%the within-subject tapping clarity as an empirical measurement. The proposed
+%computational metric correlated significantly against both subjective and
+%objective measures (spearman r < -0.71, p < 0.001). Comparison with other
+%models yielded similar results (Lartillot 2008, Fitch 2007, Povel 1985). This
+%positive result allows us to inspect music emotions that arise from changes in
+%rhythm perception.
+%        \end{block}
+%    \end{column}
+%    \separatorcolumn[0.03\textwidth]
+%    \begin{column}{0.48\textwidth}
+%        \nocite{fitch2007perception}
+%        \nocite{lartillot2008multi}
+%        \begin{block}{\normalsize References}
+%{ \small
+%\bibliographystyle{abbrvnat}
+%\bibliography{poster} % Use the example bibliography file sample.bib
+%}
+%        \end{block}
+%    \end{column}
+%    \separatorcolumn[0.01\textwidth]
+%    \end{columns}
+
+\begin{beamercolorbox}[wd=\paperwidth, sep=.6cm]{headline}
+
+\vspace{0.65cm}
+
+\begin{columns}[c]
+\separatorcolumn[0.01\textwidth]
+\begin{column}{0.4\textwidth}
+%\includegraphics[height=7.2cm]{imgs/poster-footer.pdf}
+\end{column}
+%\begin{column}[c]{0.59\textwidth}
+%\raggedleft
+%\includegraphics[height=4cm]{imgs/logo_icc.pdf}
+%    \hspace{2cm}
+%\includegraphics[height=4cm]{imgs/logo_liaa.pdf}
+%\end{column}
+\end{columns}
+
+\vspace{0.65cm}
+
+\end{beamercolorbox}
+\end{frame}
+
+
+\end{document}

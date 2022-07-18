@@ -1,0 +1,241 @@
+% Gemini theme
+% https://github.com/anishathalye/gemini
+
+% ====================
+% Dependencies
+% ====================
+
+\RequirePackage{exscale}
+\RequirePackage{ragged2e}
+\RequirePackage{changepage}
+\RequirePackage{fontspec}
+\RequirePackage{relsize}
+\RequirePackage{hyperref}
+
+% ====================
+% Fonts
+% ====================
+
+\newfontfamily\Raleway{Raleway}
+\newfontfamily\Lato{Lato}
+
+\usefonttheme{professionalfonts}
+
+\setsansfont{Lato}[
+  UprightFont=*-Light,
+  ItalicFont=*-LightItalic,
+  BoldFont=*-Regular,
+  BoldItalicFont=*-Italic
+]
+
+\setbeamerfont{headline}{family=\Lato}
+\setbeamerfont{headline title}{size=\fontsize{76pt}{76pt}\selectfont,series=\bfseries}
+\setbeamerfont{headline subtitle}{size=\Huge,series=\bfseries}
+\setbeamerfont{headline author}{size=\Large}
+\setbeamerfont{headline institute}{size=\normalsize}
+\setbeamerfont{block title}{family=\Raleway,size=\large,series=\bfseries}
+\setbeamerfont{block large title}{family=\Raleway,size=\Large,series=\bfseries}
+\setbeamerfont{block set title}{family=\Raleway,size=\Large,series=\bfseries}
+\setbeamerfont{heading}{family=\Lato,series=\bfseries}
+\setbeamerfont{caption}{size=\small}
+
+% ====================
+% Macros
+% ====================
+
+\newcommand{\samelineand}{\qquad}
+
+% ====================
+% Elements
+% ====================
+
+% List
+\makeatletter
+\def\@listi{\leftmargin\leftmarginii
+\topsep 1ex % spacing before
+\parsep 0\p@ \@plus\p@
+\itemsep 0.5ex} % spacing between
+\makeatother
+
+% Itemize
+
+\setbeamertemplate{itemize item}{\raise0.5ex \hbox{\vrule width 0.5ex height 0.5ex}}
+\setbeamertemplate{itemize subitem}{\raise0.3ex \hbox{\vrule width 0.5ex height 0.5ex}}
+\setbeamertemplate{itemize subsubitem}{\raise0.2ex \hbox{\vrule width 0.5ex height 0.5ex}}
+
+% Enumerate
+
+\setbeamertemplate{enumerate item}{\insertenumlabel.}
+\setbeamertemplate{enumerate subitem}{\insertsubenumlabel.}
+\setbeamertemplate{enumerate subsubitem}{\insertsubsubenumlabel.}
+
+% Equation
+\setlength\belowdisplayshortskip{2ex}
+
+% Caption
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}[period]
+\setlength{\abovecaptionskip}{2ex}
+\setlength{\belowcaptionskip}{1ex}
+
+% Bibliography
+\setbeamertemplate{bibliography item}[text]
+
+% Navigation
+\beamertemplatenavigationsymbolsempty
+
+% ====================
+% Components
+% ====================
+
+% Heading
+\newcommand\heading[1]
+{%
+  \par\bigskip
+  {\usebeamerfont{heading}\usebeamercolor[fg]{heading}#1}\par\smallskip
+}
+
+% Headline
+\setbeamertemplate{headline}
+{
+  \begin{beamercolorbox}{headline}
+    \begin{columns}
+      \begin{column}{\paperwidth}
+        \usebeamerfont{headline}
+        \vskip3ex
+        \centering
+          \begin{columns}
+              \separatorcolumn[0.02\textwidth]
+              \begin{column}{0.13\textwidth}
+                  \begin{center}
+                    \includegraphics[width=0.8\textwidth]{imgs/MartinMiguel.png}
+
+                    \vspace{12pt}
+
+                      {\color{textgray1}
+                    {\Large
+                    Martin A. Miguel
+                    }
+
+                      {\large mmiguel@dc.uba.ar}
+                  }
+                  \end{center}
+              \end{column}
+              \begin{column}{0.7\textwidth}
+                  \begin{center}
+              \vspace{1.5cm}
+            {\usebeamerfont{headline title}\usebeamercolor[fg]{headline title}\inserttitle\\[0.5ex]}
+              \vspace{1.0cm}
+            {\usebeamerfont{headline subtitle}\usebeamercolor[fg]{headline title}\insertsubtitle\\[0.5ex]}
+                  \end{center}
+              \end{column}
+              \begin{column}{0.13\textwidth}
+                  %\begin{center}
+                  %    \href{http://cor.to/m2_smpc2019_2}{
+                  %  \includegraphics[width=0.8\textwidth]{imgs/mmiguel_smpc2019_complex.pdf}
+                  %}
+
+                  %    {\color{textgray1}
+                  %  {\Large
+                  %    %\url{cor.to/m2_smpc2019_2}
+                  %    \href{http://cor.to/m2_smpc2019_2}{\url{cor.to/}\\\url{m2_smpc2019_2}}
+                  %  }
+                  %    }
+                  %\end{center}
+                \begin{center}
+                  \includegraphics[height=4.2cm]{imgs/logo_icc.pdf}
+
+                  \vspace{2cm}
+
+                  \includegraphics[height=3.5cm]{imgs/logo_liaa.pdf}
+                \end{center}
+              \end{column}
+              \separatorcolumn[0.02\textwidth]
+          \end{columns}
+          \begin{column}{0.9\textwidth}
+              \centering
+        {\usebeamerfont{headline author}\usebeamercolor[fg]{headline author}\insertauthor\\[1ex]}
+        {\usebeamerfont{headline institute}\usebeamercolor[fg]{headline institute}\insertinstitute\\[1ex]}
+          \end{column}
+      \end{column}
+\setbeamerfont{headline subtitle}{size=\Huge,series=\bfseries}
+    \end{columns}
+    \vspace{5ex}
+    \ifbeamercolorempty[bg]{headline rule}{}{
+      \begin{beamercolorbox}[wd=\paperwidth,colsep=0.5ex]{headline rule}\end{beamercolorbox}
+    }
+  \end{beamercolorbox}
+}
+
+% Block
+\setbeamertemplate{block begin}
+{
+  \begin{beamercolorbox}[colsep*=0ex,dp=2ex,center]{block title}
+    \vskip0pt
+    \usebeamerfont{block title}\insertblocktitle
+    \vskip-1.25ex
+    \begin{beamercolorbox}[colsep=0.025ex]{block separator}\end{beamercolorbox}
+  \end{beamercolorbox}
+  {\parskip0pt\par}
+  \usebeamerfont{block body}
+  \vskip-0.5ex
+  \begin{beamercolorbox}[colsep*=0ex]{block body}
+  \justifying
+  \setlength{\parskip}{1ex}
+  \vskip-2ex
+}
+\setbeamertemplate{block end}
+{
+  \end{beamercolorbox}
+  \vskip0pt
+  \vspace*{2ex}
+}
+
+% Alert Block
+\setbeamertemplate{block alerted begin}
+{
+  \begin{beamercolorbox}[colsep*=0ex,dp=2ex,center]{block alerted title}
+    \vskip0.5ex
+    \usebeamerfont{block title}\insertblocktitle
+    \vskip-1.25ex
+    \begin{beamercolorbox}[colsep=0.025ex]{block alerted separator}\end{beamercolorbox}
+  \end{beamercolorbox}
+  {\parskip0pt\par}
+  \usebeamerfont{block body}
+  \vskip-0.5ex
+  \begin{beamercolorbox}[colsep*=0ex]{block alerted body}
+  \justifying
+  \begin{adjustwidth}{1ex}{1ex}
+  \setlength{\parskip}{1ex}
+  \vskip-2ex
+}
+\setbeamertemplate{block alerted end}
+{
+  \end{adjustwidth}
+  \vskip1ex
+  \end{beamercolorbox}
+  \vskip0pt
+  \vspace*{2ex}
+}
+
+\newenvironment<>{largeblock}[1]{%
+  \begin{beamercolorbox}[colsep*=0ex,dp=2ex,center]{block title}
+    \vskip0pt
+    \usebeamerfont{block large title}#1
+    \vskip-1.25ex
+    \begin{beamercolorbox}[colsep=0.025ex]{block separator}\end{beamercolorbox}
+  \end{beamercolorbox}
+  {\parskip0pt\par}
+  \usebeamerfont{block body}
+  \vskip-0.5ex
+  \begin{beamercolorbox}[colsep*=0ex]{block body}
+  \justifying
+  \setlength{\parskip}{1ex}
+  \vskip-2ex
+  \relscale{0.5}
+}
+{
+  \end{beamercolorbox}
+  \vskip0pt
+  \vspace*{2ex}
+}
