@@ -97,10 +97,11 @@ def get_eval_path(transferred_path: str):
 
 
 def get_audios_path(model_name=None, e_orig=None, e_dest=None):
-    if model_name is None:
-        path = os.path.join(transferred_output_path, "Audios/")
-    else:
-        path = os.path.join(transferred_output_path, model_name, "Audios/")
+
+    if model_name is None:  # ie, original
+        return os.path.join(transferred_output_path, "Audios/")
+        # return original_audios_path
+    path = os.path.join(transferred_output_path, model_name, "Audios/")
 
     if e_orig is None and e_dest is None:  # ie, reconstruction
         return os.path.join(path, "reconstruction/")

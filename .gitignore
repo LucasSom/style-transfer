@@ -1,12 +1,32 @@
 **/.DS_Store
 *.pkl
 *.idea/
-*data/
-data/logs/
-data/saved_models
+data/b*
+*data/datasets/B*
+*data/datasets/F*
+*data/datasets/M*
+*data/datasets/r*
+*data/debug_outputs*
+*data/e*
+*data/i*
+*data/logs/
+*data/M*
+*data/m*
+*data/o*
+*data/p*
+*data/r*
+*data/s*
+*data/t*
+*bwv0280*
+
+model/colab_tension_vae/data/
 font.sf2
 doit/
 .doit.db
+!/data/datasets/debug/sonata15-1-debug.mid
+!/data/datasets/debug/mapleleaf.mid
+*.png
+*.ods
 
 ### Template ###
 # Byte-compiled / optimized / DLL files

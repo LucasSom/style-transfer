@@ -21,24 +21,24 @@ def mapleleaf_ds():
     return {"ragtime_test": [data_path + "debug/mapleleaf.mid"]}
 
 
-@pytest.fixture
-def bach_ds():
-    return {"bach": [data_path + "Bach/" + path for path in os.listdir(data_path + "Bach/")]}
+# @pytest.fixture
+# def bach_ds():
+#     return {"bach": [data_path + "Bach/" + path for path in os.listdir(data_path + "Bach/")]}
 
 
-@pytest.fixture
-def breeze_ds():
-    return {"breeze_test": [data_path + "ragtime/breeze.mid"]}
+# @pytest.fixture
+# def breeze_ds():
+#     return {"breeze_test": [data_path + "ragtime/breeze.mid"]}
 
 
-def test_breeze_preprocessing(breeze_ds):
-    params.init()
-    preprocess_data(breeze_ds)
-    assert True
+# def test_breeze_preprocessing(breeze_ds):
+#     params.init()
+#     preprocess_data(breeze_ds)
+#     assert True
 
 
 def test_not_cached(sonata15_mapleleaf_ds):
-    assert os.system("python3 show_statistics.py /home/urania/Documentos/Tesis/src/style-transfer/data/") == 0
+    assert os.system(f"python3 show_statistics.py {data_path}") == 0
 
 
 def test_mapleaf(mapleleaf_ds):
@@ -92,19 +92,19 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
     save_audios([df["Titulo"][0], df["Titulo"][20]],
                 [r0.midi, r20.midi],
                 [r0.song.old_pm, r20.song.old_pm],
-                path="../data/debug_outputs/audios/")
+                path=data_path + "/debug_outputs/audios/")
 
 
-def test_preprocess_bach(bach_ds):
-    params.init("8bar")
-    preprocess_data(bach_ds)
-    assert True
+# def test_preprocess_bach(bach_ds):
+#     params.init("8bar")
+#     preprocess_data(bach_ds)
+#     assert True
 
 
-def test_breeze_preprocessing_4bars(breeze_ds):
-    params.init("8bar")
-    df = preprocess_data(breeze_ds)
-    assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
+# def test_breeze_preprocessing_4bars(breeze_ds):
+#     params.init("8bar")
+#     df = preprocess_data(breeze_ds)
+#     assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
 
 
 def test_mapleaf_4bars(mapleleaf_ds):
@@ -161,7 +161,7 @@ def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
                 path=audio_path)
 
 
-def test_preprocess_bach_4bars(bach_ds):
-    params.init("4bar")
-    preprocess_data(bach_ds)
-    assert True
+# def test_preprocess_bach_4bars(bach_ds):
+#     params.init("4bar")
+#     preprocess_data(bach_ds)
+#     assert True
