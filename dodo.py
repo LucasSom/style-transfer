@@ -15,7 +15,7 @@ from roll.guoroll import GuoRollSmall
 from utils.audio_management import generate_audios
 from utils.files_utils import save_pickle, datasets_path, load_pickle, preprocessed_data_path, \
     get_metrics_path, get_transferred_path, get_emb_path, get_characteristics_path, get_model_path, get_eval_path, \
-    get_audios_path, get_preproc_small_path, get_reconstruction_path, get_sheets_path, data_path
+    get_audios_path, get_preproc_small_path, get_reconstruction_path, get_sheets_path
 
 
 def preprocessed_data(b):

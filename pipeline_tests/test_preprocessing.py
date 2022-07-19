@@ -3,7 +3,7 @@ import os
 import model.colab_tension_vae.params as params
 from utils.debug_utils import pm_cmp
 from utils.audio_management import save_audios
-from utils.files_utils import save_pickle, load_pickle, data_path, preprocessed_data_path
+from utils.files_utils import save_pickle, load_pickle, data_path, preprocessed_data_path, datasets_path
 from preprocessing import preprocess_data
 import pytest
 
@@ -12,13 +12,13 @@ from roll.guoroll import GuoRoll
 
 @pytest.fixture
 def sonata15_mapleleaf_ds():
-    return {"mozart_test": [data_path + "debug/sonata15-1-debug.mid"],
-            "ragtime_test": [data_path + "debug/mapleleaf.mid"]}
+    return {"mozart_test": [datasets_path + "debug/sonata15-1-debug.mid"],
+            "ragtime_test": [datasets_path + "debug/mapleleaf.mid"]}
 
 
 @pytest.fixture
 def mapleleaf_ds():
-    return {"ragtime_test": [data_path + "debug/mapleleaf.mid"]}
+    return {"ragtime_test": [datasets_path + "debug/mapleleaf.mid"]}
 
 
 # @pytest.fixture
