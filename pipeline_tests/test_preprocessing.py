@@ -38,8 +38,8 @@ def mapleleaf_ds():
 #     assert True
 
 
-def test_not_cached(sonata15_mapleleaf_ds):
-    assert os.system(f"python3 show_statistics.py {data_path}") == 0
+# def test_not_cached(sonata15_mapleleaf_ds):
+#     assert os.system(f"python3 show_statistics.py {data_path}") == 0
 
 
 def test_mapleaf(mapleleaf_ds):
