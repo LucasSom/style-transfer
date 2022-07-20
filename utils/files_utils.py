@@ -10,10 +10,9 @@ datasets_path = os.path.join(data_path, 'datasets')
 datasets_debug_path = os.path.join(datasets_path, 'debug')
 data_tests_path = data_path + 'tests/'
 preprocessed_data_path = data_path + 'preprocessed_data/'
-transferred_output_path = os.path.join(data_path, 'transferred')
 path_saved_models = data_path + 'saved_models/'
 logs_path = os.path.join(data_path, 'logs/')
-original_audios_path = os.path.join(preprocessed_data_path, 'original_audios')
+original_audios_path = os.path.join(preprocessed_data_path, 'original/audios/')
 
 
 def root_file_name(p):
@@ -55,9 +54,9 @@ def load_pickle(file_name: str, verbose=False):
         return p
 
 
-def get_preproc_small_path(b):
-    return os.path.join(data_path, 'preprocessed_data',
-                        f'bach-rag-moz-fres-{b}_small.pkl')
+# def get_preproc_small_path(b):
+#     return os.path.join(data_path, 'preprocessed_data',
+#                         f'bach-rag-moz-fres-{b}_small.pkl')
 
 
 def get_metrics_path(transferred_path: str):
@@ -96,16 +95,18 @@ def get_eval_path(transferred_path: str):
     return eval_path
 
 
-def get_audios_path(model_name=None, e_orig=None, e_dest=None):
-
+def get_audios_path(model_name=None, reconstruction=False, e_orig=None, e_dest=None):
     if model_name is None:  # ie, original
-        return os.path.join(transferred_output_path, "Audios/")
+        return os.path.join(data_path, "original/audios")
         # return original_audios_path
-    path = os.path.join(transferred_output_path, model_name, "Audios/")
+    path = os.path.join(data_path, model_name, "audios/")
 
-    if e_orig is None and e_dest is None:  # ie, reconstruction
-        return os.path.join(path, "reconstruction/")
-    return os.path.join(path, f"{e_orig}_to_{e_dest}/")
+    if e_orig is not None or e_dest is not None:
+        return os.path.join(path, f"{e_orig}_to_{e_dest}/")
+
+    if reconstruction:
+        return os.path.join(path, "reconstruction/audios")
+    return path
 
 
 def get_sheets_path(model_name: str = None, original_style: str = None, target_style: str = None, orig=False):
@@ -116,9 +117,9 @@ def get_sheets_path(model_name: str = None, original_style: str = None, target_s
     :param orig: if original_style and target_style are None, determines the suffix between 'orig' and 'recon'.
     """
     if model_name is None:
-        path = os.path.join(transferred_output_path, "sheets/")
+        path = os.path.join(data_path, "original/sheets/")
     else:
-        path = os.path.join(transferred_output_path, model_name, "sheets/")
+        path = os.path.join(data_path, model_name, "sheets/")
 
     if original_style is None and target_style is None:
         path = os.path.join(path, f"{'orig' if orig else 'recon'}/")

@@ -45,11 +45,7 @@ class GuoRoll:
         if verbose: print(f"Created: {self.midi}")
 
     def _roll_to_midi(self, path, old_pm=None, verbose=False):
-        return save_audio(self.name,
-                          util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose),
-                          path,
-                          old_pm,
-                          verbose)
+        return save_audio(self.name, util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose), path, verbose)
 
     def _roll_to_score(self, verbose=False):
         def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24, verbose=False):
@@ -166,10 +162,13 @@ def pattern_to_str(pattern):
     return s
 
 
+'''
 class GuoRollSmall(GuoRoll):
 
     def __init__(self, roll: GuoRoll):
         self.matrix = roll.matrix
         self.score = roll.score
         self.song = None
-        self.midi = self._roll_to_midi(None)
+        self.midi = roll.midi
+        self.name = roll.name
+'''

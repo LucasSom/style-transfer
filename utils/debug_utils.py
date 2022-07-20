@@ -1,9 +1,12 @@
 import os
 import music21 as m21
+import pretty_midi
+
+from utils.files_utils import root_file_name
 
 debugging = True
 
-eps = 0.001
+eps = 0.01
 
 
 def debug(df):
@@ -31,6 +34,11 @@ def note_cmp(n1, n2):
 
 
 def pm_cmp(pm1, pm2):
+    if type(pm1) == str:
+        pm1 = pretty_midi.PrettyMIDI(root_file_name(pm1) + '.mid')
+    if type(pm2) == str:
+        pm2 = pretty_midi.PrettyMIDI(root_file_name(pm2) + '.mid')
+
     if len(pm1.instruments) == len(pm2.instruments):
         for instr1, instr2 in zip(pm1.instruments, pm2.instruments):
             for n1, n2 in zip(instr1.notes, instr2.notes):

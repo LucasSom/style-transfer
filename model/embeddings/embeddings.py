@@ -75,18 +75,18 @@ def embeddings_to_rolls(embeddings, original_rolls, suffix, audio_path, vae) -> 
     return rolls
 
 
-# Antiguo nombre: get_roll_midi_df
-def get_embeddings_roll_df(df_in, vae, column='Embedding', name_new_column='NewRoll', inplace=False) -> pd.DataFrame:
+def get_embeddings_roll_df(df_in, vae, model_name: str, column='Embedding', name_new_column='NewRoll', inplace=False) \
+        -> pd.DataFrame:
     df = df_in if inplace else copy.deepcopy(df_in)
 
     if type(column) == list:
         # TODO(march): esto pisa df constantemente, salvo que se haga inplace
         for c, n in zip(column, name_new_column):
-            df = get_embeddings_roll_df(df_in, vae, column=c, name_new_column=n, inplace=inplace)
+            df = get_embeddings_roll_df(df_in, vae, model_name, column=c, name_new_column=n, inplace=inplace)
         return df
 
     new_name_suffix = f"{column}-{name_new_column}"
-    audio_path = get_audios_path(vae.name)
+    audio_path = get_audios_path(model_name)
     rolls = embeddings_to_rolls(df[column], df['roll'], new_name_suffix, audio_path, vae)
     df[new_name_suffix] = rolls
 
@@ -103,7 +103,7 @@ def matrix_sets_to_matrices(matrix_sets: list):
     return matrices
 
 
-def get_reconstruction(df, model, inplace=False):
+def get_reconstruction(df, model, model_name: str, inplace=False):
     df_emb = obtain_embeddings(df, model, inplace)
-    get_embeddings_roll_df(df_emb, model, inplace=True)
+    get_embeddings_roll_df(df_emb, model, model_name, inplace=True)
     return df_emb

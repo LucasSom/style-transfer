@@ -1,3 +1,4 @@
+import os.path
 from typing import List
 
 import model.colab_tension_vae.params as params
@@ -17,7 +18,7 @@ class Song:
         self.old_pm = old_pm
         self.bars_skipped = bars_skipped
         self.rolls = [
-            GuoRoll(m, f"{nombre}_{i}", audio_path=audio_path, song=self, verbose=verbose)
+            GuoRoll(m, f"{nombre}_{i}", os.path.join(audio_path, f"{self.bars}bars"), song=self, verbose=verbose)
             for i, m in enumerate(matrices)
         ]
 

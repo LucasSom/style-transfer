@@ -11,11 +11,8 @@ from model.embeddings.embeddings import get_reconstruction
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing import preprocess_data
-from roll.guoroll import GuoRollSmall
 from utils.audio_management import generate_audios
-from utils.files_utils import save_pickle, datasets_path, load_pickle, preprocessed_data_path, \
-    get_metrics_path, get_transferred_path, get_emb_path, get_characteristics_path, get_model_path, get_eval_path, \
-    get_audios_path, get_preproc_small_path, get_reconstruction_path, get_sheets_path
+from utils.files_utils import *
 
 
 def preprocessed_data(b):
@@ -54,6 +51,7 @@ def task_preprocess():
         }
 
 
+'''
 def task_preprocess_small():
     """Preprocess a reduced dataset, considering the subdatasets referenced in the list at the top of this file"""
 
@@ -71,6 +69,7 @@ def task_preprocess_small():
             'targets': [get_preproc_small_path(b)],
             'uptodate': [os.path.isfile(preprocessed_data(b))]
         }
+'''
 
 
 # TODO: Pasarle por parámetro a la tarea las épocas y el ckpt
@@ -83,7 +82,8 @@ def task_train():
                 # path_to_save = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
                 yield {
                     'name': f"{model_name}-e{e}-ckpt{c}",
-                    'file_dep': [get_preproc_small_path(b)],
+                    # 'file_dep': [get_preproc_small_path(b)],
+                    'file_dep': [preprocessed_data(b)],
                     'actions': [(train_model, [preprocessed_data(b), model_name, e, c])],
                     # 'targets': [path_to_save],
                 }
@@ -91,9 +91,9 @@ def task_train():
 
 def analyze_training(df_path, model_path, targets):
     model = load_model(model_path)
-    model.name = os.path.basename(model_path)
+    model_name = os.path.basename(model_path)
     df = load_pickle(df_path)
-    df_reconstructed = get_reconstruction(df, model, inplace=False)
+    df_reconstructed = get_reconstruction(df, model, model_name, inplace=False)
     save_pickle(df_reconstructed, targets[0])
 
 
@@ -104,8 +104,10 @@ def task_test():
         model_path, model_pb_path = get_model_path(model_name)
         yield {
             'name': f"{model_name}",
-            'file_dep': [get_preproc_small_path(b), model_pb_path],
-            'actions': [(analyze_training, [get_preproc_small_path(b), model_path])],
+            # 'file_dep': [get_preproc_small_path(b), model_pb_path],
+            'file_dep': [preprocessed_data(b), model_pb_path],
+            # 'actions': [(analyze_training, [get_preproc_small_path(b), model_path])],
+            'actions': [(analyze_training, [preprocessed_data(b), model_path])],
             'targets': [get_reconstruction_path(model_name)]
         }
 
@@ -143,8 +145,10 @@ def do_transfer(df_emb, model_path, characteristics, orig, target, transferred_p
     df_emb = load_pickle(df_emb)
     model = load_model(model_path)
     characteristics = load_pickle(characteristics)
+    model_name = os.path.basename(model_path)
 
-    df_transferred = transfer_style_to(df_emb, model, characteristics, original_style=orig, target_style=target)
+    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=orig,
+                                       target_style=target)
     save_pickle(df_transferred, transferred_path)
 
 

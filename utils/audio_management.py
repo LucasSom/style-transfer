@@ -1,7 +1,7 @@
 import os
 import subprocess
 import tempfile
-from typing import List
+from typing import List, Union
 
 import music21 as m21
 import pretty_midi
@@ -24,7 +24,7 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def generate_audios(df, path=f"{data_path}Audios/", column=None, suffix=None, verbose=0) -> List[str]:
+def generate_audios(df, path=f"{data_path}audios/", column=None, suffix=None, verbose=0) -> List[str]:
     column = df.columns[-1] if column is None else column
     rolls_generated = df[column]
     if verbose:
@@ -35,7 +35,7 @@ def generate_audios(df, path=f"{data_path}Audios/", column=None, suffix=None, ve
     return save_audios(titles, midis, path=path, verbose=verbose)
 
 
-def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_path + 'Audios/', verbose=0)\
+def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verbose=0) \
         -> List[str]:
     """
     Generate mp3 from midis.
@@ -51,19 +51,19 @@ def save_audios(titles: List[str], midis: list, oldPMs: list = None, path=data_p
     titles = [root_file_name(t) for t in titles]
 
     for i, (name, pm) in enumerate(zip(titles, midis)):
-        if oldPMs is None:
-            files.append(save_audio(name, pm, path, verbose=verbose))
-        else:
-            files.append(save_audio(name, pm, path, oldPMs[i], verbose))
+        files.append(save_audio(name, pm, path, verbose))
 
     return files
 
 
-def save_audio(name: str, pm: pretty_midi.PrettyMIDI, path: str, oldPM=None, verbose=0):
+def save_audio(name: str, pm: Union[str, pretty_midi.PrettyMIDI], path: str, verbose=0):
     if not os.path.isdir(path):
         os.makedirs(path)
     fluids_cmd = f"fluidsynth {'-v' if verbose == 2 else ''} -a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
     ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose == 2 else 'quiet'} -f s32le -i -"
+
+    if type(pm) == str:
+        pm = pretty_midi.PrettyMIDI(root_file_name(pm) + '.mid')
 
     file_name = os.path.join(path, name)
     pm.write(f'{file_name}.mid')
@@ -72,14 +72,6 @@ def save_audio(name: str, pm: pretty_midi.PrettyMIDI, path: str, oldPM=None, ver
 
     if verbose:
         print(f"Created {file_name}.mp3")
-    if oldPM is not None:
-        pm_original = oldPM
-        pm_original.write(file_name + '_original.mid')
-        os.system(f"{fluids_cmd} {file_name}_original.mid | {ffmpeg_cmd} {file_name}_original.mp3")
-        if verbose:
-            print(f"Created {file_name}_original.mp3")
-        return f'{file_name}_original.mp3'
-
     return f'{file_name}.mp3'
 
 
