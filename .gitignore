@@ -1,9 +1,9 @@
 **/.DS_Store
 *.pkl
 *.idea/
-*data*
+*data/*
 
-.github
+.github/
 
 font.sf2
 doit/
