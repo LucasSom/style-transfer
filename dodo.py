@@ -18,6 +18,7 @@ def preprocessed_data(b):
 
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
+styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
 bars = [4, 8]
 models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y]
@@ -28,8 +29,8 @@ checkpoints = [50, 100]
 DOIT_CONFIG = {'verbosity': 2}
 
 
-def preprocess(bars, folders, targets):
-    init(bars)
+def preprocess(b, folders, targets):
+    init(b)
     songs = {}
     for folder in folders:
         songs[folder] = [f"{folder}/{song}"
@@ -51,25 +52,10 @@ def task_preprocess():
         }
 
 
-'''
-def task_preprocess_small():
-    """Preprocess a reduced dataset, considering the subdatasets referenced in the list at the top of this file"""
-
-    def action(pickle_path, targets):
-        data = load_pickle(pickle_path)
-        data['roll'] = data['roll'].apply(GuoRollSmall)
-
-        save_pickle(data, targets[0])
-
-    for b in models:
-        yield {
-            'file_dep': [preprocessed_data(b)],
-            'name': f"{b}bars",
-            'actions': [(action, [preprocessed_data(b)])],
-            'targets': [get_preproc_small_path(b)],
-            'uptodate': [os.path.isfile(preprocessed_data(b))]
-        }
-'''
+def train(df, model_name, e, c):
+    styles = [styles_dict[a] for a in model_name[-2:]]
+    df = df[df['Autor'].isin(styles)]
+    train_model(df, model_name, e, c)
 
 
 # TODO: Pasarle por parámetro a la tarea las épocas y el ckpt
@@ -80,13 +66,10 @@ def task_train():
         init(b)
         for e in epochs:
             for c in checkpoints:
-                # path_to_save = f"{path_saved_models + model_name}/ckpt/saved_model.pb"
                 yield {
                     'name': f"{model_name}-e{e}-ckpt{c}",
-                    # 'file_dep': [get_preproc_small_path(b)],
                     'file_dep': [preprocessed_data(b)],
-                    'actions': [(train_model, [preprocessed_data(b), model_name, e, c])],
-                    # 'targets': [path_to_save],
+                    'actions': [(train, [preprocessed_data(b), model_name, e, c])],
                 }
 
 

@@ -46,7 +46,7 @@ def init(_config_name="8bar"):
     global config
     global config_name
 
-    if isinstance(_config_name, int) or len(_config_name)==1:
+    if isinstance(_config_name, int) or len(_config_name) == 1:
         _config_name = f"{_config_name}bar"
 
     config_name = _config_name
