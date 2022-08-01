@@ -1,7 +1,8 @@
 from typing import List
-
 import numpy as np
 from matplotlib import pyplot as plt
+
+from model.colab_tension_vae.params import config
 
 
 def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):
@@ -21,3 +22,17 @@ def plot_matrix_of_adjacent_intervals(song, voice='melody'):
 def get_interval_distribution(intervals: List[int]):
     intervals = np.array(intervals)
     return intervals.mean(), intervals.std()
+
+
+def get_style_avg(df, style: str):
+	"""
+	:param df: df_transferred
+	:param style: it must be one of the Autor column
+	"""
+	avg = np.zeros((25, 25))
+	df_style = df[df['Autor'] == style]
+
+	for roll in df_style['roll']:
+		avg += matrix_of_adjacent_intervals(roll)[0]
+
+	return avg / df_style.shape[0]
