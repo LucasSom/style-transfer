@@ -142,3 +142,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /evaluation/app/files/LetsDoIt.mp3
+/data/
