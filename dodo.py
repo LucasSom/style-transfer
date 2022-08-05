@@ -52,8 +52,9 @@ def task_preprocess():
         }
 
 
-def train(df, model_name, e, c):
+def train(df_path, model_name, e, c):
     styles = [styles_dict[a] for a in model_name[-2:]]
+    df = load_pickle(df_path)
     df = df[df['Autor'].isin(styles)]
     train_model(df, model_name, e, c)
 
