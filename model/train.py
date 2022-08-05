@@ -26,7 +26,11 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
     return [i0, i1, i2, i3]
 
 
-def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch: int, ckpt=50, verbose=2):
+def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch=None, ckpt=None, verbose=2):
+    if final_epoch is None:
+        final_epoch = int(input("Until how many epochs do you want to train? "))
+    if ckpt is None:
+        ckpt = int(input("How many epochs do you want to run until each automatic checkpoint? "))
     if isinstance(df, str):
         df = load_pickle(file_name=df, verbose=verbose)
 

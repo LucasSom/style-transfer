@@ -52,11 +52,11 @@ def task_preprocess():
         }
 
 
-def train(df_path, model_name, e, c):
+def train(df_path, model_name):
     styles = [styles_dict[a] for a in model_name[-2:]]
     df = load_pickle(df_path)
     df = df[df['Autor'].isin(styles)]
-    train_model(df, model_name, e, c)
+    train_model(df, model_name)
 
 
 # TODO: Pasarle por parámetro a la tarea las épocas y el ckpt
@@ -65,13 +65,13 @@ def task_train():
     for model_name in models:
         b = model_name[0]
         init(b)
-        for e in epochs:
-            for c in checkpoints:
-                yield {
-                    'name': f"{model_name}-e{e}-ckpt{c}",
-                    'file_dep': [preprocessed_data(b)],
-                    'actions': [(train, [preprocessed_data(b), model_name, e, c])],
-                }
+        _, model_pb_path = get_model_path(model_name)
+        yield {
+            'name': f"{model_name}",
+            'file_dep': [preprocessed_data(b)],
+            'actions': [(train, [preprocessed_data(b), model_name])],
+            'targets': [model_pb_path]
+        }
 
 
 def analyze_training(df_path, model_path, targets):
@@ -90,9 +90,7 @@ def task_test():
         model_path, model_pb_path = get_model_path(model_name)
         yield {
             'name': f"{model_name}",
-            # 'file_dep': [get_preproc_small_path(b), model_pb_path],
             'file_dep': [preprocessed_data(b), model_pb_path],
-            # 'actions': [(analyze_training, [get_preproc_small_path(b), model_path])],
             'actions': [(analyze_training, [preprocessed_data(b), model_path])],
             'targets': [get_reconstruction_path(model_name)]
         }
@@ -147,20 +145,18 @@ def task_transfer_style():
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
 
-        for e_orig in subdatasets:
-            for e_dest in subdatasets:
-                if e_orig != e_dest:
-                    transferred_path = get_transferred_path(e_orig, e_dest, model_name)
-                    yield {
-                        'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                        'file_dep': [emb_path, model_pb_path, characteristics_path],
-                        'actions': [(do_transfer,
-                                     [emb_path, os.path.dirname(model_path),
-                                      characteristics_path, e_orig, e_dest, transferred_path]
-                                     )],
-                        'targets': [transferred_path],
-                        'verbosity': 2
-                    }
+        for e_orig, e_dest in [(model_name[-2], model_name[-1]), (model_name[-1], model_name[-2])]:
+            transferred_path = get_transferred_path(e_orig, e_dest, model_name)
+            yield {
+                'name': f"{model_name}-{e_orig}_to_{e_dest}",
+                'file_dep': [emb_path, model_pb_path, characteristics_path],
+                'actions': [(do_transfer,
+                             [emb_path, os.path.dirname(model_path),
+                              characteristics_path, e_orig, e_dest, transferred_path]
+                             )],
+                'targets': [transferred_path],
+                'verbosity': 2
+            }
 
 
 def audio_generation(transferred_path, audios_path, suffix=None, column=None, orig=None, dest=None):
@@ -187,22 +183,20 @@ def task_sample_audios():
             'actions': [(audio_generation, (recon_path, audios_path, 'recon', 'Embedding-NewRoll'))],
             'uptodate': [False]
         }
-        for e_orig in subdatasets:
-            for e_dest in subdatasets:
-                if e_orig != e_dest:
-                    transferred_path = get_transferred_path(e_orig, e_dest, model_name)
-                    suffix = f'{e_orig}_to_{e_dest}'
-                    yield {
-                        'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                        'file_dep': [transferred_path, recon_path],
-                        'actions': [(audio_generation,
-                                     [transferred_path, audios_path],
-                                     dict(suffix=suffix, orig=e_orig,
-                                          dest=e_dest)
-                                     )],
-                        'verbosity': 2,
-                        'uptodate': [False]
-                    }
+        for e_orig, e_dest in [(model_name[-2], model_name[-1]), (model_name[-1], model_name[-2])]:
+            transferred_path = get_transferred_path(e_orig, e_dest, model_name)
+            suffix = f'{e_orig}_to_{e_dest}'
+            yield {
+                'name': f"{model_name}-{e_orig}_to_{e_dest}",
+                'file_dep': [transferred_path, recon_path],
+                'actions': [(audio_generation,
+                             [transferred_path, audios_path],
+                             dict(suffix=suffix, orig=e_orig,
+                                  dest=e_dest)
+                             )],
+                'verbosity': 2,
+                'uptodate': [False]
+            }
 
 
 def generate_sheets(transferred_path, sheets_path, suffix=None, column=None):
@@ -235,20 +229,18 @@ def task_sample_sheets():
             'actions': [(generate_sheets, (recon_path, sheets_path, 'recon'))],
             'uptodate': [False]
         }
-        for e_orig in subdatasets:
-            for e_dest in subdatasets:
-                if e_orig != e_dest:
-                    transferred_path = get_transferred_path(e_orig, e_dest, model_name)
-                    sheets_path = get_sheets_path(model_name, original_style=e_orig, target_style=e_dest)
-                    suffix = f'{e_orig}_to_{e_dest}'
-                    # TODO: En realidad es irrelevante el estilo de origen en el nombre de la canción. Podría omitirse
-                    yield {
-                        'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                        'file_dep': [transferred_path, recon_path],
-                        'actions': [(generate_sheets, [transferred_path, sheets_path, suffix])],
-                        'verbosity': 2,
-                        'uptodate': [False]
-                    }
+        for e_orig, e_dest in [(model_name[-2], model_name[-1]), (model_name[-1], model_name[-2])]:
+            transferred_path = get_transferred_path(e_orig, e_dest, model_name)
+            sheets_path = get_sheets_path(model_name, original_style=e_orig, target_style=e_dest)
+            suffix = f'{e_orig}_to_{e_dest}'
+            # TODO: En realidad es irrelevante el estilo de origen en el nombre de la canción. Podría omitirse
+            yield {
+                'name': f"{model_name}-{e_orig}_to_{e_dest}",
+                'file_dep': [transferred_path, recon_path],
+                'actions': [(generate_sheets, [transferred_path, sheets_path, suffix])],
+                'verbosity': 2,
+                'uptodate': [False]
+            }
 
 
 def calculate_metrics(trans_path, e_orig, e_dest, metrics_file_path):
@@ -260,18 +252,16 @@ def calculate_metrics(trans_path, e_orig, e_dest, metrics_file_path):
 def task_metrics():
     """Calculate different metrics for a produced dataset"""
     for model_name in models:
-        for e_orig in subdatasets:
-            for e_dest in subdatasets:
-                if e_orig != e_dest:
-                    transferred_path = get_transferred_path(e_orig, e_dest, model_name)
-                    metrics_path = get_metrics_path(transferred_path)
-                    yield {
-                        'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                        'file_dep': [transferred_path],
-                        'actions': [(calculate_metrics, [transferred_path, e_orig, e_dest, metrics_path])],
-                        'targets': [metrics_path],
-                        'verbosity': 2
-                    }
+        for e_orig, e_dest in [(model_name[-2], model_name[-1]), (model_name[-1], model_name[-2])]:
+            transferred_path = get_transferred_path(e_orig, e_dest, model_name)
+            metrics_path = get_metrics_path(transferred_path)
+            yield {
+                'name': f"{model_name}-{e_orig}_to_{e_dest}",
+                'file_dep': [transferred_path],
+                'actions': [(calculate_metrics, [transferred_path, e_orig, e_dest, metrics_path])],
+                'targets': [metrics_path],
+                'verbosity': 2
+            }
 
 
 def do_evaluation(trans_path, eval_path):
@@ -284,15 +274,14 @@ def do_evaluation(trans_path, eval_path):
 def task_evaluation():
     """Evaluate the model considering the calculated metrics"""
     for model_name in models:
-        for e_orig in subdatasets:
-            for e_dest in subdatasets:
-                if e_orig != e_dest:
-                    transferred_path = get_transferred_path(e_orig, e_dest, model_name)
-                    eval_path = get_eval_path(transferred_path)
-                    yield {
-                        'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                        'file_dep': [transferred_path, get_transferred_path(e_orig, e_dest, transferred_path)],
-                        'actions': [(do_evaluation, [transferred_path])],
-                        'targets': [eval_path],
-                        'verbosity': 2
-                    }
+        for style1, style2 in [(model_name[-2], model_name[-1]), (model_name[-1], model_name[-2])]:
+
+            transferred_path = get_transferred_path(style1, style2, model_name)
+            eval_path = get_eval_path(transferred_path)
+            yield {
+                'name': f"{model_name}-{style1}_to_{style2}",
+                'file_dep': [transferred_path, get_transferred_path(style1, style2, transferred_path)],
+                'actions': [(do_evaluation, [transferred_path])],
+                'targets': [eval_path],
+                'verbosity': 2
+            }
