@@ -26,15 +26,15 @@ def obtain_embeddings(df: pd.DataFrame, vae, inplace=False) -> pd.DataFrame:
           File "/home/urania/Documentos/Tesis/src/style-transfer/model/embeddings/characteristics.py", line 29, in calculate_characteristics
             df_emb = obtain_embeddings(df, vae, inplace=True)
           File "/home/urania/Documentos/Tesis/src/style-transfer/model/embeddings/embeddings.py", line 22, in obtain_embeddings
-            df = df.groupby('Titulo').sample()
+            df = df.groupby('Title').sample()
         AttributeError: 'str' object has no attribute 'groupby'
         """
         # TODO (March): Poner seed
-        df = df.groupby('Titulo').sample()
+        df = df.groupby('Title').sample()
         df_emb = df
     else:
         # TODO (March): Poner seed
-        df_emb = df.groupby('Titulo').sample()
+        df_emb = df.groupby('Title').sample()
     # df_sampled['Embedding'].iloc[0][0]
 
     t = vae.get_layer(name='encoder')(np.stack([r.matrix for r in df_emb['roll']]))
@@ -57,8 +57,8 @@ def transform_embeddings(df, characteristics: dict, original: str, target: str, 
     v_goal = characteristics[target]
 
     return (df
-            >> dfply.mask(dfply.X['Autor'] == original)
-            >> dfply.group_by('Titulo', 'Autor')
+            >> dfply.mask(dfply.X['Style'] == original)
+            >> dfply.group_by('Title', 'Style')
             >> dfply.sample(sample)
             >> dfply.mutate(Mutacion_add=dfply.X['Embedding'].apply(lambda e: e + v_goal * scale))
             >> dfply.mutate(Mutacion_add_sub=dfply.X['Embedding'].apply(lambda e: e - v_original * scale))

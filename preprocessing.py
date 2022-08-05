@@ -25,7 +25,7 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
 
     :param songs_dict: Dictionary of subdatasets. Key: name of subdataset. Value: name of each midi file.
     :param verbose: Whether to print intermediate messages.
-    :return: DataFrame with 3 columns: 'Autor', 'Titulo' and 'roll' (the GuoRolls of each song).
+    :return: DataFrame with 3 columns: 'Style', 'Title' and 'roll' (the GuoRolls of each song).
     """
     paths = [(key, os.path.basename(path), path)
              for key, paths in songs_dict.items()
@@ -39,8 +39,8 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
         return author, title, song
 
     rolls_list = p_tqdm.p_map(f, *zip(*paths))
-    data = [{'Autor': author,
-             'Titulo': root_file_name(title),
+    data = [{'Style': author,
+             'Title': root_file_name(title),
              'roll': roll,
              }
             for author, title, song in rolls_list

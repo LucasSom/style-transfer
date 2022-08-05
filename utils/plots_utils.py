@@ -35,7 +35,7 @@ def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_c
     return [TSNE(n_components).fit_transform(ds) for ds in subdatasets]
 
 
-def plot_tsnes_comparison(df, tsne_ds_list, column_discriminator='Autor'):
+def plot_tsnes_comparison(df, tsne_ds_list, column_discriminator='Style'):
     """
     :param df: pandas dataset
     :param tsne_ds_list: must have elements of same size
@@ -46,7 +46,7 @@ def plot_tsnes_comparison(df, tsne_ds_list, column_discriminator='Autor'):
     tsne_result_merged_df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds_list])
     tsne_result_merged_df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds_list])
 
-    sns.relplot(x='dim_1', y='dim_2', hue='Titulo', data=tsne_result_merged_df, kind='scatter', height=6,
+    sns.relplot(x='dim_1', y='dim_2', hue='Title', data=tsne_result_merged_df, kind='scatter', height=6,
                 col=column_discriminator)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
 
@@ -57,5 +57,5 @@ def plot_tsne(df, tsne_ds):
     tsne_result_df['dim_1'] = tsne_ds[:, 0]
     tsne_result_df['dim_2'] = tsne_ds[:, 1]
 
-    sns.relplot(x='dim_1', y='dim_2', hue='Titulo', style='Tipo', data=tsne_result_df, kind='scatter', height=6)
+    sns.relplot(x='dim_1', y='dim_2', hue='Title', style='Tipo', data=tsne_result_df, kind='scatter', height=6)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)

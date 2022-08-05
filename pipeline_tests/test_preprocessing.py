@@ -53,9 +53,9 @@ def test_mapleaf(mapleleaf_ds):
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
 
     roll = df["roll"][0]
-    save_audios([df["Titulo"][0]], [roll.midi], path=audio_path)
-    assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
-    assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
+    save_audios([df["Title"][0]], [roll.midi], path=audio_path)
+    assert df[df["Style"] == "ragtime_test"].shape[0] <= 17
+    assert df[df["Style"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix, 'mapleleaf_8')
     assert pm_cmp(r.midi, r._roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
 
@@ -70,10 +70,10 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
 
-    assert df[df["Autor"] == "mozart_test"].shape[0] <= 18
-    assert df[df["Autor"] == "mozart_test"].shape[0] > 0
-    assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17
-    assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
+    assert df[df["Style"] == "mozart_test"].shape[0] <= 18
+    assert df[df["Style"] == "mozart_test"].shape[0] > 0
+    assert df[df["Style"] == "ragtime_test"].shape[0] <= 17
+    assert df[df["Style"] == "ragtime_test"].shape[0] > 0
 
     r0 = GuoRoll(df.roll[0].matrix, 'matrix_test_0')
     r20 = GuoRoll(df.roll[20].matrix, 'matrix_test_20')
@@ -90,7 +90,7 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
         save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
-    save_audios([df["Titulo"][0], df["Titulo"][20]], [r0.midi, r20.midi], path=data_path + "/debug_outputs/audios/")
+    save_audios([df["Title"][0], df["Title"][20]], [r0.midi, r20.midi], path=data_path + "/debug_outputs/audios/")
 
 
 # def test_preprocess_bach(bach_ds):
@@ -117,9 +117,9 @@ def test_mapleaf_4bars(mapleleaf_ds):
     audio_path = original_audios_path
 
     roll = df["roll"][0]
-    save_audios([df["Titulo"][0]], [roll.midi], path=audio_path)
-    assert df[df["Autor"] == "ragtime_test"].shape[0] <= 17 * 2
-    assert df[df["Autor"] == "ragtime_test"].shape[0] > 0
+    save_audios([df["Title"][0]], [roll.midi], path=audio_path)
+    assert df[df["Style"] == "ragtime_test"].shape[0] <= 17 * 2
+    assert df[df["Style"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix, 'mapleleaf_4')
     assert pm_cmp(r.midi, r._roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
     assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
@@ -154,7 +154,7 @@ def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
 
     r0 = df["roll"][0]
     r20 = df["roll"][20]
-    save_audios([df["Titulo"][0], df["Titulo"][20]], [r0.midi, r20.midi], path=audio_path)
+    save_audios([df["Title"][0], df["Title"][20]], [r0.midi, r20.midi], path=audio_path)
 
 
 # def test_preprocess_bach_4bars(bach_ds):

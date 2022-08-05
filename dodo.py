@@ -55,7 +55,7 @@ def task_preprocess():
 def train(df_path, model_name):
     styles = [styles_dict[a] for a in model_name[-2:]]
     df = load_pickle(df_path)
-    df = df[df['Autor'].isin(styles)]
+    df = df[df['Style'].isin(styles)]
     train_model(df, model_name)
 
 
@@ -203,8 +203,8 @@ def generate_sheets(transferred_path, sheets_path, suffix=None, column=None):
     df_transferred = load_pickle(transferred_path)
     column = column if column is not None else df_transferred.columns[-1]
 
-    titles = (df_transferred['Titulo'] if suffix is None
-              else df_transferred['Titulo'].map(lambda t: f'{t}_{suffix}'))
+    titles = (df_transferred['Title'] if suffix is None
+              else df_transferred['Title'].map(lambda t: f'{t}_{suffix}'))
     rolls = df_transferred[column]
     for title, roll in zip(titles, rolls):
         sheet_path = os.path.join(sheets_path, title)

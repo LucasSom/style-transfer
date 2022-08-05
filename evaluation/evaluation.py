@@ -12,7 +12,7 @@ def evaluate_model(df, metrics, column=None):
 def evaluate_plagiarism_coincidences(df, direction) -> float:
     rolls = list(df['rolls'])
     base_rolls = df[direction]
-    titles = list(df['Titulo'])
+    titles = list(df['Title'])
 
     similarities = [title == get_most_similar_roll(base_roll, rolls).song.name
                     for title, base_roll in zip(titles, base_rolls)]
@@ -21,7 +21,7 @@ def evaluate_plagiarism_coincidences(df, direction) -> float:
 
 def evaluate_plagiarism_rate(df, direction) -> float:
     rolls = list(df['rolls'])
-    titles = list(df['Titulo'])
+    titles = list(df['Title'])
     base_rolls = df[direction]
 
     distincts = 0

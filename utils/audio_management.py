@@ -30,8 +30,8 @@ def generate_audios(df, path=f"{data_path}audios/", column=None, suffix=None, ve
     if verbose:
         print("Column to generate midi:", df.columns[-1])
     midis = [r.midi for r in rolls_generated]
-    titles = (df['Titulo'] if suffix is None
-              else df['Titulo'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
+    titles = (df['Title'] if suffix is None
+              else df['Title'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
     return save_audios(titles, midis, path=path, verbose=verbose)
 
 

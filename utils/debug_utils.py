@@ -10,7 +10,7 @@ eps = 0.01
 
 
 def debug(df):
-    df = df[df["Titulo"] == "sonata15-1-debug.mid"]
+    df = df[df["Title"] == "sonata15-1-debug.mid"]
     if debugging:
         for k, r in df.iterrows():
             roll = r["Roll"]

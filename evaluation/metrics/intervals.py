@@ -25,14 +25,14 @@ def get_interval_distribution(intervals: List[int]):
 
 
 def get_style_avg(df, style: str):
-	"""
+    """
 	:param df: df_transferred
-	:param style: it must be one of the Autor column
+	:param style: it must be one of the Style column
 	"""
-	avg = np.zeros((25, 25))
-	df_style = df[df['Autor'] == style]
+    avg = np.zeros((25, 25))
+    df_style = df[df['Style'] == style]
 
-	for roll in df_style['roll']:
-		avg += matrix_of_adjacent_intervals(roll)[0]
+    for roll in df_style['roll']:
+        avg += matrix_of_adjacent_intervals(roll)[0]
 
-	return avg / df_style.shape[0]
+    return avg / df_style.shape[0]
