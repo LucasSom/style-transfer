@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from evaluation.metrics.intervals import get_interval_distribution
+from evaluation.metrics.intervals import get_interval_distribution_params
 from utils.files_utils import data_tests_path
 
 
@@ -19,7 +19,7 @@ def confusion_matrices():
 def test_intervals_distributions():
     # intervals = [1, 0, 2, 1, 0, -3, -1]
     intervals = [1, -1, 1, -1]
-    m, s = get_interval_distribution(intervals)
+    m, s = get_interval_distribution_params(intervals)
 
     assert m == 0
     assert s == 1

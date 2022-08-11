@@ -1,3 +1,5 @@
+from doit.api import run_tasks, run
+from doit.cmd_base import ModuleTaskLoader
 from tensorflow.keras.models import load_model
 
 from evaluation.app.html_maker import make_html
@@ -245,7 +247,7 @@ def task_sample_sheets():
 
 def calculate_metrics(trans_path, e_orig, e_dest, metrics_file_path):
     df_transferred = load_pickle(trans_path)
-    metrics = obtain_metrics(df_transferred, e_orig, e_dest)
+    metrics = obtain_metrics(df_transferred, e_orig, e_dest, None)
     save_pickle(metrics, metrics_file_path)
 
 
@@ -285,3 +287,10 @@ def task_evaluation():
                 'targets': [eval_path],
                 'verbosity': 2
             }
+
+
+if __name__ == '__main__':
+    import doit
+    g = globals()
+    # run_tasks(ModuleTaskLoader(g), {'train:4-br':1})
+    run(g)
