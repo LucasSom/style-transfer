@@ -11,7 +11,8 @@ import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from roll.song import Song
 from utils import files_utils
-from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path, root_file_name, original_audios_path
+from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path, root_file_name, \
+    original_audios_path, data_path
 
 
 @dfply.make_symbolic
@@ -23,7 +24,7 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
     """
     Preprocess subdatasets of midi files, creating a DataFrame of rolls prepared to use as dataset to train the model.
 
-    :param songs_dict: Dictionary of subdatasets. Key: name of subdataset. Value: name of each midi file.
+    :param songs_dict: Dictionary of sub-datasets. Key: name of sub-dataset. Value: name of each midi file.
     :param verbose: Whether to print intermediate messages.
     :return: DataFrame with 3 columns: 'Style', 'Title' and 'roll' (the GuoRolls of each song).
     """
@@ -41,10 +42,11 @@ def preprocess_data(songs_dict: Dict[str, List[str]], verbose=False) -> pd.DataF
     rolls_list = p_tqdm.p_map(f, *zip(*paths))
     data = [{'Style': author,
              'Title': root_file_name(title),
+             'roll_id': i,
              'roll': roll,
              }
             for author, title, song in rolls_list
-            for roll in song.rolls
+            for i, roll in enumerate(song.rolls)
             ]
 
     return pd.DataFrame(data)

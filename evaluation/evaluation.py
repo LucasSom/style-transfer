@@ -22,7 +22,7 @@ def evaluate_plagiarism_coincidences(df, direction) -> float:
     return sum(similarities) / len(similarities)
 
 
-def evaluate_plagiarism_rate(df, direction) -> float:
+def evaluate_plagiarism_rate(df, direction) -> (float, float):
     rolls = list(df['rolls'])
     titles = list(df['Title'])
     base_rolls = df[direction]
@@ -35,7 +35,7 @@ def evaluate_plagiarism_rate(df, direction) -> float:
                 break
             else:
                 distincts += 1
-    return distincts / len(rolls)
+    return distincts, len(rolls)
 
 
 def evaluate_intervals_distribution(df, orig, dest):

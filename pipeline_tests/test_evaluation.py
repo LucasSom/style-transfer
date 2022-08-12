@@ -23,8 +23,8 @@ def confusion_matrices():
 
 @pytest.fixture
 def df_transferred():
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_Frescobaldi.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Frescobaldi_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Bach.pkl"))
     return pd.concat([df1, df2], axis=0)
 
 
@@ -48,4 +48,6 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
 
 def test_evaluate_intervals_distribution(df_transferred):
     init(4)
-    evaluate_intervals_distribution(df_transferred, orig="Bach", dest="Frescobaldi")
+    evaluate_intervals_distribution(df_transferred, orig="Bach", dest="ragtime")
+    evaluate_intervals_distribution(df_transferred, orig="ragtime", dest="Bach")
+
