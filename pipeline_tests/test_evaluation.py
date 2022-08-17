@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from evaluation.evaluation import evaluate_intervals_distribution
+from evaluation.evaluation import evaluate_single_intervals_distribution, evaluate_multiple_intervals_distribution
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path
@@ -28,6 +28,48 @@ def df_transferred():
     return pd.concat([df1, df2], axis=0)
 
 
+@pytest.fixture
+def all_dfs():
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Bach.pkl"))
+    df_br = pd.concat([df1, df2], axis=0)
+
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_Frescobaldi.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Frescobaldi_Bach.pkl"))
+    df_bf = pd.concat([df1, df2], axis=0)
+
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_Bach.pkl"))
+    df_bm = pd.concat([df1, df2], axis=0)
+
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Frescobaldi_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Frescobaldi.pkl"))
+    df_fr = pd.concat([df1, df2], axis=0)
+
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Frescobaldi_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_Frescobaldi.pkl"))
+    df_fm = pd.concat([df1, df2], axis=0)
+
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Mozart.pkl"))
+    df_mr = pd.concat([df1, df2], axis=0)
+
+    return [df_br, df_bf, df_bm, df_fr, df_fm, df_mr]
+
+
+@pytest.fixture
+def bmmr_dfs():
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Mozart.pkl"))
+    df_mr = pd.concat([df1, df2], axis=0)
+
+    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_Bach.pkl"))
+    df_bm = pd.concat([df1, df2], axis=0)
+
+    return [df_bm, df_mr]
+
+
 def test_intervals_distributions():
     # intervals = [1, 0, 2, 1, 0, -3, -1]
     intervals = [1, -1, 1, -1]
@@ -46,8 +88,17 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
         assert avg[i, j] == avg_test[i, j]
 
 
-def test_evaluate_intervals_distribution(df_transferred):
+def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
-    evaluate_intervals_distribution(df_transferred, orig="Bach", dest="ragtime")
-    evaluate_intervals_distribution(df_transferred, orig="ragtime", dest="Bach")
+    evaluate_single_intervals_distribution(df_transferred, orig="Bach", dest="ragtime")
+    evaluate_single_intervals_distribution(df_transferred, orig="ragtime", dest="Bach")
 
+
+def test_evaluate_intervals_distribution_small(bmmr_dfs):
+    init(4)
+    evaluate_multiple_intervals_distribution(bmmr_dfs)
+
+
+def test_evaluate_intervals_distribution(all_dfs):
+    init(4)
+    evaluate_multiple_intervals_distribution(all_dfs)
