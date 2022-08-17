@@ -18,24 +18,24 @@ def evaluate_model(df, metrics, column=None):
     print("How many rolls moved closer to the new style?", t)
 
 
-def evaluate_plagiarism_coincidences(df, direction) -> float:
+def evaluate_plagiarism_coincidences(df, direction, by_distance=False) -> float:
     rolls = list(df['rolls'])
     base_rolls = df[direction]
     titles = list(df['Title'])
 
-    similarities = [title == get_most_similar_roll(base_roll, rolls).song.name
+    similarities = [title == get_most_similar_roll(base_roll, rolls, by_distance).song.name
                     for title, base_roll in zip(titles, base_rolls)]
     return sum(similarities) / len(similarities)
 
 
-def evaluate_plagiarism_rate(df, direction) -> (float, float):
+def evaluate_plagiarism_rate(df, direction, by_distance) -> (float, float):
     rolls = list(df['rolls'])
     titles = list(df['Title'])
     base_rolls = df[direction]
 
     distincts = 0
     for title, base_roll in zip(titles, base_rolls):
-        sorted_rolls = sort_by_general_plagiarism(rolls, base_roll)
+        sorted_rolls = sort_by_general_plagiarism(rolls, base_roll, by_distance)
         for r in sorted_rolls:
             if r.song.name == title:
                 break

@@ -89,7 +89,8 @@ def test_rhythmic_patterns_multiple(matrix_4bar):
 
 def test_plot_interval_matrix():
     init(4)
-    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15", audio_path=original_audios_path)
+    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15",
+             audio_path=original_audios_path)
     plot_matrix_of_adjacent_intervals(s, 'melody')
     plt.show()
     plot_matrix_of_adjacent_intervals(s, 'bass')
@@ -108,7 +109,8 @@ def test_pattern_to_int():
 
 def test_plot_rhythmic_matrix():
     init(4)
-    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15", audio_path=original_audios_path)
+    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15",
+             audio_path=original_audios_path)
     plot_matrix_of_adjacent_rhythmic_patterns(s, 'melody')
     plt.show()
     plot_matrix_of_adjacent_rhythmic_patterns(s, 'bass')
@@ -117,15 +119,20 @@ def test_plot_rhythmic_matrix():
 
 def test_dumb_plagiarism_0():
     init(4)
-    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15", audio_path=original_audios_path)
-    assert dumb_pitch_plagiarism(s.rolls[0], s.rolls[0]) == (0, 0)
+    s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15",
+             audio_path=original_audios_path)
+
+    b, m = dumb_pitch_plagiarism(s.rolls[0], s.rolls[0])
+    assert b, m == (0, 0)
 
 
 def test_dumb_plagiarism_little_diffs(matrix_4bar, matrix_4bar_diff):
     init(4)
     roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
     roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff')
-    assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_diff) == (3, 2)
+
+    b, m = dumb_pitch_plagiarism(roll_4bar, roll_4bar_diff)
+    assert b[1], m[1] == (3, 2)
 
 
 def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_rest_diff):
@@ -133,9 +140,15 @@ def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_r
     roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
     roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff')
     roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff, 'matrix_4bar_rest_diff')
-    assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff) == (12, 12)
-    assert dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff, rest_value=100) == (100, 100)
-    assert dumb_pitch_plagiarism(roll_4bar_diff, roll_4bar_rest_diff) == (15, 14)
+
+    b, m = dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff)
+    assert b, m == (12, 12)
+
+    b, m = dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff, rest_value=100)
+    assert b, m == (100, 100)
+
+    b, m = dumb_pitch_plagiarism(roll_4bar_diff, roll_4bar_rest_diff)
+    assert b, m == (15, 14)
 
 
 # TODO
