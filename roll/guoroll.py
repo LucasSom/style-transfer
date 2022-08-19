@@ -16,13 +16,13 @@ dur_to_value = 'rsqdc'
 
 class GuoRoll:
     """
-    Class that represent a fragment of $n$ bars (8 as default, 4 in Guo's work) with attributes:
+    Class that represent a fragment of n bars (8 as default, 4 in Guo's work) with attributes:
 
-    - `matrix`: matrix of $16*bars 89$
-    - `bars`: number of bars per fragment
-    - `song`: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
-    - `score`: score obtained from the matrix
-    - `midi`: Pretty MIDI obtained from the matrix
+    - matrix: matrix of 16*bars 89
+    - bars: number of bars per fragment
+    - song: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
+    - score: score obtained from the matrix
+    - midi: Pretty MIDI obtained from the matrix
 
     """
 
