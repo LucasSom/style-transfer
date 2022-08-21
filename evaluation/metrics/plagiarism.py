@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
+import pandas as pd
 
 from model.colab_tension_vae import params
 from roll.guoroll import GuoRoll
@@ -46,24 +47,26 @@ def dumb_rhythm_plagiarism(r1: GuoRoll, r2: GuoRoll):
            sum(r1.get_melody_changes() ^ r2.get_melody_changes())
 
 
-def sort_by_pitch_plagiarism(rolls: List[GuoRoll], base_roll: GuoRoll, by_distance=False, voice='melody'):
+def sort_by_pitch_plagiarism(rolls: List[GuoRoll], base_roll: GuoRoll, by_distance=False, voice='melody') \
+        -> List[Tuple[float, GuoRoll]]:
     distances = [(dumb_pitch_plagiarism(r, base_roll)[voice == 'melody'][by_distance], r) for r in rolls]
-    return np.sort(distances)
+    return sorted(distances, key=lambda x: x[0])
 
 
 def sort_by_rhythm_plagiarism(rolls: List[GuoRoll], base_roll: GuoRoll, voice='melody'):
     distances = [(dumb_rhythm_plagiarism(r, base_roll)[voice == 'melody'], r) for r in rolls]
-    return np.sort(distances)
+    return sorted(distances)
 
 
-def sort_by_general_plagiarism(rolls: List[GuoRoll], base_roll: GuoRoll, by_distance=False):
+def sort_by_general_plagiarism(rolls: List[GuoRoll], base_roll: GuoRoll, by_distance=False) \
+        -> List[Tuple[float, GuoRoll]]:
     def get_avg(r1, r2):
         melody = dumb_pitch_plagiarism(r1, r2)[by_distance]
         rhythm = dumb_rhythm_plagiarism(r1, r2)
         return (melody[0] + melody[1] + rhythm[0] + rhythm[1]) / 4
 
     distances = [(get_avg(r, base_roll), r) for r in rolls]
-    return np.sort(distances)
+    return sorted(distances)
 
 
 def get_most_similar_roll(base_roll: GuoRoll, rolls: List[GuoRoll], by_distance=False, voice=None, musical_element=None,
@@ -85,3 +88,78 @@ def get_most_similar_roll(base_roll: GuoRoll, rolls: List[GuoRoll], by_distance=
         if d < d_min:
             r_min = roll
     return r_min
+
+
+def get_plagiarism_position(df, original_roll, transferred_roll, by_distance=False) -> (int, int, float):
+    """
+    Computes a plagiarism rate for each roll and makes a ranking of rolls based on that rate. The rate is calculated as
+    the sum of semitones that a roll differs with another (when `by_distance` parameter is set on *True*) or only how
+    many time frames the roll is not equal to the other (when by_distance parameter is *False*).
+
+    :param df: df_transferred
+    :param original_roll: original roll
+    :param transferred_roll: original roll after apply transference
+    :param by_distance: whether to compute plagiarism rate summarizing the distances between each time frame or to count
+     only how many times the roll differs to the original
+
+    :return: a tuple with the ranking position of the transferred roll, the number of rolls in the ranking and the
+     plagiarism rate computed
+    """
+    rolls = list(df['roll'])
+    rolls.append(transferred_roll)
+
+    position = 0
+    # sorted_rolls = sort_by_general_plagiarism(rolls, original_roll, by_distance)
+    sorted_rolls = sort_by_pitch_plagiarism(rolls, original_roll, by_distance)
+    for i, (_, roll) in enumerate(sorted_rolls):
+        if roll.name == transferred_roll.name:
+            position = i
+            break
+    return position, len(rolls), sorted_rolls[position][0]
+
+
+def get_plagiarism_ranking_table(df) -> pd.DataFrame:
+    """
+    :param df: df_transferred
+    :return: a Dataframe with columns:
+            - Style
+            - Title
+            - roll
+            - Transferred
+            - Differences absolute ranking
+            - Differences relative ranking
+            - Differences rate
+            - Distance absolute ranking
+            - Distance relative ranking
+            - Distance rate
+
+    """
+    table = {"Style": [],
+             "Title": [],
+             "roll": [],
+             "Transferred": [],
+             "Differences absolute ranking": [],
+             "Differences relative ranking": [],
+             "Differences rate": [],
+             "Distance absolute ranking": [],
+             "Distance relative ranking": [],
+             "Distance rate": [],
+             }
+
+    for style, title, r_orig, r_trans in zip(df["Style"], df["Title"], df['roll'], df["Transferred"]):
+        table["Style"].append(style)
+        table["Title"].append(title)
+        table["roll"].append(r_orig)
+        table["Transferred"].append(r_trans)
+
+        position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=False)
+        table["Differences absolute ranking"].append(position)
+        table["Differences relative ranking"].append((n-position)/n)
+        table["Differences rate"].append(rate)
+
+        position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=True)
+        table["Distance absolute ranking"].append(position)
+        table["Distance relative ranking"].append((n-position)/n)
+        table["Distance rate"].append(rate)
+
+    return pd.DataFrame(table)

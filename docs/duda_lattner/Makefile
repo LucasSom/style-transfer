@@ -1,2 +1,2 @@
-information_gain.pdf: information_gain.md
+information_rate.pdf: information_rate.md
 	pandoc -o $@ -t latex $<

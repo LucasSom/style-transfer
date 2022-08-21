@@ -247,7 +247,7 @@ def task_sample_sheets():
 
 def calculate_metrics(trans_path, e_orig, e_dest, metrics_file_path):
     df_transferred = load_pickle(trans_path)
-    metrics = obtain_metrics(df_transferred, e_orig, e_dest, None)
+    metrics = obtain_metrics(df_transferred, e_orig, e_dest)
     save_pickle(metrics, metrics_file_path)
 
 
