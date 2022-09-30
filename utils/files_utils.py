@@ -15,6 +15,17 @@ logs_path = os.path.join(data_path, 'logs/')
 original_audios_path = os.path.join(preprocessed_data_path, 'original/audios/')
 
 
+def get_model_paths(model_name):
+    model_dir = os.path.join(data_path, model_name)
+    vae_dir = os.path.join(model_dir, "vae")
+
+    if not os.path.isdir(model_dir):
+        os.makedirs(vae_dir)
+    # logs_dir = os.path.join(model_dir, "logs")
+    vae_path = os.path.join(vae_dir, "saved_model.pb")
+    return model_dir, vae_dir, vae_path
+
+
 def root_file_name(p):
     return os.path.splitext(p)[0]
 

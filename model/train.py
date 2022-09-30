@@ -15,7 +15,8 @@ except ImportError:
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path, path_saved_models, logs_path
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path, path_saved_models, logs_path, \
+    get_model_paths
 
 
 def get_targets(ds: np.ndarray) -> List[np.ndarray]:
@@ -27,6 +28,7 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
 
 
 def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch=None, ckpt=None, verbose=2):
+    base_path, vae_dir, _ = get_model_paths(model_name)
     if final_epoch is None:
         final_epoch = int(input("Until how many epochs do you want to train? "))
     if ckpt is None:
@@ -34,11 +36,9 @@ def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch=None,
     if isinstance(df, str):
         df = load_pickle(file_name=df, verbose=verbose)
 
-    if os.path.isdir(path_saved_models + model_name) and \
-            os.path.isfile(f"{path_saved_models}{model_name}/initial_epoch"):
+    if os.path.isfile(f"{vae_dir}/initial_epoch"):
         return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
     else:
-        if not os.path.isdir(path_saved_models + model_name): os.makedirs(path_saved_models + model_name)
         return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, ckpt=ckpt, verbose=verbose)
 
 
@@ -50,12 +50,13 @@ def train_new_model(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: i
 
 
 def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt: int = 50, verbose=2):
-    with open(f"{logs_path + model_name}/initial_epoch", 'rt') as f:
+    base_path, vae_dir, _ = get_model_paths(model_name)
+
+    with open(f"{vae_dir}/initial_epoch", 'rt') as f:
         initial_epoch = int(f.read())
     if verbose: print(f"Continuing training from {initial_epoch} epoch")
 
-    vae = keras.models.load_model(path_saved_models + model_name,
-                                  custom_objects=dict(kl_beta=build_model.kl_beta))
+    vae = keras.models.load_model(vae_dir, custom_objects=dict(kl_beta=build_model.kl_beta))
 
     return train(vae, df, model_name, initial_epoch, final_epoch + initial_epoch, ckpt, verbose)
 
@@ -65,9 +66,10 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     ds = np.stack([r.matrix for r in df['roll']])
     targets = get_targets(ds)
 
-    log_dir = f"{logs_path + model_name}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    vae_dir = get_model_paths(model_name)[1]
+    log_dir = f"{logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    path_to_save = f"{path_saved_models + model_name}/ckpt/"
+    path_to_save = f"{vae_dir}/ckpt/"
     if os.path.isdir(path_to_save):
         shutil.rmtree(path_to_save)
     else:
@@ -82,6 +84,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
         mode='min',
     )
 
+    if ckpt == 0: ckpt = final_epoch + 1
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         callbacks = vae.fit(
             x=ds,
@@ -95,7 +98,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
         # vae.save(path_to_save)
 
-        with open(f'{logs_path + model_name}/initial_epoch', 'w') as f:
+        with open(f'{logs_path(model_name)}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
         print(f"Guardado hasta {i + ckpt}!!")
 
@@ -105,7 +108,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
         assert len(callbacks_history['epoch']) == len(callbacks_history['loss'])
         callbacks_df = pd.DataFrame(callbacks_history)
 
-        callbacks_path = f"{logs_path + model_name}_{initial_epoch}.csv"
+        callbacks_path = f"{logs_path(model_name)}_{initial_epoch}.csv"
         if os.path.isfile(callbacks_path):
             prev_callbacks = pd.read_csv(callbacks_path)
         else:
