@@ -9,7 +9,8 @@ from typing import List
 from evaluation.metrics.intervals import get_interval_distances_table
 from evaluation.metrics.plagiarism import get_most_similar_roll, get_plagiarism_ranking_table
 from model.colab_tension_vae.params import init
-from utils.files_utils import data_path, save_pickle, datasets_debug_path, load_pickle
+from utils.files_utils import data_path, datasets_debug_path, load_pickle
+from utils.plots_utils import intervals_talk_plot, intervals_plot
 
 
 def evaluate_model(df, metrics, column=None):
@@ -74,7 +75,9 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame]):
                  x="value",
                  hue="type",
                  col_order=merged_df.orig.unique(),
-                 row_order=merged_df.orig.unique())
+                 row_order=merged_df.orig.unique(),
+                 stat="percent"
+                 )
     plt.savefig(os.path.join(data_path, "debug_outputs", "plagiarism_plot.png"))
     plt.show()
     return merged_df
@@ -118,17 +121,17 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame]):
                  >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
                  )
 
+    originals = merged_df.orig.unique()
+
     sns.set_theme()
-    sns.displot(data=merged_df,
-                col="target",
-                row="orig",
-                x="value",
-                hue="type",
-                kind="kde",
-                col_order=merged_df.orig.unique(),
-                row_order=merged_df.orig.unique())
+    intervals_plot(merged_df, rows=originals, columns=originals)
     plt.savefig(os.path.join(data_path, "debug_outputs", "intervals_plot.png"))
     plt.show()
+
+    # Challenge
+    intervals_talk_plot(merged_df, originals)
+    intervals_talk_plot(merged_df, originals, subplot=2)
+
     return merged_df
 
 

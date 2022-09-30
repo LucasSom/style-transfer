@@ -1,5 +1,4 @@
-from doit.api import run_tasks, run
-from doit.cmd_base import ModuleTaskLoader
+from doit.api import run
 from tensorflow.keras.models import load_model
 
 from evaluation.app.html_maker import make_html
@@ -13,6 +12,7 @@ from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison
 
 
 def preprocessed_data(b):
@@ -22,8 +22,10 @@ def preprocessed_data(b):
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
-bars = [4, 8]
-models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y]
+bars = [4]  # [4, 8]
+old_models = ['brmf_4b', 'brmf_8b']
+models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + old_models
+# models = ["4-bf"]
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
@@ -54,8 +56,9 @@ def task_preprocess():
         }
 
 
-def train(df_path, model_name):
-    styles = [styles_dict[a] for a in model_name[-2:]]
+def train(df_path, model_name, bars):
+    init(bars)
+    styles = [styles_dict[a] for a in model_name[2:4]]
     df = load_pickle(df_path)
     df = df[df['Style'].isin(styles)]
     train_model(df, model_name)
@@ -65,40 +68,50 @@ def train(df_path, model_name):
 def task_train():
     """Trains the model"""
     for model_name in models:
-        b = model_name[0]
-        init(b)
-        _, model_pb_path = get_model_path(model_name)
+        b = model_name[-2] if model_name in old_models else model_name[0]
+        # init(b)
+        vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
             'file_dep': [preprocessed_data(b)],
-            'actions': [(train, [preprocessed_data(b), model_name])],
-            'targets': [model_pb_path]
+            'actions': [(train, [preprocessed_data(b), model_name, b])],
+            'targets': [vae_path]
         }
 
 
-def analyze_training(df_path, model_path, targets):
-    model = load_model(model_path)
-    model_name = os.path.basename(model_path)
+def analyze_training(df_path, model_name, bars, targets):
+    init(bars)
+    model_path, vae_dir, _ = get_model_paths(model_name)
+    model = load_model(vae_dir)
+    model_name = os.path.basename(model_name)
+    plots_path = os.path.join(data_path, model_path, "plots")
     df = load_pickle(df_path)
+
     df_reconstructed = get_reconstruction(df, model, model_name, inplace=False)
+
+    tsne_emb = calculate_TSNEs(df_reconstructed, column_discriminator="Style")[0]
+    plot_tsnes_comparison(df_reconstructed, tsne_emb[1:], path=plots_path)
+    plot_tsne(df_reconstructed, tsne_emb, path=plots_path)
+
     save_pickle(df_reconstructed, targets[0])
 
 
 def task_test():
-    """Shows the reconstruction of the model over an original song"""
+    """Shows the reconstruction of the model over an original song and a TSNE plot of the songs in the latent space."""
     for model_name in models:
-        b = model_name[0]
-        init(b)
-        model_path, model_pb_path = get_model_path(model_name)
+        b = model_name[-2] if model_name in old_models else model_name[0]
+        # init(b)
+        vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b), model_pb_path],
-            'actions': [(analyze_training, [preprocessed_data(b), model_path])],
+            'file_dep': [preprocessed_data(b), vae_path],
+            'actions': [(analyze_training, [preprocessed_data(b), model_name, b])],
             'targets': [get_reconstruction_path(model_name)]
         }
 
 
-def do_embeddings(df_path, model_path, characteristics_path, emb_path):
+def do_embeddings(df_path, model_path, characteristics_path, emb_path, bars):
+    init(bars)
     model = load_model(model_path)
     df = load_pickle(df_path)
 
@@ -111,17 +124,17 @@ def do_embeddings(df_path, model_path, characteristics_path, emb_path):
 def task_embeddings():
     """Calculate the embeddings for each author/style and song"""
     for model_name in models:
-        b = model_name[0]
-        init(b)
-        model_path, model_pb_path = get_model_path(model_name)
+        b = model_name[-2] if model_name in old_models else model_name[0]
+        # init(b)
+        model_path, _, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
 
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b), model_pb_path],
+            'file_dep': [preprocessed_data(b), vae_path],
             'actions': [(do_embeddings,
-                         [preprocessed_data(b), os.path.dirname(model_path), characteristics_path, emb_path]
+                         [preprocessed_data(b), os.path.dirname(model_path), characteristics_path, emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
             'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
@@ -143,7 +156,7 @@ def task_transfer_style():
     """Do the transference of style from a roll to another style"""
     for model_name in models:
 
-        model_path, model_pb_path = get_model_path(model_name)
+        model_path, _, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
 
@@ -151,7 +164,7 @@ def task_transfer_style():
             transferred_path = get_transferred_path(e_orig, e_dest, model_name)
             yield {
                 'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                'file_dep': [emb_path, model_pb_path, characteristics_path],
+                'file_dep': [emb_path, vae_path, characteristics_path],
                 'actions': [(do_transfer,
                              [emb_path, os.path.dirname(model_path),
                               characteristics_path, e_orig, e_dest, transferred_path]
@@ -290,7 +303,6 @@ def task_evaluation():
 
 
 if __name__ == '__main__':
-    import doit
     g = globals()
-    # run_tasks(ModuleTaskLoader(g), {'train:4-br':1})
+    # run_tasks(ModuleTaskLoader(g), {'train:4-br': 1})
     run(g)
