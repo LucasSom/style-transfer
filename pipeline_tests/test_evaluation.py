@@ -89,6 +89,7 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
         assert avg[i, j] == avg_test[i, j]
 
 
+# --------------------------------------------------- Intervals plots --------------------------------------------------
 def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     evaluate_single_intervals_distribution(df_transferred, orig="Bach", dest="ragtime")
@@ -97,14 +98,20 @@ def test_evaluate_single_intervals_distribution(df_transferred):
 
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
-    evaluate_multiple_intervals_distribution(bmmr_dfs)
+    evaluate_multiple_intervals_distribution(bmmr_dfs, True)
 
 
 def test_evaluate_intervals_distribution(all_dfs):
     init(4)
-    evaluate_multiple_intervals_distribution(all_dfs)
+    evaluate_multiple_intervals_distribution(all_dfs, True)
 
 
+def test_evaluate_all_single_intervals_distribution(all_dfs):
+    init(4)
+    evaluate_multiple_intervals_distribution(all_dfs, False, context='talk')
+
+
+# ----------------------------------------------------- Plagiarism -----------------------------------------------------
 def test_evaluate_single_plagiarism(df_transferred):
     init(4)
     df1 = evaluate_single_plagiarism(df_transferred, orig="Bach", dest="ragtime")
