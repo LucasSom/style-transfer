@@ -122,9 +122,14 @@ def test_evaluate_single_plagiarism(df_transferred):
 
 def test_evaluate_plagiarism_small(bmmr_dfs):
     init(4)
-    evaluate_multiple_plagiarism(bmmr_dfs)
+    evaluate_multiple_plagiarism(bmmr_dfs, True)
 
 
 def test_evaluate_plagiarism_all(all_dfs):
     init(4)
-    evaluate_multiple_plagiarism(all_dfs)
+    evaluate_multiple_plagiarism(all_dfs, True)
+
+
+def test_evaluate_plagiarism_separated(all_dfs):
+    init(4)
+    evaluate_multiple_plagiarism(all_dfs, False)
