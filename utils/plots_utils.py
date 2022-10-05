@@ -76,7 +76,11 @@ def intervals_plot(df, order: List, context='talk'):
     sns.set_context(context)
 
     sns.displot(data=df, col="target", row="orig", x="value", hue="type", kind='kde', col_order=col, row_order=row)
-    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
 
+    ranges = [('C0', (-1, 0)), ('C1', (0, 1))]
+    for i, area in ranges:
+        plt.axvspan(xmin=area[0], xmax=area[1], facecolor=i, alpha=0.3)
+
+    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
     plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
     plt.show()

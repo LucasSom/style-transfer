@@ -121,7 +121,8 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
         else:
             dfs_to_plot.append(pd.concat([df1, df2]))
 
-    remap_dict = {'log(tt/ot)': "log(d(m's')/d(ms')) (< 0)", 'log(ot/oo)': "log(d(ms')/d(ms)) (> 0)"}
+    remap_dict = {'log(tt/ot)': "log(d(m's')/d(ms')) (< 0)\n Get away from the old style",
+                  'log(ot/oo)': "log(d(ms')/d(ms)) (> 0)\n Get closer to the new style"}
 
     sns.set_theme()
     sns.set_context(context)
