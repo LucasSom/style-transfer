@@ -1,4 +1,6 @@
 import copy
+import os
+from typing import List
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -59,3 +61,22 @@ def plot_tsne(df, tsne_ds):
 
     sns.relplot(x='dim_1', y='dim_2', hue='Title', style='Tipo', data=tsne_result_df, kind='scatter', height=6)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
+
+
+def intervals_plot(df, order: List, context='talk'):
+    if len(order) == 2:
+        col = [order[0]]
+        row = [order[1]]
+        orig, dest = order
+    else:
+        col = row = order
+        orig = dest = 'all'
+
+    sns.set_theme()
+    sns.set_context(context)
+
+    sns.displot(data=df, col="target", row="orig", x="value", hue="type", kind='kde', col_order=col, row_order=row)
+    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
+
+    plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
+    plt.show()

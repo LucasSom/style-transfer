@@ -10,6 +10,7 @@ from evaluation.metrics.intervals import get_interval_distances_table
 from evaluation.metrics.plagiarism import get_most_similar_roll, get_plagiarism_ranking_table
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_path, datasets_debug_path, load_pickle
+from utils.plots_utils import intervals_plot
 
 
 def evaluate_model(df, metrics, column=None):
@@ -131,16 +132,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
                      >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
                      )
 
-        sns.displot(data=merged_df,
-                    col="target",
-                    row="orig",
-                    x="value",
-                    hue="type",
-                    kind="kde",
-                    col_order=merged_df.orig.unique(),
-                    row_order=merged_df.orig.unique())
-        plt.savefig(os.path.join(data_path, "debug_outputs", "intervals_plot.png"))
-        plt.show()
+        intervals_plot(merged_df, merged_df['orig'].unique(), context)
         return merged_df
 
     else:
@@ -153,19 +145,8 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
             s1 = list(set(df["Style"]))[0]
             s2 = list(set(df["Style"]))[1]
 
-            for styles_combination in [(s1, s2), (s2, s1)]:
-                sns.displot(data=df,
-                            col="target",
-                            row="orig",
-                            x="value",
-                            hue="type",
-                            kind="kde",
-                            col_order=[styles_combination[0]],
-                            row_order=[styles_combination[1]])
-
-                plt.savefig(os.path.join(
-                    data_path, "debug_outputs", f"intervals_{styles_combination[0]}_to_{styles_combination[1]}.png"))
-                plt.show()
+            for styles_combination in [[s1, s2], [s2, s1]]:
+                intervals_plot(df, styles_combination, context)
         return dfs_to_plot
 
 
