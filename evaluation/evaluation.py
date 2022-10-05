@@ -120,7 +120,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
         else:
             dfs_to_plot.append(pd.concat([df1, df2]))
 
-    remap_dict = {'log(tt/ot)': 'log(tt/ot) (< 0)', 'log(ot/oo)': 'log(ot/oo) (> 0)'}
+    remap_dict = {'log(tt/ot)': "log(d(m's')/d(ms')) (< 0)", 'log(ot/oo)': "log(d(ms')/d(ms)) (> 0)"}
 
     sns.set_theme()
     sns.set_context(context)
@@ -150,20 +150,22 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
                   >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
                   )
 
-            sns.displot(data=df,
-                        col="target",
-                        row="orig",
-                        x="value",
-                        hue="type",
-                        kind="kde",
-                        col_order=df.orig.unique(),
-                        row_order=df.orig.unique())
-
             s1 = list(set(df["Style"]))[0]
             s2 = list(set(df["Style"]))[1]
 
-            plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{s1}_to_{s2}.png"))
-            plt.show()
+            for styles_combination in [(s1, s2), (s2, s1)]:
+                sns.displot(data=df,
+                            col="target",
+                            row="orig",
+                            x="value",
+                            hue="type",
+                            kind="kde",
+                            col_order=[styles_combination[0]],
+                            row_order=[styles_combination[1]])
+
+                plt.savefig(os.path.join(
+                    data_path, "debug_outputs", f"intervals_{styles_combination[0]}_to_{styles_combination[1]}.png"))
+                plt.show()
         return dfs_to_plot
 
 
