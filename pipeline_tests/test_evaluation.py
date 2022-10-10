@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from evaluation.evaluation import evaluate_single_intervals_distribution, evaluate_multiple_intervals_distribution, \
-    evaluate_single_plagiarism, evaluate_multiple_plagiarism
+    evaluate_single_plagiarism, evaluate_multiple_plagiarism, get_intervals_results
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, save_pickle
@@ -96,19 +96,42 @@ def test_evaluate_single_intervals_distribution(df_transferred):
     evaluate_single_intervals_distribution(df_transferred, orig="ragtime", dest="Bach")
 
 
+def test_intervals_results():
+    d = {'orig': 2 * (5 * ['a'] + 5 * ['b']),
+         'target': 2 * (5 * ['b'] + 5 * ['a']),
+         'type': 10 * ["log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"]
+                + 10 * ["log(d(m's')/d(ms')) (< 0)\n Got away from the old style"],
+         'value': 5 * [1] + [1, -1, -1, 1, 1] + [-1, -1, 1, -1, -1] + 5 * [1]
+         }
+    df = pd.DataFrame(d)
+    results = {}
+    get_intervals_results(df, results, 'a', 'b')
+
+    assert results[f"a to b got closer"] == 1
+    assert results[f"b to a got closer"] == 3 / 5
+    assert results[f"a to b got away"] == 4 / 5
+    assert results[f"b to a got away"] == 0
+
+
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
-    evaluate_multiple_intervals_distribution(bmmr_dfs, True)
+    _, _, table = evaluate_multiple_intervals_distribution(bmmr_dfs, True)
+    print(table)
+    table.to_csv(f"{data_path}/debug_outputs/table_intervals-small.csv")
 
 
 def test_evaluate_intervals_distribution(all_dfs):
     init(4)
-    evaluate_multiple_intervals_distribution(all_dfs, True)
+    _, _, table = evaluate_multiple_intervals_distribution(all_dfs, True)
+    print(table)
+    table.to_csv(f"{data_path}/debug_outputs/table_intervals-all.csv")
 
 
 def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
-    evaluate_multiple_intervals_distribution(all_dfs, False, context='talk')
+    _, _, table = evaluate_multiple_intervals_distribution(all_dfs, False, context='talk')
+    print(table)
+    table.to_csv(f"{data_path}/debug_outputs/table_intervals-all_single.csv")
 
 
 # ----------------------------------------------------- Plagiarism -----------------------------------------------------

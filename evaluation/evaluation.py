@@ -124,9 +124,9 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, context='talk')
     else:
         for i, df in enumerate(dfs_to_plot):
             df = (df
-                   >> dfply.gather("type", "value", ["Differences relative ranking", "Distance relative ranking"])
-                   >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
-                   )
+                  >> dfply.gather("type", "value", ["Differences relative ranking", "Distance relative ranking"])
+                  >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
+                  )
             s1 = list(set(df["Style"]))[0]
             s2 = list(set(df["Style"]))[1]
 
@@ -147,6 +147,32 @@ def evaluate_single_intervals_distribution(df, orig, dest, plot=True, context='t
         plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
         plt.show()
     return distances_df
+
+
+def get_intervals_results(df: pd.DataFrame, results: dict, orig: str, target: str, presentation_context='talk'):
+    """
+    Add to results how is the proportion of improvement (how many rolls got away from the old style and how many got
+    closer to the new one).
+
+    :param df: dataframe with distances values. It must have at least the columns 'orig', 'target', 'type' and 'value'.
+    :param results: dictionary where to save the results.
+    :param orig: name of a style to analyze.
+    :param target: name of the other style to analyze.
+    :param presentation_context: plot context ('talk' as default, 'paper' or 'poster').
+    :return: It returns a DataFrame with columns 'Transference' and 'Improvement ratio'
+    """
+    for styles_combination in [[orig, target], [target, orig]]:
+        intervals_plot(df, styles_combination, presentation_context)
+
+        df_s1_to_s2 = df[(df['orig'] == styles_combination[0]) & (df['target'] == styles_combination[1])]
+        df_get_away = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m's')/d(ms')) (< 0)\n Got away from the old style"]
+        df_get_closer = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"]
+        results[f"{styles_combination[0]} to {styles_combination[1]} got away"] = \
+            df_get_away[df_get_away['value'] < 0].shape[0] / df_get_away.shape[0]
+        results[f"{styles_combination[0]} to {styles_combination[1]} got closer"] = \
+            df_get_closer[df_get_closer['value'] > 0].shape[0] / df_get_closer.shape[0]
+    return pd.DataFrame({"Transference": [k for k in results.keys()],
+                         "Improvement ratio": [v for v in results.values()]})
 
 
 def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, context='talk'):
@@ -173,8 +199,11 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
         else:
             dfs_to_plot.append(pd.concat([df1, df2]))
 
-    remap_dict = {'log(tt/ot)': "log(d(m's')/d(ms')) (< 0)\n Get away from the old style",
-                  'log(ot/oo)': "log(d(ms')/d(ms)) (> 0)\n Get closer to the new style"}
+    remap_dict = {'log(tt/ot)': "log(d(m's')/d(ms')) (< 0)\n Got away from the old style",
+                  'log(ot/oo)': "log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"}
+
+    results = {}
+    df_results = pd.DataFrame
 
     if merge:
         merged_df = (merged_df
@@ -183,7 +212,6 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
                      )
 
         intervals_plot(merged_df, merged_df['orig'].unique(), context)
-        return merged_df
 
     else:
         for i, df in enumerate(dfs_to_plot):
@@ -195,9 +223,10 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
             s1 = list(set(df["Style"]))[0]
             s2 = list(set(df["Style"]))[1]
 
-            for styles_combination in [[s1, s2], [s2, s1]]:
-                intervals_plot(df, styles_combination, context)
-        return dfs_to_plot
+            table = get_intervals_results(df, results, s1, s2, context)
+            df_results = table if df_results.empty else pd.concat([df_results, table])
+
+    return merged_df, dfs_to_plot, df_results
 
 
 if __name__ == "__main__":
