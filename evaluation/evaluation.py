@@ -73,6 +73,24 @@ def plagiarism_plot(df, order, context):
     plt.show()
 
 
+def get_plagiarism_results(df, results, orig, target, presentation_context='talk'):
+    for styles_combination in [[orig, target], [target, orig]]:
+        plagiarism_plot(df, styles_combination, presentation_context)
+
+        df_s1_to_s2 = df[(df['orig'] == styles_combination[0]) & (df['target'] == styles_combination[1])]
+        size = df_s1_to_s2.shape[0] / 2
+        df_diff = df_s1_to_s2[df_s1_to_s2['type'] == "Differences relative ranking"]
+        df_dist = df_s1_to_s2[df_s1_to_s2['type'] == "Distance relative ranking"]
+
+        results[f"{styles_combination[0]} to {styles_combination[1]} didn't lose (diff)"] = \
+            df_diff[df_diff['value'] == 1].shape[0] / size
+        results[f"{styles_combination[0]} to {styles_combination[1]} didn't get away (dist)"] = \
+            df_dist[df_dist['value'] == 1].shape[0] / size
+
+    return pd.DataFrame({"Transference": [k for k in results.keys()],
+                         "Best conservation ratio": [v for v in results.values()]})
+
+
 def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, context='talk'):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
@@ -102,6 +120,9 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, context='talk')
     sns.set_theme()
     sns.set_context(context)
 
+    results = {}
+    df_results = pd.DataFrame()
+
     if merge:
         merged_df = (merged_df
                      >> dfply.gather("type", "value", ["Differences relative ranking", "Distance relative ranking"])
@@ -130,9 +151,10 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, context='talk')
             s1 = list(set(df["Style"]))[0]
             s2 = list(set(df["Style"]))[1]
 
-            for styles_combination in [[s1, s2], [s2, s1]]:
-                plagiarism_plot(df, styles_combination, context)
-    return merged_df, dfs_to_plot
+            table = get_plagiarism_results(df, results, s1, s2, context)
+            df_results = pd.concat([df_results, table])
+
+    return merged_df, dfs_to_plot, df_results
 
 
 def evaluate_single_intervals_distribution(df, orig, dest, plot=True, context='talk'):
@@ -167,10 +189,12 @@ def get_intervals_results(df: pd.DataFrame, results: dict, orig: str, target: st
         df_s1_to_s2 = df[(df['orig'] == styles_combination[0]) & (df['target'] == styles_combination[1])]
         df_get_away = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m's')/d(ms')) (< 0)\n Got away from the old style"]
         df_get_closer = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"]
+
         results[f"{styles_combination[0]} to {styles_combination[1]} got away"] = \
             df_get_away[df_get_away['value'] < 0].shape[0] / df_get_away.shape[0]
         results[f"{styles_combination[0]} to {styles_combination[1]} got closer"] = \
             df_get_closer[df_get_closer['value'] > 0].shape[0] / df_get_closer.shape[0]
+
     return pd.DataFrame({"Transference": [k for k in results.keys()],
                          "Improvement ratio": [v for v in results.values()]})
 
@@ -203,7 +227,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
                   'log(ot/oo)': "log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"}
 
     results = {}
-    df_results = pd.DataFrame
+    df_results = pd.DataFrame()
 
     if merge:
         merged_df = (merged_df
@@ -224,7 +248,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
             s2 = list(set(df["Style"]))[1]
 
             table = get_intervals_results(df, results, s1, s2, context)
-            df_results = table if df_results.empty else pd.concat([df_results, table])
+            df_results = pd.concat([df_results, table])
 
     return merged_df, dfs_to_plot, df_results
 

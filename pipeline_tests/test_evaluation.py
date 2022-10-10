@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from evaluation.evaluation import evaluate_single_intervals_distribution, evaluate_multiple_intervals_distribution, \
-    evaluate_single_plagiarism, evaluate_multiple_plagiarism, get_intervals_results
+    evaluate_single_plagiarism, evaluate_multiple_plagiarism, get_intervals_results, get_plagiarism_results
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, save_pickle
@@ -141,6 +141,22 @@ def test_evaluate_single_plagiarism(df_transferred):
     df2 = evaluate_single_plagiarism(df_transferred, orig="ragtime", dest="Bach")
     df1.to_csv(f"{data_path}/debug_outputs/plagiarism_ranking_table1.csv")
     df2.to_csv(f"{data_path}/debug_outputs/plagiarism_ranking_table2.csv")
+
+
+def test_plagiarism_results():
+    d = {'orig': 2 * (5 * ['a'] + 5 * ['b']),
+         'target': 2 * (5 * ['b'] + 5 * ['a']),
+         'type': 10 * ["Differences relative ranking"] + 10 * ["Distance relative ranking"],
+         'value': 5 * [1] + [1, 2, 80, 1, 1] + [20, 10, 1, 11, 5] + 5 * [1]
+         }
+    df = pd.DataFrame(d)
+    results = {}
+    get_plagiarism_results(df, results, 'a', 'b')
+
+    assert results[f"a to b didn't lose (diff)"] == 1
+    assert results[f"b to a didn't lose (diff)"] == 3 / 5
+    assert results[f"a to b didn't get away (dist)"] == 1 / 5
+    assert results[f"b to a didn't get away (dist)"] == 1
 
 
 def test_evaluate_plagiarism_small(bmmr_dfs):
