@@ -1,10 +1,13 @@
-from typing import List, Tuple
+import os.path
+from collections import Counter
+from typing import List, Tuple, Dict
 
 import numpy as np
 import pandas as pd
 
 from model.colab_tension_vae import params
 from roll.guoroll import GuoRoll
+from utils.files_utils import root_file_name, load_pickle, save_pickle
 
 
 # TODO: revisar porque el pading en realidad no debería estar si ya le paso solo la matriz que importa.
@@ -94,7 +97,7 @@ def get_plagiarism_position(df, original_roll, transferred_roll, by_distance=Fal
     """
     Computes a plagiarism rate for each roll and makes a ranking of rolls based on that rate. The rate is calculated as
     the sum of semitones that a roll differs with another (when `by_distance` parameter is set on *True*) or only how
-    many time frames the roll is not equal to the other (when by_distance parameter is *False*).
+    many time-frames the roll is not equal to the other (when by_distance parameter is *False*).
 
     :param df: df_transferred
     :param original_roll: original roll
@@ -118,48 +121,68 @@ def get_plagiarism_position(df, original_roll, transferred_roll, by_distance=Fal
     return position, len(rolls), sorted_rolls[position][0]
 
 
-def get_plagiarism_ranking_table(df) -> pd.DataFrame:
+def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> Tuple[pd.DataFrame, Counter]:
     """
     :param df: df_transferred
+    :param cache_path: path where save the dataframe generated as CSV and the "winners" dictionary as pickle
+    :param by_distance: whether to calculate plagiarism counting every distance between notes or only the amount of
+    differences
     :return: a Dataframe with columns:
             - Style
             - Title
-            - roll
+            - rollNo debe haber muchos
             - Transferred
-            - Differences absolute ranking
+            - Differences position
             - Differences relative ranking
             - Differences rate
-            - Distance absolute ranking
+            - Distance position
             - Distance relative ranking
-            - Distance rate
-
+            - Distance rate;
+            2 counters with proportion of winners by style (the first one computed by difference, the second one by
+            distance)
     """
+    if cache_path is not None:
+        csv_path = root_file_name(cache_path) + '.csv'
+        pkl_path = root_file_name(cache_path) + '.pkl'
+        if os.path.isfile(cache_path):
+            return pd.read_csv(csv_path), load_pickle(pkl_path)
+
+    kind = "Distance" if by_distance else "Differences"
     table = {"Style": [],
              "Title": [],
              "roll": [],
              "Transferred": [],
-             "Differences absolute ranking": [],
-             "Differences relative ranking": [],
-             "Differences rate": [],
-             "Distance absolute ranking": [],
-             "Distance relative ranking": [],
-             "Distance rate": [],
+             f"{kind} position": [],
+             f"{kind} relative ranking": [],
+             f"{kind} rate": [],
+             "N": []
              }
 
+    winners = Counter()
+    styles_amount = Counter()
     for style, title, r_orig, r_trans in zip(df["Style"], df["Title"], df['roll'], df["Transferred"]):
+        styles_amount[style] += 1
         table["Style"].append(style)
         table["Title"].append(title)
         table["roll"].append(r_orig)
         table["Transferred"].append(r_trans)
 
-        position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=False)
-        table["Differences absolute ranking"].append(position)
-        table["Differences relative ranking"].append((n-position)/n)
-        table["Differences rate"].append(rate)
+        position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=by_distance)
 
-        position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=True)
-        table["Distance absolute ranking"].append(position)
-        table["Distance relative ranking"].append((n-position)/n)
-        table["Distance rate"].append(rate)
+        table[f"{kind} position"].append(position)
+        table[f"{kind} relative ranking"].append((n-position)/n)
+        table[f"{kind} rate"].append(rate)
+        table["N"].append(n)
 
-    return pd.DataFrame(table)
+        if position == 1:
+            winners[style] += 1
+
+    for style in df["Style"].unique():
+        winners[style] *= 100 / styles_amount[style]
+
+    df_table = pd.DataFrame(table)
+    if cache_path is not None:
+        df_table.to_csv(csv_path, index=False)
+        save_pickle(winners, pkl_path)
+
+    return df_table, winners

@@ -5,6 +5,7 @@ from typing import List
 import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
+from matplotlib.ticker import PercentFormatter
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
@@ -83,4 +84,33 @@ def intervals_plot(df, order: List, context='talk'):
 
     plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
     plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
+    plt.show()
+
+
+def plagiarism_plot(df, order, context):
+    if len(order) == 2:
+        col = [order[0]]
+        row = [order[1]]
+        orig, dest = order
+    else:
+        col = row = order
+        orig = dest = 'all'
+
+    sns.set_theme()
+    sns.set_context(context)
+
+    sns.displot(data=df,
+                col="target",
+                row="Style",
+                x="value",
+                hue="type",
+                kind='hist',
+                stat='proportion',
+                # binwidth=1,
+                col_order=col,
+                row_order=row)
+
+    plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+
+    plt.savefig(os.path.join(data_path, "debug_outputs", f"plagiarism_{orig}_to_{dest}.png"))
     plt.show()

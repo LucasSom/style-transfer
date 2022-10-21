@@ -1,14 +1,12 @@
 import os.path
 
 import numpy as np
-import pandas as pd
 import pytest
 
-from evaluation.evaluation import evaluate_single_intervals_distribution, evaluate_multiple_intervals_distribution, \
-    evaluate_single_plagiarism, evaluate_multiple_plagiarism, get_intervals_results, get_plagiarism_results
+from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
-from utils.files_utils import data_tests_path, load_pickle, data_path, save_pickle
+from utils.files_utils import data_tests_path, load_pickle, data_path
 
 
 @pytest.fixture
@@ -100,17 +98,16 @@ def test_intervals_results():
     d = {'orig': 2 * (5 * ['a'] + 5 * ['b']),
          'target': 2 * (5 * ['b'] + 5 * ['a']),
          'type': 10 * ["log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"]
-                + 10 * ["log(d(m's')/d(ms')) (< 0)\n Got away from the old style"],
+                 + 10 * ["log(d(m's')/d(ms')) (< 0)\n Got away from the old style"],
          'value': 5 * [1] + [1, -1, -1, 1, 1] + [-1, -1, 1, -1, -1] + 5 * [1]
          }
     df = pd.DataFrame(d)
-    results = {}
-    get_intervals_results(df, results, 'a', 'b')
+    df_results = get_intervals_results(df, 'a', 'b')
 
-    assert results[f"a to b got closer"] == 1
-    assert results[f"b to a got closer"] == 3 / 5
-    assert results[f"a to b got away"] == 4 / 5
-    assert results[f"b to a got away"] == 0
+    assert list(df_results[df_results["Transference"] == f"a to b got closer"])[0] == 1
+    assert list(df_results[df_results["Transference"] == f"b to a got closer"])[0] == 3 / 5
+    assert list(df_results[df_results["Transference"] == f"a to b got away"])[0] == 4 / 5
+    assert list(df_results[df_results["Transference"] == f"b to a got away"])[0] == 0
 
 
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
@@ -135,23 +132,41 @@ def test_evaluate_all_single_intervals_distribution(all_dfs):
 
 
 # ----------------------------------------------------- Plagiarism -----------------------------------------------------
+def test_calculate_resume_table():
+    d = {"Title": ["Cancion 1", "c2", "c3", "c3", "c4", "c5"],
+         "Style": ["a", "b", "a", "b", "b", "b"],
+         "target": ["b", "a", "b", "a", "a", "a"],
+         "value": [1, 2, 4, 1, 4, 5]
+         }
+    df = pd.DataFrame(d)
+
+    t = calculate_resume_table(df, 1)
+    assert list(t["Style"]) == ["a", "b"]
+    assert list(t["Target"]) == ["b", "a"]
+    assert list(t["Proportion of winners"]) == [0.5, 0.25]
+
+    t = calculate_resume_table(df, 2)
+    assert list(t["Proportion of winners"]) == [0.5, 0.5]
+
+
 def test_evaluate_single_plagiarism(df_transferred):
     init(4)
-    df1 = evaluate_single_plagiarism(df_transferred, orig="Bach", dest="ragtime")
-    df2 = evaluate_single_plagiarism(df_transferred, orig="ragtime", dest="Bach")
-    df1.to_csv(f"{data_path}/debug_outputs/plagiarism_ranking_table1.csv")
-    df2.to_csv(f"{data_path}/debug_outputs/plagiarism_ranking_table2.csv")
+    cached_path1 = f"{data_path}/debug_outputs/plagiarism_ranking_table1"
+    cached_path2 = f"{data_path}/debug_outputs/plagiarism_ranking_table2"
+    df1 = evaluate_single_plagiarism(df_transferred, orig="Bach", dest="ragtime", cache_path=cached_path1)
+    df2 = evaluate_single_plagiarism(df_transferred, orig="ragtime", dest="Bach", cache_path=cached_path2)
+    print(df1)
+    print(df2)
 
 
-def test_plagiarism_results():
+def test_plagiarism_results():  # Deprecated
     d = {'orig': 2 * (5 * ['a'] + 5 * ['b']),
          'target': 2 * (5 * ['b'] + 5 * ['a']),
          'type': 10 * ["Differences relative ranking"] + 10 * ["Distance relative ranking"],
          'value': 5 * [1] + [1, 2, 80, 1, 1] + [20, 10, 1, 11, 5] + 5 * [1]
          }
     df = pd.DataFrame(d)
-    results = {}
-    get_plagiarism_results(df, results, 'a', 'b')
+    results = get_plagiarism_results(df, 'a', 'b')
 
     assert results[f"a to b didn't lose (diff)"] == 1
     assert results[f"b to a didn't lose (diff)"] == 3 / 5
@@ -161,14 +176,20 @@ def test_plagiarism_results():
 
 def test_evaluate_plagiarism_small(bmmr_dfs):
     init(4)
-    evaluate_multiple_plagiarism(bmmr_dfs, True)
+    cache_path = f"{data_path}/debug_outputs/table_plagiarism-small"
+    _, _, table = evaluate_multiple_plagiarism(bmmr_dfs, False, cache_path)
+    print(table)
 
 
 def test_evaluate_plagiarism_all(all_dfs):
     init(4)
-    evaluate_multiple_plagiarism(all_dfs, True)
+    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all"
+    _, _, table = evaluate_multiple_plagiarism(all_dfs, True, cache_path)
+    print(table)
 
 
 def test_evaluate_plagiarism_separated(all_dfs):
     init(4)
-    evaluate_multiple_plagiarism(all_dfs, False)
+    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated"
+    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
+    print(table)
