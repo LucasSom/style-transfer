@@ -121,7 +121,7 @@ def get_plagiarism_position(df, original_roll, transferred_roll, by_distance=Fal
     return position, len(rolls), sorted_rolls[position][0]
 
 
-def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> Tuple[pd.DataFrame, Counter]:
+def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.DataFrame:
     """
     :param df: df_transferred
     :param cache_path: path where save the dataframe generated as CSV and the "winners" dictionary as pickle
@@ -143,9 +143,8 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> Tupl
     """
     if cache_path is not None:
         csv_path = root_file_name(cache_path) + '.csv'
-        pkl_path = root_file_name(cache_path) + '.pkl'
         if os.path.isfile(cache_path):
-            return pd.read_csv(csv_path), load_pickle(pkl_path)
+            return pd.read_csv(csv_path)
 
     kind = "Distance" if by_distance else "Differences"
     table = {"Style": [],
@@ -158,10 +157,7 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> Tupl
              "N": []
              }
 
-    winners = Counter()
-    styles_amount = Counter()
     for style, title, r_orig, r_trans in zip(df["Style"], df["Title"], df['roll'], df["Transferred"]):
-        styles_amount[style] += 1
         table["Style"].append(style)
         table["Title"].append(title)
         table["roll"].append(r_orig)
@@ -174,15 +170,6 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> Tupl
         table[f"{kind} rate"].append(rate)
         table["N"].append(n)
 
-        if position == 1:
-            winners[style] += 1
-
-    for style in df["Style"].unique():
-        winners[style] *= 100 / styles_amount[style]
-
     df_table = pd.DataFrame(table)
-    if cache_path is not None:
-        df_table.to_csv(csv_path, index=False)
-        save_pickle(winners, pkl_path)
 
-    return df_table, winners
+    return df_table

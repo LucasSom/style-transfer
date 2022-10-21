@@ -159,21 +159,6 @@ def test_evaluate_single_plagiarism(df_transferred):
     print(df2)
 
 
-def test_plagiarism_results():  # Deprecated
-    d = {'orig': 2 * (5 * ['a'] + 5 * ['b']),
-         'target': 2 * (5 * ['b'] + 5 * ['a']),
-         'type': 10 * ["Differences relative ranking"] + 10 * ["Distance relative ranking"],
-         'value': 5 * [1] + [1, 2, 80, 1, 1] + [20, 10, 1, 11, 5] + 5 * [1]
-         }
-    df = pd.DataFrame(d)
-    results = get_plagiarism_results(df, 'a', 'b')
-
-    assert results[f"a to b didn't lose (diff)"] == 1
-    assert results[f"b to a didn't lose (diff)"] == 3 / 5
-    assert results[f"a to b didn't get away (dist)"] == 1 / 5
-    assert results[f"b to a didn't get away (dist)"] == 1
-
-
 def test_evaluate_plagiarism_small(bmmr_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-small"
@@ -192,4 +177,6 @@ def test_evaluate_plagiarism_separated(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated"
     _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
+
+    table.to_csv(cache_path + '.csv')
     print(table)

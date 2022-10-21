@@ -52,7 +52,7 @@ def evaluate_plagiarism_coincidences(df, direction, by_distance=False) -> float:
 
 
 def evaluate_single_plagiarism(df, orig, dest, cache_path, by_distance=False, plot=True, context='talk'):
-    plagiarism_df, winners = get_plagiarism_ranking_table(df, cache_path=cache_path, by_distance=by_distance)
+    plagiarism_df = get_plagiarism_ranking_table(df, cache_path=cache_path, by_distance=by_distance)
 
     if plot:
         kind = "Distance" if by_distance else "Differences"
@@ -63,29 +63,10 @@ def evaluate_single_plagiarism(df, orig, dest, cache_path, by_distance=False, pl
         # sns.displot(data=plagiarism_df, x="Distance position", kind="kde")
         plt.title(f'Plagiarism ranking of {orig} transformed to {dest}')
         plt.show()
-    return plagiarism_df, winners
+    return plagiarism_df
 
 
-def get_plagiarism_results(df, orig, target, by_distance=True, presentation_context='talk'):
-    results = {}
-    kind = "Distance" if by_distance else "Differences"
-
-    for styles_combination in [[orig, target], [target, orig]]:
-        plagiarism_plot(df, styles_combination, presentation_context)
-
-        df_s1_to_s2 = df[(df['orig'] == styles_combination[0]) & (df['target'] == styles_combination[1])]
-        size = df_s1_to_s2.shape[0] / 2
-        df_diff = df_s1_to_s2[df_s1_to_s2['type'] == f"{kind} position"]
-
-        results[f"{styles_combination[0]} to {styles_combination[1]} didn't lose (diff)"] = \
-            df_diff[df_diff['value'] >= 0.1].shape[0] / size * 100
-
-    return pd.DataFrame({"Transference": [k for k in results.keys()],
-                         "Best conservation ratio": [v for v in results.values()]})
-
-
-def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, context='talk', by_distance=True,
-                                 thold=1):
+def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, context='talk', by_distance=True, thold=1):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
@@ -98,14 +79,8 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
         s1 = list(set(df["Style"]))[0]
         s2 = list(set(df["Style"]))[1]
 
-        df1, winners_1 = evaluate_single_plagiarism(df, s1, s2, cache_path, by_distance=by_distance, plot=False,
-                                                    context=context)
-        # df1["orig"] = [s1 for _ in range(df1.shape[0])]
+        df1 = evaluate_single_plagiarism(df, s1, s2, cache_path, by_distance=by_distance, plot=False, context=context)
         df1["target"] = [s1 if s1 == df1["Style"][i] else s2 for i in range(df1.shape[0])]
-
-        # df2, winners_2 = evaluate_single_plagiarism(df, s2, s1, by_distance=by_distance, plot=False, context=context)
-        # df2["orig"] = [s2 for _ in range(df2.shape[0])]
-        # df2["target"] = [s1 for _ in range(df2.shape[0])]
 
         if merge:
             merged_df = pd.concat([merged_df, df1])  # , df2])
@@ -126,13 +101,13 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
                      )
         sns.displot(data=merged_df,
                     col="target",
-                    row="orig",
+                    row="Style",
                     x="value",
                     hue="type",
                     kind='hist',
                     stat='proportion',
-                    col_order=merged_df.orig.unique(),
-                    row_order=merged_df.orig.unique())
+                    col_order=merged_df.Style.unique(),
+                    row_order=merged_df.Style.unique())
 
         plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
@@ -146,7 +121,7 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
                       )
             s1 = list(set(df_abs["Style"]))[0]
             s2 = list(set(df_abs["Style"]))[1]
-            
+
             table = calculate_resume_table(df_abs, thold)
             # table = get_plagiarism_results(df_abs, s1, s2, by_distance=by_distance, presentation_context=context)
             df_results = pd.concat([df_results, table])
