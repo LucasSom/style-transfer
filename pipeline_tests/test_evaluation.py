@@ -178,5 +178,8 @@ def test_evaluate_plagiarism_separated(all_dfs):
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated"
     _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
 
+    for s, t in zip(table["Style"], table["Target"]):
+        assert s != t
+
     table.to_csv(cache_path + '.csv')
     print(table)

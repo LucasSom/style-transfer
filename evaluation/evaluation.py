@@ -23,6 +23,11 @@ def evaluate_model(df, metrics, column=None):
 
 
 def calculate_resume_table(df, thold=1):
+    """
+    :param df: DataFrame of rolls with absolute positions in a plagiarism ranking.
+    :param thold: last position in the ranking to consider as a 'winner'.
+    :return: a DataFrame with columns: original "Style", "Target" style and "Percentage of winners".
+    """
     winners = Counter()
     total = Counter()
 
@@ -32,11 +37,11 @@ def calculate_resume_table(df, thold=1):
         if r['value'] <= thold:
             winners[transformation] += 1
 
-    table = {"Style": [], "Target": [], "Proportion of winners": []}
+    table = {"Style": [], "Target": [], "Percentage of winners": []}
     for transformation, w in winners.items():
         table["Style"].append(transformation[0])
         table["Target"].append(transformation[1])
-        table["Proportion of winners"].append(w / total[transformation])
+        table["Percentage of winners"].append(w / total[transformation] * 100)
 
     return pd.DataFrame(table)
 
@@ -80,7 +85,7 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
         s2 = list(set(df["Style"]))[1]
 
         df1 = evaluate_single_plagiarism(df, s1, s2, cache_path, by_distance=by_distance, plot=False, context=context)
-        df1["target"] = [s1 if s1 == df1["Style"][i] else s2 for i in range(df1.shape[0])]
+        df1["target"] = [s2 if s1 == df1["Style"][i] else s1 for i in range(df1.shape[0])]
 
         if merge:
             merged_df = pd.concat([merged_df, df1])  # , df2])
