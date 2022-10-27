@@ -181,5 +181,53 @@ def test_evaluate_plagiarism_separated(all_dfs):
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
 
-    table.to_csv(cache_path + '.csv')
+    table.to_csv(cache_path + '.csv', index=False)
+    print(table)
+
+
+def test_evaluate_plagiarism_separated_2(all_dfs):
+    init(4)
+    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-2"
+    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=2)
+
+    for s, t in zip(table["Style"], table["Target"]):
+        assert s != t
+
+    table.to_csv(cache_path + '.csv', index=False)
+    print(table)
+
+
+def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
+    init(4)
+    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_10"
+    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.1)
+
+    for s, t in zip(table["Style"], table["Target"]):
+        assert s != t
+
+    table.to_csv(cache_path + '.csv', index=False)
+    print(table)
+
+
+def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
+    init(4)
+    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_25"
+    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.25)
+
+    for s, t in zip(table["Style"], table["Target"]):
+        assert s != t
+
+    table.to_csv(cache_path + '.csv', index=False)
+    print(table)
+
+
+def test_evaluate_plagiarism_separated_proportional_50(all_dfs):
+    init(4)
+    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_5"
+    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.5)
+
+    for s, t in zip(table["Style"], table["Target"]):
+        assert s != t
+
+    table.to_csv(cache_path + '.csv', index=False)
     print(table)

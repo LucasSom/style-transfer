@@ -25,7 +25,8 @@ def evaluate_model(df, metrics, column=None):
 def calculate_resume_table(df, thold=1):
     """
     :param df: DataFrame of rolls with absolute positions in a plagiarism ranking.
-    :param thold: last position in the ranking to consider as a 'winner'.
+    :param thold: last position in the ranking to consider as a 'winner'. If it is smaller than 1, the threshold will be
+     the proportion of songs that can be better in ranking.
     :return: a DataFrame with columns: original "Style", "Target" style and "Percentage of winners".
     """
     winners = Counter()
@@ -34,8 +35,13 @@ def calculate_resume_table(df, thold=1):
     for _, r in df.iterrows():
         transformation = (r.Style, r.target)
         total[transformation] += 1
-        if r['value'] <= thold:
-            winners[transformation] += 1
+
+    for _, r in df.iterrows():
+        transformation = (r.Style, r.target)
+        if thold >= 1:
+            winners[transformation] += r['value'] <= thold
+        else:
+            winners[transformation] += r['value'] <= thold * total[transformation]
 
     table = {"Style": [], "Target": [], "Percentage of winners": []}
     for transformation, w in winners.items():
