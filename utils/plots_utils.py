@@ -87,30 +87,52 @@ def intervals_plot(df, order: List, context='talk'):
     plt.show()
 
 
-def plagiarism_plot(df, order, context):
-    if len(order) == 2:
-        col = [order[0]]
-        row = [order[1]]
-        orig, dest = order
-    else:
-        col = row = order
-        orig = dest = 'all'
+def single_plagiarism_plot(df, context, by_distance):
+    kind = "Distance" if by_distance else "Differences"
+    s1 = list(set(df["Style"]))[0]
+    s2 = list(set(df["Style"]))[1]
 
     sns.set_theme()
     sns.set_context(context)
 
-    sns.displot(data=df,
-                col="target",
-                row="Style",
-                x="value",
-                hue="type",
-                kind='hist',
-                stat='proportion',
-                # binwidth=1,
-                col_order=col,
-                row_order=row)
+    for orig, dest in [(s1, s2), (s2, s1)]:
+        sns.displot(data=df[df["Style"] == orig],
+                    x=f"{kind} relative ranking",
+                    row="target",
+                    aspect=2, kind='hist', stat='proportion', bins=np.arange(0, 1.1, 0.1)
+                    ).set(title=f"Original style: {orig}\nTarget: {dest}")
 
-    plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+        plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
-    plt.savefig(os.path.join(data_path, "debug_outputs", f"plagiarism_{orig}_to_{dest}.png"))
-    plt.show()
+        plt.savefig(os.path.join(data_path, "debug_outputs/plots/plagiarism/pruebas",
+                                 f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"))
+        plt.show()
+
+
+# def plagiarism_plot(df, order, context, by_distance):
+#     if len(order) == 2:
+#         col = [order[0]]
+#         row = [order[1]]
+#         orig, dest = order
+#     else:
+#         col = row = order
+#         orig = dest = 'all'
+#
+#     sns.set_theme()
+#     sns.set_context(context)
+#
+#     sns.displot(data=df,
+#                 col="target",
+#                 row="Style",
+#                 x="value",
+#                 hue="type",
+#                 kind='hist',
+#                 stat='proportion',
+#                 # binwidth=1,
+#                 col_order=col,
+#                 row_order=row)
+#
+#     plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+#
+#     plt.savefig(os.path.join(data_path, "debug_outputs", f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"))
+#     plt.show()

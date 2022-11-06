@@ -12,7 +12,7 @@ from evaluation.metrics.intervals import get_interval_distances_table
 from evaluation.metrics.plagiarism import get_most_similar_roll, get_plagiarism_ranking_table
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_path, datasets_debug_path, load_pickle
-from utils.plots_utils import intervals_plot, plagiarism_plot
+from utils.plots_utils import intervals_plot, single_plagiarism_plot
 
 
 def evaluate_model(df, metrics, column=None):
@@ -122,7 +122,7 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
 
         plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
-        plt.savefig(os.path.join(data_path, "debug_outputs", "plagiarism_plot.png"))
+        plt.savefig(os.path.join(data_path, "debug_outputs", "single_plagiarism_plot.png"))
         plt.show()
     else:
         for i, df in enumerate(dfs_to_plot):
@@ -130,14 +130,14 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
                       >> dfply.gather("type", "value", [f"{kind} position"])
                       >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
                       )
-            s1 = list(set(df_abs["Style"]))[0]
-            s2 = list(set(df_abs["Style"]))[1]
 
             table = calculate_resume_table(df_abs, thold)
             # table = get_plagiarism_results(df_abs, s1, s2, by_distance=by_distance, presentation_context=context)
             df_results = pd.concat([df_results, table])
 
-    return merged_df, dfs_to_plot, df_results
+            single_plagiarism_plot(df, context, by_distance)
+
+    return merged_df, df_results
 
 
 def evaluate_single_intervals_distribution(df, orig, dest, plot=True, context='talk'):

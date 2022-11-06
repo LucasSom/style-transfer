@@ -162,21 +162,21 @@ def test_evaluate_single_plagiarism(df_transferred):
 def test_evaluate_plagiarism_small(bmmr_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-small"
-    _, _, table = evaluate_multiple_plagiarism(bmmr_dfs, False, cache_path)
+    _, table = evaluate_multiple_plagiarism(bmmr_dfs, False, cache_path)
     print(table)
 
 
 def test_evaluate_plagiarism_all(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all"
-    _, _, table = evaluate_multiple_plagiarism(all_dfs, True, cache_path)
+    _, table = evaluate_multiple_plagiarism(all_dfs, True, cache_path)
     print(table)
 
 
 def test_evaluate_plagiarism_separated(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated"
-    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
+    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -188,7 +188,7 @@ def test_evaluate_plagiarism_separated(all_dfs):
 def test_evaluate_plagiarism_separated_2(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-2"
-    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=2)
+    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=2)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -200,7 +200,7 @@ def test_evaluate_plagiarism_separated_2(all_dfs):
 def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_10"
-    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.1)
+    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.1)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -212,7 +212,7 @@ def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
 def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_25"
-    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.25)
+    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.25)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -224,7 +224,7 @@ def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
 def test_evaluate_plagiarism_separated_proportional_50(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_5"
-    _, _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.5)
+    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.5)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
