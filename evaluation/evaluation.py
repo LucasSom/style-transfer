@@ -15,7 +15,7 @@ from utils.files_utils import data_path, datasets_debug_path, load_pickle
 from utils.plots_utils import intervals_plot, single_plagiarism_plot
 
 
-def evaluate_model(df, metrics, column=None):
+def evaluate_model(df, metrics, column=None):  # TODO: Esta función no funciona en absoluto
     print("===== Evaluate interval distributions =====")
     o, t = get_interval_distances_table(df)
     print("How many rolls moved away from the original style?", o)
@@ -146,8 +146,8 @@ def evaluate_single_intervals_distribution(df, orig, dest, plot=True, context='t
     if plot:
         sns.set_theme()
         sns.set_context(context)
-        sns.kdeplot(data=distances_df, x="log(tt/ot)")
-        sns.displot(data=distances_df, x="log(ot/oo)", kind="kde")
+        sns.kdeplot(data=distances_df, x="log(m's/ms)")
+        sns.displot(data=distances_df, x="log(m's'/ms')", kind="kde")
         plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
         plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
         plt.show()
@@ -169,9 +169,9 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
     for styles_combination in [[orig, target], [target, orig]]:
         intervals_plot(df, styles_combination, presentation_context)
 
-        df_s1_to_s2 = df[(df['orig'] == styles_combination[0]) & (df['target'] == styles_combination[1])]
-        df_get_away = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m's')/d(ms')) (< 0)\n Got away from the old style"]
-        df_get_closer = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"]
+        df_s1_to_s2 = df[(df['Style'] == styles_combination[0]) & (df['target'] == styles_combination[1])]
+        df_get_away = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style"]
+        df_get_closer = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"]
 
         results[f"{styles_combination[0]} to {styles_combination[1]} got away"] = \
             df_get_away[df_get_away['value'] < 0].shape[0] / df_get_away.shape[0]
@@ -182,7 +182,35 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
                          "Improvement ratio": [v for v in results.values()]})
 
 
-def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, context='talk'):
+def sort_by_closeness(df: pd.DataFrame):
+    table = df.drop(columns=[df.columns[0]])
+    table["Improvement ratio"] *= 100
+
+    aways = []
+    closers = []
+    for r in table.iterrows():
+        if r[1][-2][-1] == 'y':
+            aways.append((r[1]))
+        else:
+            closers.append(r[1])
+    aways_df = pd.DataFrame(aways)
+    closers_df = pd.DataFrame(closers)
+
+    aways_df_cut = (aways_df
+                    >> dfply.mutate(Transference=dfply.X['Transference'].apply(lambda x: x[:-len(" got away")]))
+                    )
+    closers_df_cut = (closers_df
+                      >> dfply.mutate(Transference=dfply.X['Transference'].apply(lambda x: x[:-len(" got closer")]))
+                      )
+    merged_df = pd.merge(aways_df_cut, closers_df_cut, on="Transference")
+
+    merged_df = merged_df.rename(columns={"Improvement ratio_x": "% got away", "Improvement ratio_y": "% got closer"})
+    merged_df = merged_df.sort_values(by=["% got closer"], ascending=False)
+
+    return merged_df
+
+
+def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge: bool, context='talk'):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
@@ -194,11 +222,9 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
         s2 = list(set(df["Style"]))[1]
 
         df1 = evaluate_single_intervals_distribution(df, s1, s2, False, context)
-        df1["orig"] = [s1 for _ in range(df1.shape[0])]
         df1["target"] = [s2 for _ in range(df1.shape[0])]
 
         df2 = evaluate_single_intervals_distribution(df, s2, s1, False, context)
-        df2["orig"] = [s2 for _ in range(df2.shape[0])]
         df2["target"] = [s1 for _ in range(df2.shape[0])]
 
         if merge:
@@ -206,23 +232,23 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
         else:
             dfs_to_plot.append(pd.concat([df1, df2]))
 
-    remap_dict = {'log(tt/ot)': "log(d(m's')/d(ms')) (< 0)\n Got away from the old style",
-                  'log(ot/oo)': "log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"}
+    remap_dict = {"log(m's/ms)": "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style",
+                  "log(m's'/ms')": "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"}
 
     df_results = pd.DataFrame()
 
     if merge:
         merged_df = (merged_df
-                     >> dfply.gather("type", "value", ["log(tt/ot)", "log(ot/oo)"])
+                     >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
                      >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
                      )
 
-        intervals_plot(merged_df, merged_df['orig'].unique(), context)
+        intervals_plot(merged_df, merged_df['Style'].unique(), context)
 
     else:
         for i, df in enumerate(dfs_to_plot):
             df = (df
-                  >> dfply.gather("type", "value", ["log(tt/ot)", "log(ot/oo)"])
+                  >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
                   >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
                   )
 
@@ -232,7 +258,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge, con
             table = get_intervals_results(df, s1, s2, context)
             df_results = pd.concat([df_results, table])
 
-    return merged_df, dfs_to_plot, df_results
+    return merged_df, dfs_to_plot, sort_by_closeness(df_results)
 
 
 if __name__ == "__main__":

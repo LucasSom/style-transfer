@@ -76,9 +76,9 @@ def intervals_plot(df, order: List, context='talk'):
     sns.set_theme()
     sns.set_context(context)
 
-    sns.displot(data=df, col="target", row="orig", x="value", hue="type", kind='kde', col_order=col, row_order=row)
+    sns.displot(data=df, col="target", row="Style", x="value", hue="type", kind='kde', col_order=col, row_order=row)
 
-    ranges = [('C0', (-1, 0)), ('C1', (0, 1))]
+    ranges = [('C0', (0, 1)), ('C1', (-1, 0))]
     for i, area in ranges:
         plt.axvspan(xmin=area[0], xmax=area[1], facecolor=i, alpha=0.3)
 

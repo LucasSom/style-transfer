@@ -128,7 +128,7 @@ def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
     _, _, table = evaluate_multiple_intervals_distribution(all_dfs, False, context='talk')
     print(table)
-    table.to_csv(f"{data_path}/debug_outputs/table_intervals-all_single.csv")
+    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv")
 
 
 # ----------------------------------------------------- Plagiarism -----------------------------------------------------
@@ -151,8 +151,8 @@ def test_calculate_resume_table():
 
 def test_evaluate_single_plagiarism(df_transferred):
     init(4)
-    cached_path1 = f"{data_path}/debug_outputs/plagiarism_ranking_table1"
-    cached_path2 = f"{data_path}/debug_outputs/plagiarism_ranking_table2"
+    cached_path1 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table1"
+    cached_path2 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table2"
     df1 = evaluate_single_plagiarism(df_transferred, orig="Bach", dest="ragtime", cache_path=cached_path1)
     df2 = evaluate_single_plagiarism(df_transferred, orig="ragtime", dest="Bach", cache_path=cached_path2)
     print(df1)
@@ -161,21 +161,21 @@ def test_evaluate_single_plagiarism(df_transferred):
 
 def test_evaluate_plagiarism_small(bmmr_dfs):
     init(4)
-    cache_path = f"{data_path}/debug_outputs/table_plagiarism-small"
+    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-small"
     _, table = evaluate_multiple_plagiarism(bmmr_dfs, False, cache_path)
     print(table)
 
 
 def test_evaluate_plagiarism_all(all_dfs):
     init(4)
-    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all"
+    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all"
     _, table = evaluate_multiple_plagiarism(all_dfs, True, cache_path)
     print(table)
 
 
 def test_evaluate_plagiarism_separated(all_dfs):
     init(4)
-    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated"
+    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated"
     _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
 
     for s, t in zip(table["Style"], table["Target"]):
@@ -187,7 +187,7 @@ def test_evaluate_plagiarism_separated(all_dfs):
 
 def test_evaluate_plagiarism_separated_2(all_dfs):
     init(4)
-    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-2"
+    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
     _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=2)
 
     for s, t in zip(table["Style"], table["Target"]):
@@ -199,7 +199,7 @@ def test_evaluate_plagiarism_separated_2(all_dfs):
 
 def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
     init(4)
-    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_10"
+    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
     _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.1)
 
     for s, t in zip(table["Style"], table["Target"]):
@@ -211,7 +211,7 @@ def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
 
 def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
     init(4)
-    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_25"
+    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
     _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.25)
 
     for s, t in zip(table["Style"], table["Target"]):
@@ -223,7 +223,7 @@ def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
 
 def test_evaluate_plagiarism_separated_proportional_50(all_dfs):
     init(4)
-    cache_path = f"{data_path}/debug_outputs/table_plagiarism-all_separated-proportional_5"
+    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
     _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.5)
 
     for s, t in zip(table["Style"], table["Target"]):
