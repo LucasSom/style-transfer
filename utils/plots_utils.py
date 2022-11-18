@@ -64,6 +64,10 @@ def plot_tsne(df, tsne_ds):
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
 
 
+def plot_area(area, color):
+    plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)
+
+
 def intervals_plot(df, order: List, context='talk'):
     if len(order) == 2:
         col = [order[0]]
@@ -78,9 +82,8 @@ def intervals_plot(df, order: List, context='talk'):
 
     sns.displot(data=df, col="target", row="Style", x="value", hue="type", kind='kde', col_order=col, row_order=row)
 
-    ranges = [('C0', (0, 1)), ('C1', (-1, 0))]
-    for i, area in ranges:
-        plt.axvspan(xmin=area[0], xmax=area[1], facecolor=i, alpha=0.3)
+    plot_area((0, 1), 'C0')
+    plot_area((-1, 0), 'C1')
 
     plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
     plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
