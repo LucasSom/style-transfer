@@ -86,7 +86,7 @@ def intervals_plot(df, order: List, context='talk'):
     plot_area((-1, 0), 'C1')
 
     plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
-    plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
+    plt.savefig(os.path.join(data_path, f"debug_outputs/plots/intervals/{orig}_to_{dest}.png"))
     plt.show()
 
 

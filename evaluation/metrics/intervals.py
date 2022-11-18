@@ -93,7 +93,8 @@ def get_interval_distances_table(df, orig=None, dest=None):
              "log(m's'/ms')": []
              }
 
-    for title, style, r_orig, r_trans in zip(df["Title"], df[df["Style"] == orig]["Style"], df['roll'], df["Transferred"]):
+    sub_df = df[df["Style"] == orig]
+    for title, style, r_orig, r_trans in zip(sub_df["Title"], sub_df["Style"], sub_df['roll'], sub_df["Transferred"]):
         distances = get_comparisons(
             matrix_of_adjacent_intervals(r_orig)[0],
             matrix_of_adjacent_intervals(r_trans)[0],

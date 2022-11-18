@@ -114,14 +114,14 @@ def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
     _, _, table = evaluate_multiple_intervals_distribution(bmmr_dfs, True)
     print(table)
-    table.to_csv(f"{data_path}/debug_outputs/table_intervals-small.csv")
+    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv")
 
 
 def test_evaluate_intervals_distribution(all_dfs):
     init(4)
     _, _, table = evaluate_multiple_intervals_distribution(all_dfs, True)
     print(table)
-    table.to_csv(f"{data_path}/debug_outputs/table_intervals-all.csv")
+    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv")
 
 
 def test_evaluate_all_single_intervals_distribution(all_dfs):
