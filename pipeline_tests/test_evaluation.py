@@ -95,40 +95,40 @@ def test_evaluate_single_intervals_distribution(df_transferred):
 
 
 def test_intervals_results():
-    d = {'orig': 2 * (5 * ['a'] + 5 * ['b']),
+    d = {'Style': 2 * (5 * ['a'] + 5 * ['b']),
          'target': 2 * (5 * ['b'] + 5 * ['a']),
-         'type': 10 * ["log(d(ms')/d(ms)) (> 0)\n Got closer to the new style"]
-                 + 10 * ["log(d(m's')/d(ms')) (< 0)\n Got away from the old style"],
-         'value': 5 * [1] + [1, -1, -1, 1, 1] + [-1, -1, 1, -1, -1] + 5 * [1]
+         'type': 10 * ["log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"]
+                 + 10 * ["log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style"],
+         'value': 5 * [-2] + [4, -1, -1, 4, 4] + [-3, -3, 2, -3, -3] + 5 * [-1]
          }
     df = pd.DataFrame(d)
     df_results = get_intervals_results(df, 'a', 'b')
 
-    assert list(df_results[df_results["Transference"] == f"a to b got closer"])[0] == 1
-    assert list(df_results[df_results["Transference"] == f"b to a got closer"])[0] == 3 / 5
-    assert list(df_results[df_results["Transference"] == f"a to b got away"])[0] == 4 / 5
-    assert list(df_results[df_results["Transference"] == f"b to a got away"])[0] == 0
+    assert list(df_results[df_results["Transference"] == f"a to b"]["% got closer"])[0] == 100
+    assert list(df_results[df_results["Transference"] == f"b to a"]["% got closer"])[0] == 40
+    assert list(df_results[df_results["Transference"] == f"a to b"]["% got away"])[0] == 20
+    assert list(df_results[df_results["Transference"] == f"b to a"]["% got away"])[0] == 0
 
 
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
     _, _, table = evaluate_multiple_intervals_distribution(bmmr_dfs, True)
     print(table)
-    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv")
+    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv", index=False)
 
 
 def test_evaluate_intervals_distribution(all_dfs):
     init(4)
     _, _, table = evaluate_multiple_intervals_distribution(all_dfs, True)
     print(table)
-    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv")
+    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv", index=False)
 
 
 def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
     _, _, table = evaluate_multiple_intervals_distribution(all_dfs, False, context='talk')
     print(table)
-    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv")
+    table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv", index=False)
 
 
 # ----------------------------------------------------- Plagiarism -----------------------------------------------------

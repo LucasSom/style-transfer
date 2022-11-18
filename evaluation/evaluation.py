@@ -156,58 +156,31 @@ def evaluate_single_intervals_distribution(df, orig, dest, plot=True, context='t
 
 def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation_context='talk'):
     """
-    Add to results how is the proportion of improvement (how many rolls got away from the old style and how many got
-    closer to the new one).
+    Calculate the percentage of rolls that improve with the transformation (how many rolls got away from the old style
+     and how many got closer to the new one).
 
     :param df: dataframe with distances values. It must have at least the columns 'orig', 'target', 'type' and 'value'.
     :param orig: name of a style to analyze.
     :param target: name of the other style to analyze.
     :param presentation_context: plot context ('talk' as default, 'paper' or 'poster').
-    :return: It returns a DataFrame with columns 'Transference' and 'Improvement ratio'
+    :return: It returns a DataFrame with columns 'Transference', '% got away' and '% got closer'
     """
     results = {}
-    for styles_combination in [[orig, target], [target, orig]]:
-        intervals_plot(df, styles_combination, presentation_context)
+    for styles_comb in [[orig, target], [target, orig]]:
+        df_s1_to_s2 = df[(df['Style'] == styles_comb[0]) & (df['target'] == styles_comb[1])]
 
-        df_s1_to_s2 = df[(df['Style'] == styles_combination[0]) & (df['target'] == styles_combination[1])]
-        df_get_away = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style"]
-        df_get_closer = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"]
+        df_got_away = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style"]
+        df_got_closer = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"]
+        intervals_plot(df_s1_to_s2, styles_comb, presentation_context)
 
-        results[f"{styles_combination[0]} to {styles_combination[1]} got away"] = \
-            df_get_away[df_get_away['value'] < 0].shape[0] / df_get_away.shape[0]
-        results[f"{styles_combination[0]} to {styles_combination[1]} got closer"] = \
-            df_get_closer[df_get_closer['value'] > 0].shape[0] / df_get_closer.shape[0]
+        results[f"{styles_comb[0]} to {styles_comb[1]}"] = \
+            df_got_away[df_got_away['value'] > 0].shape[0] / df_got_away.shape[0],\
+            df_got_closer[df_got_closer['value'] < 0].shape[0] / df_got_closer.shape[0]
 
     return pd.DataFrame({"Transference": [k for k in results.keys()],
-                         "Improvement ratio": [v for v in results.values()]})
-
-
-def sort_by_closeness(df: pd.DataFrame):
-    table = df.drop(columns=[df.columns[0]])
-    table["Improvement ratio"] *= 100
-
-    aways = []
-    closers = []
-    for r in table.iterrows():
-        if r[1][-2][-1] == 'y':
-            aways.append((r[1]))
-        else:
-            closers.append(r[1])
-    aways_df = pd.DataFrame(aways)
-    closers_df = pd.DataFrame(closers)
-
-    aways_df_cut = (aways_df
-                    >> dfply.mutate(Transference=dfply.X['Transference'].apply(lambda x: x[:-len(" got away")]))
-                    )
-    closers_df_cut = (closers_df
-                      >> dfply.mutate(Transference=dfply.X['Transference'].apply(lambda x: x[:-len(" got closer")]))
-                      )
-    merged_df = pd.merge(aways_df_cut, closers_df_cut, on="Transference")
-
-    merged_df = merged_df.rename(columns={"Improvement ratio_x": "% got away", "Improvement ratio_y": "% got closer"})
-    merged_df = merged_df.sort_values(by=["% got closer"], ascending=False)
-
-    return merged_df
+                         "% got away": [100 * v[0] for v in results.values()],
+                         "% got closer": [100 * v[1] for v in results.values()],
+                         })
 
 
 def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge: bool, context='talk'):
@@ -258,7 +231,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge: boo
             table = get_intervals_results(df, s1, s2, context)
             df_results = pd.concat([df_results, table])
 
-    return merged_df, dfs_to_plot, sort_by_closeness(df_results)
+    return merged_df, dfs_to_plot, df_results.sort_values(by=["% got closer"], ascending=False)
 
 
 if __name__ == "__main__":

@@ -81,6 +81,7 @@ def intervals_plot(df, order: List, context='talk'):
     sns.set_context(context)
 
     sns.displot(data=df, col="target", row="Style", x="value", hue="type", kind='kde', col_order=col, row_order=row)
+    # plt.show()
 
     plot_area((0, 1), 'C0')
     plot_area((-1, 0), 'C1')
