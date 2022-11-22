@@ -12,10 +12,10 @@ import model.colab_tension_vae.params as params
 from utils.files_utils import data_path
 
 
-def save_plot(plots_path):
-    if not os.path.isdir(plots_path):
-        os.makedirs(plots_path)
-    plt.savefig(f"{plots_path}/tsnes_comparison.png")
+def save_plot(plot_path, plot_name):
+    if not os.path.isdir(plot_path):
+        os.makedirs(plot_path)
+    plt.savefig(f"{plot_path}/{plot_name}.png")
 
 
 def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
@@ -51,12 +51,13 @@ def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_c
     return [TSNE(n_components).fit_transform(ds) for ds in subdatasets]
 
 
-def plot_tsnes_comparison(df, tsne_ds, plots_path, column_discriminator='Style'):
+def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', plot_name='tsne_comparison'):
     """
     :param df: pandas dataset
     :param tsne_ds: must have elements of same size
-    :param plots_path: directory where to save the plot
+    :param plot_path: directory where to save the plot
     :param column_discriminator: name of column to compare
+    :param plot_name: file name where to save the plot
     """
     tsne_result_merged_df = copy.copy(df)
 
@@ -67,10 +68,10 @@ def plot_tsnes_comparison(df, tsne_ds, plots_path, column_discriminator='Style')
                 col=column_discriminator)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
 
-    save_plot(plots_path)
+    save_plot(plot_path, plot_name)
 
 
-def plot_tsne(df, tsne_ds, plots_path):
+def plot_tsne(df, tsne_ds, plot_path, plot_name='tsne'):
     # Plot the result of our TSNE with the label color coded
     tsne_result_df = copy.copy(df)
     tsne_result_df['dim_1'] = tsne_ds[:, 0]
@@ -78,7 +79,7 @@ def plot_tsne(df, tsne_ds, plots_path):
 
     sns.relplot(x='dim_1', y='dim_2', hue='Style', data=tsne_result_df, kind='scatter', height=6)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
-    save_plot(plots_path)
+    save_plot(plot_path, plot_name)
 
 
 def plot_area(area, color):
