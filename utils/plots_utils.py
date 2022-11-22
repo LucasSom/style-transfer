@@ -12,6 +12,12 @@ import model.colab_tension_vae.params as params
 from utils.files_utils import data_path
 
 
+def save_plot(plots_path):
+    if not os.path.isdir(plots_path):
+        os.makedirs(plots_path)
+    plt.savefig(f"{plots_path}/tsnes_comparison.png")
+
+
 def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
     plt.figure(figsize=figsize)
     for k, v in callbacks.items():
@@ -26,42 +32,53 @@ def plot_train(callbacks, epoca_final, figsize=(20, 10)):
     plot_metric(callbacks, epoca_final, 'accuracy', figsize)
 
 
-def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2):
+def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2) -> List[TSNE]:
+    """
+    :param df: DataFrame with embeddings of the songs.
+    :param column_discriminator: Name of column to use as discriminator of subdatasets.
+    :param space_column: Name of column where are the embeddings.
+    :param n_components: Number of t-SNEs components.
+    :return: A list with the t-SNEs for each subdataset.
+    """
     # Separamos los subdatasets para cada subplot
     subdatasets = [np.vstack(df[space_column].values)]  # dataset completo
     if column_discriminator is not None:
         df.sort_values(by=[column_discriminator], inplace=True)
-        for subcaso in df[column_discriminator].drop_duplicates():
-            subdatasets.append(np.vstack((df[df[column_discriminator] == subcaso])[space_column].values))
+        for subcase in df[column_discriminator].drop_duplicates():
+            subdatasets.append(np.vstack((df[df[column_discriminator] == subcase])[space_column].values))
 
     # Armamos el t-SNE para cada dataset
     return [TSNE(n_components).fit_transform(ds) for ds in subdatasets]
 
 
-def plot_tsnes_comparison(df, tsne_ds_list, column_discriminator='Style'):
+def plot_tsnes_comparison(df, tsne_ds, plots_path, column_discriminator='Style'):
     """
     :param df: pandas dataset
-    :param tsne_ds_list: must have elements of same size
+    :param tsne_ds: must have elements of same size
+    :param plots_path: directory where to save the plot
     :param column_discriminator: name of column to compare
     """
     tsne_result_merged_df = copy.copy(df)
 
-    tsne_result_merged_df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds_list])
-    tsne_result_merged_df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds_list])
+    tsne_result_merged_df['dim_1'] = tsne_ds[:, 0]
+    tsne_result_merged_df['dim_2'] = tsne_ds[:, 1]
 
     sns.relplot(x='dim_1', y='dim_2', hue='Title', data=tsne_result_merged_df, kind='scatter', height=6,
                 col=column_discriminator)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
 
+    save_plot(plots_path)
 
-def plot_tsne(df, tsne_ds):
+
+def plot_tsne(df, tsne_ds, plots_path):
     # Plot the result of our TSNE with the label color coded
     tsne_result_df = copy.copy(df)
     tsne_result_df['dim_1'] = tsne_ds[:, 0]
     tsne_result_df['dim_2'] = tsne_ds[:, 1]
 
-    sns.relplot(x='dim_1', y='dim_2', hue='Title', style='Tipo', data=tsne_result_df, kind='scatter', height=6)
+    sns.relplot(x='dim_1', y='dim_2', hue='Style', data=tsne_result_df, kind='scatter', height=6)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
+    save_plot(plots_path)
 
 
 def plot_area(area, color):

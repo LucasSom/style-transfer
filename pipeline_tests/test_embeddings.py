@@ -1,13 +1,22 @@
 import pytest
 from tensorflow import keras
 
+from dodo import analyze_training, preprocessed_data
 from model.embeddings.embeddings import obtain_embeddings
-from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models
+from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models, get_embedding_path, \
+    get_reconstruction_path
+from utils.plots_utils import plot_tsnes_comparison
 
 
 @pytest.fixture
 def brmf4_prep():
     return load_pickle(file_name=preprocessed_data_path+"bach_rag_moz_fres-4")
+
+
+
+@pytest.fixture
+def brmf4_emb():
+    return load_pickle(file_name=get_embedding_path('brmf_4b'))
 
 
 @pytest.fixture
@@ -34,6 +43,11 @@ def test_obtain_embeddings(brmf_prep, model_name):
     for e in df_emb.Embedding:
         assert e.shape == (96,)
 
+
+def test_analyze_training(brmf4_emb):
+    model_name = 'brmf_4b'
+    analyze_training(df_path=preprocessed_data(4), model_name=model_name, bars=4,
+                     targets=get_reconstruction_path(model_name))
 
 '''
 # VECTORES CARACTERÍSTICOS

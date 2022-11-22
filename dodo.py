@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 from doit.api import run
 from tensorflow.keras.models import load_model
 
@@ -6,7 +7,7 @@ from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import calculate_characteristics
-from model.embeddings.embeddings import get_reconstruction
+from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing import preprocess_data
@@ -75,7 +76,8 @@ def task_train():
             'name': f"{model_name}",
             'file_dep': [preprocessed_data(b)],
             'actions': [(train, [preprocessed_data(b), model_name, b])],
-            'targets': [vae_path]
+            'targets': [vae_path],
+            # 'uptodate': [False]
         }
 
 
@@ -87,13 +89,15 @@ def analyze_training(df_path, model_name, bars, targets):
     plots_path = os.path.join(data_path, model_path, "plots")
     df = load_pickle(df_path)
 
-    tsne_emb = calculate_TSNEs(df, column_discriminator="Style")[0]
+    df_emb = obtain_embeddings(df, model, inplace=True)
+    tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
-    plot_tsnes_comparison(df, tsne_emb[1:], path=plots_path)
-    plot_tsne(df, tsne_emb, path=plots_path)
+    plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
+
+    plot_tsne(df_emb, tsne_emb, plots_path)
 
     df_reconstructed = get_reconstruction(df, model, model_name, inplace=False)
-    save_pickle(df_reconstructed, targets[0])
+    save_pickle(df_reconstructed, targets)
 
 
 def task_test():
