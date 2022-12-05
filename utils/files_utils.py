@@ -81,18 +81,27 @@ def load_pickle(file_name: str, verbose=False):
 #                         f'bach-rag-moz-fres-{b}_small.pkl')
 
 
+def make_dirs_if_not_extist(file_path):
+    base_dir = os.path.basename(file_path)
+    if not os.path.isdir(base_dir):
+        os.makedirs(base_dir)
+
+
 def get_metrics_path(transferred_path: str):
     metrics_file_path = f"{transferred_path}-metrics.pkl"
+    make_dirs_if_not_extist(metrics_file_path)
     return metrics_file_path
 
 
 def get_transferred_path(e_orig: str, e_dest: str, model_name: str):
     transferred_path = f"{data_path}embeddings/{model_name}/df_transferred_{e_orig}_{e_dest}.pkl"
+    make_dirs_if_not_extist(transferred_path)
     return transferred_path
 
 
 def get_emb_path(model_name: str):
     emb_path = f"{data_path}embeddings/{model_name}/df_emb.pkl"
+    make_dirs_if_not_extist(emb_path)
     return emb_path
 
 

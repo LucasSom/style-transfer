@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 from matplotlib.ticker import PercentFormatter
@@ -41,23 +42,26 @@ def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_c
     :return: A list with the t-SNEs for each subdataset.
     """
     # Separamos los subdatasets para cada subplot
-    subdatasets = [np.vstack(df[space_column].values)]  # dataset completo
+    embeddings = [np.vstack(df[space_column].values)]  # dataset completo
     if column_discriminator is not None:
         df.sort_values(by=[column_discriminator], inplace=True)
         for subcase in df[column_discriminator].drop_duplicates():
-            subdatasets.append(np.vstack((df[df[column_discriminator] == subcase])[space_column].values))
+            embeddings.append(np.vstack((df[df[column_discriminator] == subcase])[space_column].values))
 
     # Armamos el t-SNE para cada dataset
-    return [TSNE(n_components).fit_transform(ds) for ds in subdatasets]
+    return [TSNE(n_components).fit_transform(style_emb) for style_emb in embeddings]
 
 
-def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', plot_name='tsne_comparison'):
+def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', plot_name='tsne_comparison', style=None,
+                          markers=None):
     """
     :param df: pandas dataset
     :param tsne_ds: must have elements of same size
     :param plot_path: directory where to save the plot
     :param column_discriminator: name of column to compare
     :param plot_name: file name where to save the plot
+    :param style: `style` parameter of seaborn relplot
+    :param markers: `markers` parameter of seaborn relplot
     """
     tsne_result_merged_df = copy.copy(df)
 
@@ -65,22 +69,36 @@ def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', 
     tsne_result_merged_df['dim_2'] = tsne_ds[:, 1]
 
     sns.relplot(x='dim_1', y='dim_2', hue='Title', data=tsne_result_merged_df, kind='scatter', height=6,
-                col=column_discriminator)
+                col=column_discriminator, style=style, markers=markers)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
 
     save_plot(plot_path, plot_name)
 
 
-def plot_tsne(df, tsne_ds, plot_path, plot_name='tsne'):
+def plot_tsne(df, tsnes, plot_path, plot_name='tsne', style=None):
     # Plot the result of our TSNE with the label color coded
-    tsne_result_df = copy.copy(df)
-    tsne_result_df['dim_1'] = tsne_ds[:, 0]
-    tsne_result_df['dim_2'] = tsne_ds[:, 1]
+    tsne_df = copy.copy(df)
+    tsne_df['dim_1'] = tsnes[:, 0]
+    tsne_df['dim_2'] = tsnes[:, 1]
 
-    sns.relplot(x='dim_1', y='dim_2', hue='Style', data=tsne_result_df, kind='scatter', height=6)
-    # lim = (tsne_result.min()-5, tsne_result.max()+5)
+    grid = sns.relplot(x='dim_1', y='dim_2', hue='Style', data=tsne_df, kind='scatter', height=6, style=style)
+
     save_plot(plot_path, plot_name)
+    return grid
 
+
+def plot_characteristics(df, characteristics, plot_path, plot_name="characteristics"):
+    df_tsne = df[["Style", "Embedding"]]
+    df_tsne["Type"] = df.shape[0] * ["Fragment"]
+
+    for style, emb in characteristics.items():
+        # df_tsne.loc[len(df_tsne.index)] = [style, emb, "Style"]
+        style_row = {"Style": style, "Embedding": emb, "Type": "Style"}
+        df_tsne = df_tsne.append(style_row, ignore_index=True)
+
+    tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(df_tsne['Embedding']))
+    grid = plot_tsne(df_tsne, tsne, plot_path, plot_name, style="Type")
+    return grid
 
 def plot_area(area, color):
     plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)

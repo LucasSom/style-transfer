@@ -379,7 +379,7 @@
             </node>
             <node id="125" posx="271.75190708103264" posy="-558.37897948362195" maxwidth="200" width="208" height="46" side="right" fold="false" treesize="156" color="#f9c440" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-              <nodename>2. obtain_characteristics</nodename>
+              <nodename>2. calculate_characteristics</nodename>
               <nodenote></nodenote>
               <nodes>
                 <node id="127" posx="579.75190708103287" posy="-590.37897948362195" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="92" color="#f9c440" layout="A la derecha">
