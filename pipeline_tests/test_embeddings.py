@@ -1,13 +1,21 @@
 import pytest
 from tensorflow import keras
 
+from dodo import analyze_training, preprocessed_data, do_embeddings
 from model.embeddings.embeddings import obtain_embeddings
-from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models
+from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models, get_embedding_path, \
+    get_reconstruction_path, get_characteristics_path, get_emb_path, data_path
 
 
 @pytest.fixture
 def brmf4_prep():
     return load_pickle(file_name=preprocessed_data_path+"bach_rag_moz_fres-4")
+
+
+
+@pytest.fixture
+def brmf4_emb():
+    return load_pickle(file_name=get_embedding_path('brmf_4b'))
 
 
 @pytest.fixture
@@ -35,13 +43,25 @@ def test_obtain_embeddings(brmf_prep, model_name):
         assert e.shape == (96,)
 
 
+def test_analyze_training(brmf4_emb):
+    model_name = 'brmf_4b'
+    analyze_training(df_path=preprocessed_data(4), model_name=model_name, bars=4,
+                     targets=get_reconstruction_path(model_name))
+
+
+def test_characteristics(brmf4_emb):
+    model_name = 'brmf_4b'
+    model_path = data_path + '/brmf_4b/vae'
+    do_embeddings(preprocessed_data(4), model_path, model_path, get_characteristics_path(model_name),
+                  get_emb_path(model_name), 4)
+
 '''
 # VECTORES CARACTERÍSTICOS
 
 from utils.files_utils  import datasets_name
-from model.embeddings import obtain_characteristics
+from model.embeddings import calculate_characteristics
 
-df_emb_car, df_caracteristicos, caracteristicos_de_autores = obtain_characteristics(df_emb)
+df_emb_car, df_caracteristicos, caracteristicos_de_autores = calculate_characteristics(df_emb)
 
 caracteristicos_pkl_name = 'df_car'+datasets_name(songs)
 save_pickle(df_caracteristicos, caracteristicos_pkl_name)

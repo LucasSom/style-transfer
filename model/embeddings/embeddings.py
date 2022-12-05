@@ -20,15 +20,6 @@ def obtain_embeddings(df: pd.DataFrame, vae, inplace=False) -> pd.DataFrame:
     :return: the input DataFrame with a new column 'Embedding' with the result of the encoding (ndarrays of shape (96,))
     """
     if inplace:
-        """
-          File "/home/urania/Documentos/Tesis/src/style-transfer/dodo.py", line 88, in do_embeddings
-            df_emb, authors_char = calculate_characteristics(df, model)
-          File "/home/urania/Documentos/Tesis/src/style-transfer/model/embeddings/characteristics.py", line 29, in calculate_characteristics
-            df_emb = obtain_embeddings(df, vae, inplace=True)
-          File "/home/urania/Documentos/Tesis/src/style-transfer/model/embeddings/embeddings.py", line 22, in obtain_embeddings
-            df = df.groupby('Title').sample()
-        AttributeError: 'str' object has no attribute 'groupby'
-        """
         # TODO (March): Poner seed
         df = df.groupby('Title').sample()
         df_emb = df

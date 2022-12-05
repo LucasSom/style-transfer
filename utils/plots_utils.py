@@ -1,14 +1,22 @@
 import copy
 import os
-import os.path
+from typing import List
 
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
+from matplotlib.ticker import PercentFormatter
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
 from utils.files_utils import data_path
+
+
+def save_plot(plot_path, plot_name):
+    if not os.path.isdir(plot_path):
+        os.makedirs(plot_path)
+    plt.savefig(f"{plot_path}/{plot_name}.png")
 
 
 def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
@@ -25,79 +33,118 @@ def plot_train(callbacks, epoca_final, figsize=(20, 10)):
     plot_metric(callbacks, epoca_final, 'accuracy', figsize)
 
 
-def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2):
+def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2) -> List[TSNE]:
+    """
+    :param df: DataFrame with embeddings of the songs.
+    :param column_discriminator: Name of column to use as discriminator of subdatasets.
+    :param space_column: Name of column where are the embeddings.
+    :param n_components: Number of t-SNEs components.
+    :return: A list with the t-SNEs for each subdataset.
+    """
     # Separamos los subdatasets para cada subplot
-    subdatasets = [np.vstack(df[space_column].values)]  # dataset completo
+    embeddings = [np.vstack(df[space_column].values)]  # dataset completo
     if column_discriminator is not None:
         df.sort_values(by=[column_discriminator], inplace=True)
-        for subcaso in df[column_discriminator].drop_duplicates():
-            subdatasets.append(np.vstack((df[df[column_discriminator] == subcaso])[space_column].values))
+        for subcase in df[column_discriminator].drop_duplicates():
+            embeddings.append(np.vstack((df[df[column_discriminator] == subcase])[space_column].values))
 
     # Armamos el t-SNE para cada dataset
-    return [TSNE(n_components).fit_transform(ds) for ds in subdatasets]
+    return [TSNE(n_components).fit_transform(style_emb) for style_emb in embeddings]
 
 
-def plot_tsnes_comparison(df, tsne_ds_list, column_discriminator='Style', path=None, inplace=False):
+def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', plot_name='tsne_comparison', style=None,
+                          markers=None):
     """
     :param df: pandas dataset
-    :param tsne_ds_list: must have elements of same size
+    :param tsne_ds: must have elements of same size
+    :param plot_path: directory where to save the plot
     :param column_discriminator: name of column to compare
-    :param inplace: whether to add tsne dimensions to df
+    :param plot_name: file name where to save the plot
+    :param style: `style` parameter of seaborn relplot
+    :param markers: `markers` parameter of seaborn relplot
     """
     df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds_list])
     df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds_list])
 
-    sns.relplot(x='dim_1', y='dim_2', hue='Title', data=df, kind='scatter', height=6, col=column_discriminator)
+    tsne_result_merged_df['dim_1'] = tsne_ds[:, 0]
+    tsne_result_merged_df['dim_2'] = tsne_ds[:, 1]
 
-    plt.show()
-    if path is not None:
-        plt.savefig(os.path.join(path, "tsne_comparison.png"))
-
-    if not inplace:
-        df.drop(columns=['dim_1', 'dim_2'])
-
-
-def plot_tsne(df, tsne_ds, path=None, inplace=False):
-    # Plot the result of our TSNE with the label color coded
-    df['dim_1'] = tsne_ds[:, 0]
-    df['dim_2'] = tsne_ds[:, 1]
-
-    sns.relplot(x='dim_1', y='dim_2', hue='Title', style='Style', data=df, kind='scatter', height=6)
-
-    plt.show()
-    if path is not None:
-        plt.savefig(os.path.join(path, "tsne.png"))
-
-    if not inplace:
-        df.drop(columns=['dim_1', 'dim_2'])
+    sns.relplot(x='dim_1', y='dim_2', hue='Title', data=tsne_result_merged_df, kind='scatter', height=6,
+                col=column_discriminator, style=style, markers=markers)
     # lim = (tsne_result.min()-5, tsne_result.max()+5)
 
+    save_plot(plot_path, plot_name)
 
-def intervals_talk_plot(merged_df, originals, subplot=0):
-    """
-    :param merged_df: dataframe
-    :param originals: style subsets
-    :param subplot: on how many subsets want to divide to plot. If 0, no subplot (ie, do the entire plot)
-    """
-    sns.set_theme()
-    sns.set_context('talk')
 
-    if subplot:
-        intervals_plot(merged_df, rows=originals, columns=originals[:subplot], aspect=2)
-        intervals_plot(merged_df, rows=originals, columns=originals[subplot:], aspect=2)
+def plot_tsne(df, tsnes, plot_path, plot_name='tsne', style=None):
+    # Plot the result of our TSNE with the label color coded
+    tsne_df = copy.copy(df)
+    tsne_df['dim_1'] = tsnes[:, 0]
+    tsne_df['dim_2'] = tsnes[:, 1]
+
+    grid = sns.relplot(x='dim_1', y='dim_2', hue='Style', data=tsne_df, kind='scatter', height=6, style=style)
+
+    save_plot(plot_path, plot_name)
+    return grid
+
+
+def plot_characteristics(df, characteristics, plot_path, plot_name="characteristics"):
+    df_tsne = df[["Style", "Embedding"]]
+    df_tsne["Type"] = df.shape[0] * ["Fragment"]
+
+    for style, emb in characteristics.items():
+        # df_tsne.loc[len(df_tsne.index)] = [style, emb, "Style"]
+        style_row = {"Style": style, "Embedding": emb, "Type": "Style"}
+        df_tsne = df_tsne.append(style_row, ignore_index=True)
+
+    tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(df_tsne['Embedding']))
+    grid = plot_tsne(df_tsne, tsne, plot_path, plot_name, style="Type")
+    return grid
+
+def plot_area(area, color):
+    plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)
+
+
+def intervals_plot(df, order: List, context='talk'):
+    if len(order) == 2:
+        col = [order[0]]
+        row = [order[1]]
+        orig, dest = order
     else:
-        intervals_plot(merged_df, rows=originals, columns=originals, aspect=2)
+        col = row = order
+        orig = dest = 'all'
 
-    plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_plot-challenge{subplot}.png"))
+    sns.set_theme()
+    sns.set_context(context)
+
+    sns.displot(data=df, x="value", hue="type", kind='kde', col_order=col, row_order=row)
+    # plt.show()
+
+    plot_area((0, 1), 'C0')
+    plot_area((-1, 0), 'C1')
+
+    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
+    plt.savefig(os.path.join(data_path, f"debug_outputs/plots/intervals/{orig}_to_{dest}.png"))
+    plt.show()
 
 
-def intervals_plot(merged_df, rows, columns, aspect=1):
-    sns.displot(data=merged_df,
-                col="target",
-                row="orig",
-                x="value",
-                hue="type",
-                kind="kde",
-                col_order=columns,
-                row_order=rows,
-                aspect=aspect)
+def single_plagiarism_plot(df, context, by_distance):
+    kind = "Distance" if by_distance else "Differences"
+    s1 = list(set(df["Style"]))[0]
+    s2 = list(set(df["Style"]))[1]
+
+    sns.set_theme()
+    sns.set_context(context)
+
+    for orig, dest in [(s1, s2), (s2, s1)]:
+        sns.displot(data=df[df["Style"] == orig],
+                    x=f"{kind} relative ranking",
+                    row="target",
+                    aspect=2, kind='hist', stat='proportion', bins=np.arange(0, 1.1, 0.1)
+                    ).set(title=f"Original style: {orig}\nTarget: {dest}")
+
+        plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+
+        plt.savefig(os.path.join(data_path, "debug_outputs/plots/plagiarism/pruebas",
+                                 f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"))
+        plt.show()

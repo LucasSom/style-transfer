@@ -1,3 +1,5 @@
+import os.path
+
 from doit.api import run
 from tensorflow.keras.models import load_model
 
@@ -5,14 +7,15 @@ from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
 from model.colab_tension_vae.params import init
-from model.embeddings.characteristics import calculate_characteristics
-from model.embeddings.embeddings import get_reconstruction
+from model.embeddings.characteristics import obtain_characteristics
+from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_characteristics
+
 
 
 def preprocessed_data(b):
@@ -24,8 +27,9 @@ styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
 bars = [4]  # [4, 8]
 old_models = ['brmf_4b', 'brmf_8b']
-models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + old_models
-# models = ["4-bf"]
+# models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + old_models
+models = ["brmf_4b"]
+
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
@@ -75,7 +79,8 @@ def task_train():
             'name': f"{model_name}",
             'file_dep': [preprocessed_data(b)],
             'actions': [(train, [preprocessed_data(b), model_name, b])],
-            'targets': [vae_path]
+            'targets': [vae_path],
+            # 'uptodate': [False]
         }
 
 
@@ -87,13 +92,14 @@ def analyze_training(df_path, model_name, bars, targets):
     plots_path = os.path.join(data_path, model_path, "plots")
     df = load_pickle(df_path)
 
+    df_emb = obtain_embeddings(df, model, inplace=True)
+    tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
+
+    plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
+    plot_tsne(df_emb, tsne_emb, plots_path)
+
     df_reconstructed = get_reconstruction(df, model, model_name, inplace=False)
-
-    tsne_emb = calculate_TSNEs(df_reconstructed, column_discriminator="Style")[0]
-    plot_tsnes_comparison(df_reconstructed, tsne_emb[1:], path=plots_path)
-    plot_tsne(df_reconstructed, tsne_emb, path=plots_path)
-
-    save_pickle(df_reconstructed, targets[0])
+    save_pickle(df_reconstructed, targets)
 
 
 def task_test():
@@ -110,14 +116,19 @@ def task_test():
         }
 
 
-def do_embeddings(df_path, model_path, characteristics_path, emb_path, bars):
+
+def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, bars):
     init(bars)
-    model = load_model(model_path)
+    model = load_model(vae_path)
+    plots_path = os.path.join(data_path, model_path, "plots")
     df = load_pickle(df_path)
 
-    df_emb, authors_char = calculate_characteristics(df, model)
+    df_emb, styles_char = obtain_characteristics(df, model)
+    # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
-    save_pickle(authors_char, characteristics_path)
+    plot_characteristics(df_emb, styles_char, plots_path)
+
+    save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
 
 
@@ -134,7 +145,7 @@ def task_embeddings():
             'name': f"{model_name}",
             'file_dep': [preprocessed_data(b), vae_path],
             'actions': [(do_embeddings,
-                         [preprocessed_data(b), os.path.dirname(model_path), characteristics_path, emb_path, b]
+                         [preprocessed_data(b), os.path.dirname(model_path), vae_path, characteristics_path, emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
             'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]

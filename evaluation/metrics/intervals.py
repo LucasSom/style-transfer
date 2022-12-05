@@ -61,17 +61,17 @@ def get_comparisons(m_orig, m_trans, orig_avg, trans_avg):
     :param trans_avg: interval matrix from the target style
     """
     return {
-        "oo": cmp_interval_matrices(m_orig, orig_avg),
-        "ot": cmp_interval_matrices(m_orig, trans_avg),
-        "to": cmp_interval_matrices(m_trans, orig_avg),
-        "tt": cmp_interval_matrices(m_trans, trans_avg)
+        "ms": cmp_interval_matrices(m_orig, orig_avg),
+        "ms'": cmp_interval_matrices(m_orig, trans_avg),
+        "m's": cmp_interval_matrices(m_trans, orig_avg),
+        "m's'": cmp_interval_matrices(m_trans, trans_avg)
     }
 
 
 def evaluate_interval_distribution(m_orig, m_trans, orig_avg, trans_avg):
     cmp = get_comparisons(m_orig, m_trans, orig_avg, trans_avg)
-    return cmp["oo"] < cmp["ot"] and cmp["oo"] < cmp["to"], \
-           cmp["tt"] > cmp["ot"] and cmp["tt"] > cmp["to"]
+    return cmp["ms"] < cmp["ms'"] and cmp["ms"] < cmp["m's"], \
+           cmp["m's'"] > cmp["ms'"] and cmp["m's'"] > cmp["m's"]
 
 
 def get_interval_distances_table(df, orig=None, dest=None):
@@ -84,28 +84,31 @@ def get_interval_distances_table(df, orig=None, dest=None):
 
     table = {"Style": [],
              "Title": [],
-             # "dest_name": [],
-             "oo": [],
-             "ot": [],
-             "to": [],
-             "tt": [],
-             "log(tt/ot)": [],
-             "log(ot/oo)": []
+             "target": [],
+             "ms": [],
+             "ms'": [],
+             "m's": [],
+             "m's'": [],
+             "log(m's/ms)": [],
+             "log(m's'/ms')": []
              }
 
-    for title, style, r_orig, r_trans in zip(df["Title"], df["Style"], df['roll'], df["Transferred"]):
+    sub_df = df[df["Style"] == orig]
+    for title, style, r_orig, r_trans in zip(sub_df["Title"], sub_df["Style"], sub_df['roll'], sub_df["Transferred"]):
         distances = get_comparisons(
             matrix_of_adjacent_intervals(r_orig)[0],
             matrix_of_adjacent_intervals(r_trans)[0],
             orig_style_mx_norm,
             trans_style_mx_norm)
+
         table["Style"].append(style)
         table["Title"].append(title)
-        table["oo"].append(distances["oo"])
-        table["ot"].append(distances["ot"])
-        table["to"].append(distances["to"])
-        table["tt"].append(distances["tt"])
-        table["log(tt/ot)"].append(np.log(distances["tt"] / distances["ot"]))
-        table["log(ot/oo)"].append(np.log(distances["ot"] / distances["oo"]))
+        table["target"].append(dest)
+        table["ms"].append(distances["ms"])
+        table["ms'"].append(distances["ms'"])
+        table["m's"].append(distances["m's"])
+        table["m's'"].append(distances["m's'"])
+        table["log(m's/ms)"].append(np.log(distances["m's"] / distances["ms"]))
+        table["log(m's'/ms')"].append(np.log(distances["m's'"] / distances["ms'"]))
 
     return pd.DataFrame(table)

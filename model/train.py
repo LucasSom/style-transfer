@@ -15,7 +15,7 @@ except ImportError:
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path, path_saved_models, logs_path, \
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path, path_saved_models, get_logs_path, \
     get_model_paths
 
 
@@ -67,7 +67,8 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     targets = get_targets(ds)
 
     vae_dir = get_model_paths(model_name)[1]
-    log_dir = f"{logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
 
     path_to_save = f"{vae_dir}/ckpt/"
     if os.path.isdir(path_to_save):
@@ -98,7 +99,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
         # vae.save(path_to_save)
 
-        with open(f'{logs_path(model_name)}/initial_epoch', 'w') as f:
+        with open(f'{get_logs_path(model_name)}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
         print(f"Guardado hasta {i + ckpt}!!")
 
@@ -108,7 +109,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
         assert len(callbacks_history['epoch']) == len(callbacks_history['loss'])
         callbacks_df = pd.DataFrame(callbacks_history)
 
-        callbacks_path = f"{logs_path(model_name)}_{initial_epoch}.csv"
+        callbacks_path = f"{get_logs_path(model_name)}_{initial_epoch}.csv"
         if os.path.isfile(callbacks_path):
             prev_callbacks = pd.read_csv(callbacks_path)
         else:
