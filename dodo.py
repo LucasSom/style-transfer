@@ -1,6 +1,5 @@
 import os.path
 
-import matplotlib.pyplot as plt
 from doit.api import run
 from tensorflow.keras.models import load_model
 
@@ -18,6 +17,7 @@ from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_characteristics
 
 
+
 def preprocessed_data(b):
     return f"{preprocessed_data_path}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
 
@@ -29,6 +29,7 @@ bars = [4]  # [4, 8]
 old_models = ['brmf_4b', 'brmf_8b']
 # models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + old_models
 models = ["brmf_4b"]
+
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
@@ -113,6 +114,7 @@ def task_test():
             'actions': [(analyze_training, [preprocessed_data(b), model_name, b])],
             'targets': [get_reconstruction_path(model_name)]
         }
+
 
 
 def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, bars):

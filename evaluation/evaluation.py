@@ -101,6 +101,7 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
     remap_dict = {f'{kind} relative ranking': f'Rel {kind[:4]}', f'{kind} position': f'Abs {kind[:4]}'}
 
     sns.set_theme()
+
     sns.set_context(context)
 
     df_results = pd.DataFrame()

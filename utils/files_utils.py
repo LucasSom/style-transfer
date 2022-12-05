@@ -111,14 +111,18 @@ def get_characteristics_path(model_name: str):
 
 
 def get_reconstruction_path(model_name: str):
-    return os.path.join(data_path, 'reconstruction', model_name,
-                        'reconstruction.pkl')
+    return os.path.join(logs_path(model_name), 'reconstruction.pkl')
 
 
-def get_model_path(model_name: str):
-    model_path = f"{path_saved_models + model_name}/ckpt/"
-    model_pb_path = os.path.join(model_path, 'saved_model.pb')
-    return model_path, model_pb_path
+def get_model_paths(model_name: str, verbose=True):
+    model_path = f"{data_path + model_name}/"
+    if not os.path.isdir(model_path):
+        os.makedirs(f"{model_path}/vae")
+        print("Created directory:", model_path, "with subdirectory 'vae'")
+
+    vae_dir = os.path.join(model_path, 'vae')
+    vae_path = os.path.join(vae_dir, 'saved_model.pb')
+    return model_path, vae_dir, vae_path
 
 
 def get_eval_path(transferred_path: str):

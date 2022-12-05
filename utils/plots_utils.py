@@ -63,7 +63,8 @@ def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', 
     :param style: `style` parameter of seaborn relplot
     :param markers: `markers` parameter of seaborn relplot
     """
-    tsne_result_merged_df = copy.copy(df)
+    df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds_list])
+    df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds_list])
 
     tsne_result_merged_df['dim_1'] = tsne_ds[:, 0]
     tsne_result_merged_df['dim_2'] = tsne_ds[:, 1]
@@ -147,32 +148,3 @@ def single_plagiarism_plot(df, context, by_distance):
         plt.savefig(os.path.join(data_path, "debug_outputs/plots/plagiarism/pruebas",
                                  f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"))
         plt.show()
-
-
-# def plagiarism_plot(df, order, context, by_distance):
-#     if len(order) == 2:
-#         col = [order[0]]
-#         row = [order[1]]
-#         orig, dest = order
-#     else:
-#         col = row = order
-#         orig = dest = 'all'
-#
-#     sns.set_theme()
-#     sns.set_context(context)
-#
-#     sns.displot(data=df,
-#                 col="target",
-#                 row="Style",
-#                 x="value",
-#                 hue="type",
-#                 kind='hist',
-#                 stat='proportion',
-#                 # binwidth=1,
-#                 col_order=col,
-#                 row_order=row)
-#
-#     plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-#
-#     plt.savefig(os.path.join(data_path, "debug_outputs", f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"))
-#     plt.show()

@@ -69,6 +69,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     vae_dir = get_model_paths(model_name)[1]
     log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
+
     path_to_save = f"{vae_dir}/ckpt/"
     if os.path.isdir(path_to_save):
         shutil.rmtree(path_to_save)
