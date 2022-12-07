@@ -111,7 +111,7 @@ def get_characteristics_path(model_name: str):
 
 
 def get_reconstruction_path(model_name: str):
-    return os.path.join(logs_path(model_name), 'reconstruction.pkl')
+    return os.path.join(get_logs_path(model_name), 'reconstruction.pkl')
 
 
 def get_model_paths(model_name: str, verbose=True):
