@@ -6,7 +6,7 @@ import pytest
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
-from utils.files_utils import data_tests_path, load_pickle, data_path
+from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_path
 
 
 @pytest.fixture
@@ -22,35 +22,35 @@ def confusion_matrices():
 
 @pytest.fixture
 def df_transferred():
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Bach.pkl"))
     return pd.concat([df1, df2], axis=0)
 
 
 @pytest.fixture
 def all_dfs():
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Bach.pkl"))
     df_br = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_Frescobaldi.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Frescobaldi_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_Frescobaldi.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Frescobaldi_Bach.pkl"))
     df_bf = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_Mozart.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_Bach.pkl"))
     df_bm = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Frescobaldi_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Frescobaldi.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Frescobaldi_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Frescobaldi.pkl"))
     df_fr = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Frescobaldi_Mozart.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_Frescobaldi.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Frescobaldi_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_Frescobaldi.pkl"))
     df_fm = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Mozart.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Mozart.pkl"))
     df_mr = pd.concat([df1, df2], axis=0)
 
     return [df_br, df_bf, df_bm, df_fr, df_fm, df_mr]
@@ -58,12 +58,12 @@ def all_dfs():
 
 @pytest.fixture
 def bmmr_dfs():
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Mozart.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Mozart.pkl"))
     df_mr = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_Mozart.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Mozart_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_Bach.pkl"))
     df_bm = pd.concat([df1, df2], axis=0)
 
     return [df_bm, df_mr]
@@ -112,21 +112,21 @@ def test_intervals_results():
 
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
-    _, _, table = evaluate_multiple_intervals_distribution(bmmr_dfs, True)
+    _, _, table, _ = evaluate_multiple_intervals_distribution(bmmr_dfs, True)
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv", index=False)
 
 
 def test_evaluate_intervals_distribution(all_dfs):
     init(4)
-    _, _, table = evaluate_multiple_intervals_distribution(all_dfs, True)
+    _, _, table, _ = evaluate_multiple_intervals_distribution(all_dfs, True)
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv", index=False)
 
 
 def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
-    _, _, table = evaluate_multiple_intervals_distribution(all_dfs, False, context='talk')
+    _, _, table, _ = evaluate_multiple_intervals_distribution(all_dfs, context='talk')
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv", index=False)
 
@@ -162,21 +162,21 @@ def test_evaluate_single_plagiarism(df_transferred):
 def test_evaluate_plagiarism_small(bmmr_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-small"
-    _, table = evaluate_multiple_plagiarism(bmmr_dfs, False, cache_path)
+    _, table, _ = evaluate_multiple_plagiarism(bmmr_dfs, False, cache_path)
     print(table)
 
 
 def test_evaluate_plagiarism_all(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all"
-    _, table = evaluate_multiple_plagiarism(all_dfs, True, cache_path)
+    _, table, _ = evaluate_multiple_plagiarism(all_dfs, True, cache_path)
     print(table)
 
 
 def test_evaluate_plagiarism_separated(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated"
-    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
+    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -188,7 +188,7 @@ def test_evaluate_plagiarism_separated(all_dfs):
 def test_evaluate_plagiarism_separated_2(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
-    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=2)
+    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=2)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -200,7 +200,7 @@ def test_evaluate_plagiarism_separated_2(all_dfs):
 def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
-    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.1)
+    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.1)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -212,7 +212,7 @@ def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
 def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
-    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.25)
+    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.25)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -224,10 +224,22 @@ def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
 def test_evaluate_plagiarism_separated_proportional_50(all_dfs):
     init(4)
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
-    _, table = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.5)
+    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.5)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
 
     table.to_csv(cache_path + '.csv', index=False)
     print(table)
+
+
+def test_display_best_audios(all_dfs):
+    init(4)
+    plagiarism_args = {"cache_path": f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2",
+                       "merge": False,
+                       "by_distance": True,
+                       "thold": 2
+                       }
+    intervals_args = {}
+
+    evaluate_model(all_dfs, plagiarism_args, intervals_args, f"{data_path}/debug_outputs/audios/successful")

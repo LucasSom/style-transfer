@@ -1,6 +1,8 @@
 import os
 from collections import Counter
 from typing import List
+from IPython.display import display
+
 
 import dfply
 import matplotlib.pyplot as plt
@@ -11,15 +13,47 @@ from matplotlib.ticker import PercentFormatter
 from evaluation.metrics.intervals import get_interval_distances_table
 from evaluation.metrics.plagiarism import get_most_similar_roll, get_plagiarism_ranking_table
 from model.colab_tension_vae.params import init
+from utils.audio_management import display_audio, save_audio, PlayMidi
 from utils.files_utils import data_path, datasets_debug_path, load_pickle
 from utils.plots_utils import intervals_plot, single_plagiarism_plot
 
 
-def evaluate_model(df, metrics, column=None):  # TODO: Esta función no funciona en absoluto
-    print("===== Evaluate interval distributions =====")
-    o, t = get_interval_distances_table(df)
-    print("How many rolls moved away from the original style?", o)
-    print("How many rolls moved closer to the new style?", t)
+def evaluate_model(dfs, plagiarism_args=None, intervals_args=None, eval_path=data_path):
+    if not plagiarism_args is None:
+        merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', True, 1
+        for k, v in plagiarism_args.items():
+            if k == "merge": merge_pl = v
+            elif k == "cache_path": cache_path = v
+            elif k == "context": context = v
+            elif k == "by_distance": by_distance = v
+            elif k == "thold": thold = v
+        print("===== Evaluating plagiarism =====")
+        merged_df, table, p_successful_rolls = evaluate_multiple_plagiarism(dfs, merge_pl, cache_path, context, by_distance, thold)
+        print(merged_df)
+        print(table)
+
+    if not intervals_args is None:
+        merge_i, context = False, 'talk'
+        for k, v in plagiarism_args.items():
+            if k == "merge": merge_i = v
+            elif k == "context": context = v
+        print("===== Evaluate interval distributions =====")
+        merged_df, dfs_to_plot, table, i_successful_rolls = evaluate_multiple_intervals_distribution(dfs, merge_i, context)
+        print(merged_df)
+        print(dfs_to_plot)
+        print(table)
+
+    if not (plagiarism_args is None or intervals_args is None):
+        successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
+        successful_rolls.dropna(inplace=True)
+        for _, row in successful_rolls.iterrows():
+            # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
+
+            audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
+                                    pm=row["Transferred"].midi,
+                                    path=eval_path)[:-3] + 'mid'
+
+            # display_audio(eval_path + audio_file)
 
 
 def calculate_resume_table(df, thold=1):
@@ -84,7 +118,7 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
     """
     kind = "Distance" if by_distance else "Differences"
     merged_df = pd.DataFrame()
-    dfs_to_plot = []
+    dfs_with_rank = []
 
     for df in dfs:
         s1 = list(set(df["Style"]))[0]
@@ -96,15 +130,15 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
         if merge:
             merged_df = pd.concat([merged_df, df1])  # , df2])
         else:
-            dfs_to_plot.append(df1)  # pd.concat([df1, df2]))
+            dfs_with_rank.append(df1)  # pd.concat([df1, df2]))
 
     remap_dict = {f'{kind} relative ranking': f'Rel {kind[:4]}', f'{kind} position': f'Abs {kind[:4]}'}
 
     sns.set_theme()
-
     sns.set_context(context)
 
-    df_results = pd.DataFrame()
+    table_results = pd.DataFrame()
+    successful_rolls = pd.DataFrame()
 
     if merge:
         merged_df = (merged_df
@@ -126,7 +160,8 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
         plt.savefig(os.path.join(data_path, "debug_outputs", "single_plagiarism_plot.png"))
         plt.show()
     else:
-        for i, df in enumerate(dfs_to_plot):
+        for i, df in enumerate(dfs_with_rank):
+            successful_rolls = pd.concat([successful_rolls, df[df[f"{kind} position"] == 1]])
             df_abs = (df
                       >> dfply.gather("type", "value", [f"{kind} position"])
                       >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
@@ -134,11 +169,12 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
 
             table = calculate_resume_table(df_abs, thold)
             # table = get_plagiarism_results(df_abs, s1, s2, by_distance=by_distance, presentation_context=context)
-            df_results = pd.concat([df_results, table])
-
             single_plagiarism_plot(df, context, by_distance)
+            table_results = pd.concat([table_results, table])
 
-    return merged_df, df_results
+
+    table_results.sort_values(by="Percentage of winners", ascending=False, inplace=True)
+    return merged_df, table_results, successful_rolls
 
 
 def evaluate_single_intervals_distribution(df, orig, dest, plot=True, context='talk'):
@@ -184,7 +220,7 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
                          })
 
 
-def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge: bool, context='talk'):
+def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge=False, context='talk'):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
@@ -209,7 +245,8 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge: boo
     remap_dict = {"log(m's/ms)": "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style",
                   "log(m's'/ms')": "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"}
 
-    df_results = pd.DataFrame()
+    table_results = pd.DataFrame()
+    successful_rolls = pd.DataFrame()
 
     if merge:
         merged_df = (merged_df
@@ -221,6 +258,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge: boo
 
     else:
         for i, df in enumerate(dfs_to_plot):
+            successful_rolls = pd.concat([successful_rolls, df[df["log(m's'/ms')"] < 0]])
             df = (df
                   >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
                   >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
@@ -230,9 +268,10 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge: boo
             s2 = list(set(df["Style"]))[1]
 
             table = get_intervals_results(df, s1, s2, context)
-            df_results = pd.concat([df_results, table])
+            table_results = pd.concat([table_results, table])
 
-    return merged_df, dfs_to_plot, df_results.sort_values(by=["% got closer"], ascending=False)
+    table_results.sort_values(by=["% got closer"], ascending=False, inplace=True)
+    return merged_df, dfs_to_plot, table_results, successful_rolls
 
 
 if __name__ == "__main__":

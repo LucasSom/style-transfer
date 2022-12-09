@@ -293,7 +293,7 @@ def task_metrics():
 def do_evaluation(trans_path, eval_path):
     df_transferred = load_pickle(trans_path)
     metrics = load_pickle(get_metrics_path(trans_path))
-    evaluation_results = evaluate_model(df_transferred, metrics)
+    evaluation_results = evaluate_model(df_transferred, metrics, eval_path)
     save_pickle(evaluation_results, eval_path)
 
 
