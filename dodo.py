@@ -1,7 +1,9 @@
 import os.path
 
 from doit.api import run
-from tensorflow.keras.models import load_model
+from keras.saving.save import load_model
+
+# from tensorflow.keras.models import load_model
 
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
@@ -313,6 +315,7 @@ def task_evaluation():
             }
 
 
+# To use for debugging
 if __name__ == '__main__':
     g = globals()
     # run_tasks(ModuleTaskLoader(g), {'train:4-br': 1})
