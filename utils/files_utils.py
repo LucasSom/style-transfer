@@ -14,29 +14,6 @@ path_saved_models = data_path + 'saved_models/'
 original_audios_path = os.path.join(preprocessed_data_path, 'original/audios/')
 
 
-def get_logs_path(model_name):
-    return os.path.join(data_path, model_name, 'logs/')
-
-
-def get_embedding_dir(model_name):
-    return os.path.join(data_path, model_name, 'embeddings')
-
-
-def get_embedding_path(model_name, characteristics=False):
-    return os.path.join(get_embedding_dir(model_name), 'authors_characteristics' if characteristics else 'df_emb')
-
-
-def get_model_paths(model_name: str):
-    model_dir = os.path.join(data_path, model_name)
-    vae_dir = os.path.join(model_dir, "vae")
-
-    if not os.path.isdir(model_dir):
-        os.makedirs(vae_dir)
-    # logs_dir = os.path.join(model_dir, "logs")
-    vae_path = os.path.join(vae_dir, "saved_model.pb")
-    return model_dir, vae_dir, vae_path
-
-
 def root_file_name(p):
     return os.path.splitext(p)[0]
 
@@ -45,11 +22,11 @@ def file_extension(p):
     return os.path.splitext(p)[1]
 
 
-def datasets_name(ds):
-    composed_name = ""
-    for name in ds.keys():
-        composed_name += "_" + name
-    return composed_name
+def make_dirs_if_not_exists(file_path):
+    base_dir = os.path.dirname(file_path)
+    if not os.path.isdir(base_dir):
+        os.makedirs(base_dir)
+        print("Creating directories:", base_dir)
 
 
 def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
@@ -76,16 +53,39 @@ def load_pickle(file_name: str, verbose=False):
         return p
 
 
+def datasets_name(ds):
+    composed_name = ""
+    for name in ds.keys():
+        composed_name += "_" + name
+    return composed_name
+
+
+def get_logs_path(model_name):
+    return os.path.join(data_path, model_name, 'logs/')
+
+
+def get_embedding_dir(model_name):
+    return os.path.join(data_path, model_name, 'embeddings')
+
+
+def get_embedding_path(model_name, characteristics=False):
+    return os.path.join(get_embedding_dir(model_name), 'authors_characteristics' if characteristics else 'df_emb')
+
+
 # def get_preproc_small_path(b):
 #     return os.path.join(data_path, 'preprocessed_data',
 #                         f'bach-rag-moz-fres-{b}_small.pkl')
 
 
-def make_dirs_if_not_exists(file_path):
-    base_dir = os.path.basename(file_path)
-    if not os.path.isdir(base_dir):
-        os.makedirs(base_dir)
-        print("Creating directories:", base_dir)
+def get_model_paths(model_name: str):
+    model_dir = os.path.join(data_path, model_name)
+    vae_dir = os.path.join(model_dir, "vae")
+
+    if not os.path.isdir(model_dir):
+        os.makedirs(vae_dir)
+    # logs_dir = os.path.join(model_dir, "logs")
+    vae_path = os.path.join(vae_dir, "saved_model.pb")
+    return model_dir, vae_dir, vae_path
 
 
 def get_metrics_path(transferred_path: str):
@@ -95,35 +95,24 @@ def get_metrics_path(transferred_path: str):
 
 
 def get_transferred_path(e_orig: str, e_dest: str, model_name: str):
-    transferred_path = f"{data_path}embeddings/{model_name}/df_transferred_{e_orig}_{e_dest}.pkl"
+    transferred_path = f"{data_path}{model_name}/embeddings/df_transferred_{e_orig}_{e_dest}.pkl"
     make_dirs_if_not_exists(transferred_path)
     return transferred_path
 
 
 def get_emb_path(model_name: str):
-    emb_path = f"{data_path}embeddings/{model_name}/df_emb.pkl"
+    emb_path = f"{data_path}{model_name}/embeddings/df_emb.pkl"
     make_dirs_if_not_exists(emb_path)
     return emb_path
 
 
 def get_characteristics_path(model_name: str):
-    characteristics_path = f"{data_path}embeddings/{model_name}/authors_characteristics.pkl"
+    characteristics_path = f"{data_path}{model_name}/embeddings/authors_characteristics.pkl"
     return characteristics_path
 
 
 def get_reconstruction_path(model_name: str):
     return os.path.join(get_logs_path(model_name), 'reconstruction.pkl')
-
-
-def get_model_paths(model_name: str, verbose=True):
-    model_path = f"{data_path + model_name}/"
-    if not os.path.isdir(model_path):
-        os.makedirs(f"{model_path}/vae")
-        print("Created directory:", model_path, "with subdirectory 'vae'")
-
-    vae_dir = os.path.join(model_path, 'vae')
-    vae_path = os.path.join(vae_dir, 'saved_model.pb')
-    return model_path, vae_dir, vae_path
 
 
 def get_eval_path(transferred_path: str):
