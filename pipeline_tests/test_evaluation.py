@@ -3,10 +3,11 @@ import os.path
 import numpy as np
 import pytest
 
+from dodo import do_evaluation, styles_names
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
-from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_path
+from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_path, get_transferred_path
 
 
 @pytest.fixture
@@ -243,3 +244,13 @@ def test_display_best_audios(all_dfs):
     intervals_args = {}
 
     evaluate_model(all_dfs, plagiarism_args, intervals_args, f"{data_path}/debug_outputs/audios/successful")
+
+
+def test_evaluation_task():
+    init(4)
+    model_name = "4-br"
+    for style1, style2 in styles_names(model_name):
+        transferred_path = get_transferred_path(style1, style2, model_name)
+        eval_path = get_eval_path(transferred_path)
+
+        do_evaluation(transferred_path, eval_path)

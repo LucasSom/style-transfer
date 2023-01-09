@@ -30,7 +30,7 @@ def get_information_rate_table(df):
              "IR trans": [],
              }
 
-    for title, style, r_orig, r_trans in zip(df["Title"], df["Style"], df['roll'], df["Transferred"]):
+    for title, style, r_orig, r_trans in zip(df["Title"], df["Style"], df['roll'], df["NewRoll"]):
         table["Style"].append(style)
         table["Title"].append(title)
         table["IR orig"].append(information_rate(r_orig.matrix))

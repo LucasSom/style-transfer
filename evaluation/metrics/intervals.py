@@ -39,6 +39,7 @@ def get_style_avg(df, style: str):
     for roll in df_style['roll']:
         avg += matrix_of_adjacent_intervals(roll)[0]
 
+    assert df_style.shape[0] != 0
     return avg / df_style.shape[0]
 
 
@@ -94,7 +95,7 @@ def get_interval_distances_table(df, orig=None, dest=None):
              }
 
     sub_df = df[df["Style"] == orig]
-    for title, style, r_orig, r_trans in zip(sub_df["Title"], sub_df["Style"], sub_df['roll'], sub_df["Transferred"]):
+    for title, style, r_orig, r_trans in zip(sub_df["Title"], sub_df["Style"], sub_df['roll'], sub_df["NewRoll"]):
         distances = get_comparisons(
             matrix_of_adjacent_intervals(r_orig)[0],
             matrix_of_adjacent_intervals(r_trans)[0],

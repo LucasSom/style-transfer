@@ -10,7 +10,7 @@ datasets_path = os.path.join(data_path, 'datasets')
 datasets_debug_path = os.path.join(datasets_path, 'debug')
 data_tests_path = data_path + 'tests/'
 preprocessed_data_path = data_path + 'preprocessed_data/'
-path_saved_models = data_path + 'saved_models/'
+path_saved_models = data_path + 'brmf_4b/vae/'
 original_audios_path = os.path.join(preprocessed_data_path, 'original/audios/')
 
 
@@ -89,7 +89,7 @@ def get_model_paths(model_name: str):
 
 
 def get_metrics_path(transferred_path: str):
-    metrics_file_path = f"{transferred_path}-metrics.pkl"
+    metrics_file_path = f"{root_file_name(transferred_path)}-metrics.pkl"
     make_dirs_if_not_exists(metrics_file_path)
     return metrics_file_path
 

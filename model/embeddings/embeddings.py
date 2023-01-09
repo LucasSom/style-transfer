@@ -20,12 +20,12 @@ def obtain_embeddings(df: pd.DataFrame, vae, inplace=False) -> pd.DataFrame:
     :return: the input DataFrame with a new column 'Embedding' with the result of the encoding (ndarrays of shape (96,))
     """
     if inplace:
-        # TODO (March): Poner seed
-        df = df.groupby('Title').sample()
+        # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
+        df = df.groupby('Title').sample(random_state=42)
         df_emb = df
     else:
-        # TODO (March): Poner seed
-        df_emb = df.groupby('Title').sample()
+        # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
+        df_emb = df.groupby('Title').sample(random_state=42)
     # df_sampled['Embedding'].iloc[0][0]
 
     t = vae.get_layer(name='encoder')(np.stack([r.matrix for r in df_emb['roll']]))
@@ -66,20 +66,22 @@ def embeddings_to_rolls(embeddings, original_rolls, suffix, audio_path, vae) -> 
     return rolls
 
 
-def get_embeddings_roll_df(df_in, vae, model_name: str, column='Embedding', name_new_column='NewRoll', inplace=False) \
-        -> pd.DataFrame:
+def get_embeddings_roll_df(df_in, vae, model_name: str, column='Embedding', inplace=False) -> pd.DataFrame:
+    name_new_column = "NewRoll"
+
     df = df_in if inplace else copy.deepcopy(df_in)
 
     if type(column) == list:
         # TODO(march): esto pisa df constantemente, salvo que se haga inplace
+        print("===== PASO POR EL IF DE get_embeddings_roll_df =====")
         for c, n in zip(column, name_new_column):
-            df = get_embeddings_roll_df(df_in, vae, model_name, column=c, name_new_column=n, inplace=inplace)
+            df = get_embeddings_roll_df(df_in, vae, model_name, column=c, inplace=inplace)
         return df
 
     new_name_suffix = f"{column}-{name_new_column}"
     audio_path = get_audios_path(model_name)
     rolls = embeddings_to_rolls(df[column], df['roll'], new_name_suffix, audio_path, vae)
-    df[new_name_suffix] = rolls
+    df[name_new_column] = rolls
 
     return df
 

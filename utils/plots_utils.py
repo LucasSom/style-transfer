@@ -88,7 +88,7 @@ def plot_tsne(df, tsnes, plot_path, plot_name='tsne', style=None):
     return grid
 
 
-def plot_characteristics(df, characteristics, plot_path, plot_name="characteristics"):
+def plot_characteristics(df: pd.DataFrame, characteristics: dict, plot_path: str, plot_name="characteristics"):
     df_tsne = df[["Style", "Embedding"]]
     df_tsne["Type"] = df.shape[0] * ["Fragment"]
 

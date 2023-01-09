@@ -3,12 +3,14 @@ import pytest
 from matplotlib import pyplot as plt
 
 from evaluation.metrics.intervals import plot_matrix_of_adjacent_intervals
+from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.plagiarism import dumb_pitch_plagiarism
 from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmic_patterns, pattern_to_int
 from model.colab_tension_vae.params import init
 from roll.guoroll import GuoRoll
 from roll.song import Song
-from utils.files_utils import data_tests_path, load_pickle, original_audios_path, datasets_debug_path
+from utils.files_utils import data_tests_path, load_pickle, original_audios_path, datasets_debug_path, \
+    get_transferred_path
 
 
 @pytest.fixture
@@ -154,3 +156,13 @@ def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_r
 # TODO
 def test_rhythm_dumb_plagiarism():
     pass
+
+
+
+# -------------------------------- TASK --------------------------------
+def test_obtain_metrics():
+    model_name = "brmf_4b"
+    e_orig, e_dest = "Bach", "Mozart"
+
+    df_transferred = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
+    obtain_metrics(df_transferred, e_orig, e_dest)

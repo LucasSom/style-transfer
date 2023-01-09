@@ -15,7 +15,7 @@ from evaluation.metrics.plagiarism import get_most_similar_roll, get_plagiarism_
 from model.colab_tension_vae.params import init
 from utils.audio_management import display_audio, save_audio, PlayMidi
 from utils.files_utils import data_path, datasets_debug_path, load_pickle
-from utils.plots_utils import intervals_plot, single_plagiarism_plot
+from utils.plots_utils import intervals_plot, single_plagiarism_plot, plot_characteristics
 
 
 def evaluate_model(dfs, plagiarism_args=None, intervals_args=None, eval_path=data_path):
@@ -38,10 +38,11 @@ def evaluate_model(dfs, plagiarism_args=None, intervals_args=None, eval_path=dat
             if k == "merge": merge_i = v
             elif k == "context": context = v
         print("===== Evaluate interval distributions =====")
-        merged_df, dfs_to_plot, table, i_successful_rolls = evaluate_multiple_intervals_distribution(dfs, merge_i, context)
+        merged_df, df_to_plot, table, i_successful_rolls = evaluate_multiple_intervals_distribution(dfs, merge_i, context)
         print(merged_df)
-        print(dfs_to_plot)
+        print(df_to_plot)
         print(table)
+        # plot_characteristics(df_to_plot, )
 
     if not (plagiarism_args is None or intervals_args is None):
         successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
@@ -247,6 +248,7 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge=Fals
 
     table_results = pd.DataFrame()
     successful_rolls = pd.DataFrame()
+    df_to_plot = pd.DataFrame()
 
     if merge:
         merged_df = (merged_df
@@ -269,9 +271,10 @@ def evaluate_multiple_intervals_distribution(dfs: List[pd.DataFrame], merge=Fals
 
             table = get_intervals_results(df, s1, s2, context)
             table_results = pd.concat([table_results, table])
+            df_to_plot = pd.concat([df_to_plot, df])
 
     table_results.sort_values(by=["% got closer"], ascending=False, inplace=True)
-    return merged_df, dfs_to_plot, table_results, successful_rolls
+    return merged_df, df_to_plot, table_results, successful_rolls
 
 
 if __name__ == "__main__":
