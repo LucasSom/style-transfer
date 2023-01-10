@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from matplotlib import pyplot as plt
 
+from dodo import styles_names, calculate_metrics
 from evaluation.metrics.intervals import plot_matrix_of_adjacent_intervals
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.plagiarism import dumb_pitch_plagiarism
@@ -10,7 +11,7 @@ from model.colab_tension_vae.params import init
 from roll.guoroll import GuoRoll
 from roll.song import Song
 from utils.files_utils import data_tests_path, load_pickle, original_audios_path, datasets_debug_path, \
-    get_transferred_path
+    get_transferred_path, get_metrics_path
 
 
 @pytest.fixture
@@ -166,3 +167,13 @@ def test_obtain_metrics():
 
     df_transferred = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
     obtain_metrics(df_transferred, e_orig, e_dest)
+
+
+def test_task():
+    model_name = "4-br"
+
+    s1, s2 = styles_names(model_name)[0]
+    transferred_path = get_transferred_path(s1, s2, model_name)
+    metrics_path = get_metrics_path(transferred_path)
+
+    calculate_metrics(transferred_path, metrics_path, model_name)

@@ -94,8 +94,8 @@ def get_metrics_path(transferred_path: str):
     return metrics_file_path
 
 
-def get_transferred_path(e_orig: str, e_dest: str, model_name: str):
-    transferred_path = f"{data_path}{model_name}/embeddings/df_transferred_{e_orig}_{e_dest}.pkl"
+def get_transferred_path(s1: str, s2: str, model_name: str):
+    transferred_path = f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}.pkl"
     make_dirs_if_not_exists(transferred_path)
     return transferred_path
 

@@ -170,17 +170,19 @@ def task_embeddings():
         }
 
 
-def do_transfer(df_emb, model_path, characteristics, orig, target, transferred_path):
+def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2):
     init(bars[0])
     df_emb = load_pickle(df_emb)
     model = load_model(model_path)
     characteristics = load_pickle(characteristics)
     model_name = os.path.basename(model_path)
 
-    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=orig,
-                                       target_style=target)
+    df_transferred = pd.concat([
+        transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2),
+        transfer_style_to(df_emb, model, model_name, characteristics, original_style=s2, target_style=s1),
+    ])
+
     save_pickle(df_transferred, transferred_path)
-    return df_transferred
 
 
 def task_transfer_style():
@@ -191,18 +193,18 @@ def task_transfer_style():
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
 
-        for e_orig, e_dest in styles_names(model_name):
-            transferred_path = get_transferred_path(e_orig, e_dest, model_name)
-            yield {
-                'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                'file_dep': [emb_path, vae_path, characteristics_path],
-                'actions': [(do_transfer,
-                             [emb_path, vae_dir,
-                              characteristics_path, e_orig, e_dest, transferred_path]
-                             )],
-                'targets': [transferred_path],
-                'verbosity': 2,
-            }
+        s1, s2 = styles_names(model_name)[0]
+        transferred_path = get_transferred_path(s1, s2, model_name)
+        yield {
+            'name': model_name,
+            'file_dep': [emb_path, vae_path, characteristics_path],
+            'actions': [(do_transfer,
+                         [emb_path, vae_dir, characteristics_path, transferred_path, s1, s2]
+                         )],
+            'targets': [transferred_path],
+            'verbosity': 2,
+            'uptodate': [False]
+        }
 
 
 def audio_generation(transferred_path, audios_path, suffix=None, column=None, orig=None, dest=None):
@@ -289,26 +291,29 @@ def task_sample_sheets():
             }
 
 
-def calculate_metrics(trans_path, e_orig, e_dest, metrics_file_path):
+def calculate_metrics(trans_path, metrics_file_path, model_name):
     init(bars[0])
+    s1, s2 = styles_names(model_name)[0]
     df_transferred = load_pickle(trans_path)
-    metrics = obtain_metrics(df_transferred, e_orig, e_dest)
+
+    metrics = obtain_metrics(df_transferred, s1, s2)
+    # metrics = obtain_metrics(df_transferred, s2, s1)
     save_pickle(metrics, metrics_file_path)
 
 
 def task_metrics():
     """Calculate different metrics for a produced dataset"""
     for model_name in models:
-        for e_orig, e_dest in styles_names(model_name):
-            transferred_path = get_transferred_path(e_orig, e_dest, model_name)
-            metrics_path = get_metrics_path(transferred_path)
-            yield {
-                'name': f"{model_name}-{e_orig}_to_{e_dest}",
-                'file_dep': [transferred_path],
-                'actions': [(calculate_metrics, [transferred_path, e_orig, e_dest, metrics_path])],
-                'targets': [metrics_path],
-                'verbosity': 2
-            }
+        s1, s2 = styles_names(model_name)[0]
+        transferred_path = get_transferred_path(s1, s2, model_name)
+        metrics_path = get_metrics_path(transferred_path)
+        yield {
+            'name': model_name,
+            'file_dep': [transferred_path],
+            'actions': [(calculate_metrics, [transferred_path, metrics_path, model_name])],
+            'targets': [metrics_path],
+            'verbosity': 2
+        }
 
 
 def do_evaluation(trans_path, eval_path):
