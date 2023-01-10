@@ -44,8 +44,8 @@ def obtain_std(embeddings):
 
 
 def transform_embeddings(df, characteristics: dict, original: str, target: str, scale=1, sample=1):
-    v_original = characteristics[original]
-    v_goal = characteristics[target]
+    v_original = characteristics[original].embedding
+    v_goal = characteristics[target].embedding
 
     return (df
             >> dfply.mask(dfply.X['Style'] == original)

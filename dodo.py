@@ -4,8 +4,6 @@ from copy import copy
 from doit.api import run
 from keras.saving.save import load_model
 
-# from tensorflow.keras.models import load_model
-
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
@@ -13,12 +11,10 @@ from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.transfer import transfer_style_to
-from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_characteristics
-
 
 
 def preprocessed_data(b):
@@ -166,7 +162,7 @@ def task_embeddings():
                          [preprocessed_data(b), os.path.dirname(model_path), vae_dir, characteristics_path, emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
-            'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
+            'uptodate': [False] # [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
         }
 
 
