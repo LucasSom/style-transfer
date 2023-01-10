@@ -567,7 +567,7 @@
                     </node>
                     <node id="193" posx="701.75190708103264" posy="516.6210205163809" maxwidth="200" width="184" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                      <nodename>Transferred (GuoRoll)</nodename>
+                      <nodename>NewRoll (GuoRoll)</nodename>
                       <nodenote></nodenote>
                     </node>
                   </nodes>
@@ -623,7 +623,7 @@
                     </node>
                     <node id="231" posx="728.75190708103264" posy="838.62102051638351" maxwidth="200" width="184" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                      <nodename>Transferred (GuoRoll)</nodename>
+                      <nodename>NewRoll (GuoRoll)</nodename>
                       <nodenote></nodenote>
                     </node>
                   </nodes>

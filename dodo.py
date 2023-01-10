@@ -170,8 +170,8 @@ def task_embeddings():
         }
 
 
-def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2):
-    init(bars[0])
+def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b=4):
+    init(b)
     df_emb = load_pickle(df_emb)
     model = load_model(model_path)
     characteristics = load_pickle(characteristics)
@@ -188,7 +188,7 @@ def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2):
 def task_transfer_style():
     """Do the transference of style from a roll to another style"""
     for model_name in models:
-
+        b = model_name[-2] if model_name in old_models else model_name[0]
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -199,11 +199,11 @@ def task_transfer_style():
             'name': model_name,
             'file_dep': [emb_path, vae_path, characteristics_path],
             'actions': [(do_transfer,
-                         [emb_path, vae_dir, characteristics_path, transferred_path, s1, s2]
+                         [emb_path, vae_dir, characteristics_path, transferred_path, s1, s2, b]
                          )],
             'targets': [transferred_path],
             'verbosity': 2,
-            'uptodate': [False]
+            # 'uptodate': [False]
         }
 
 
@@ -291,8 +291,8 @@ def task_sample_sheets():
             }
 
 
-def calculate_metrics(trans_path, metrics_file_path, model_name):
-    init(bars[0])
+def calculate_metrics(trans_path, metrics_file_path, model_name, b=4):
+    init(b)
     s1, s2 = styles_names(model_name)[0]
     df_transferred = load_pickle(trans_path)
 
@@ -304,40 +304,43 @@ def calculate_metrics(trans_path, metrics_file_path, model_name):
 def task_metrics():
     """Calculate different metrics for a produced dataset"""
     for model_name in models:
+        b = model_name[-2] if model_name in old_models else model_name[0]
         s1, s2 = styles_names(model_name)[0]
         transferred_path = get_transferred_path(s1, s2, model_name)
         metrics_path = get_metrics_path(transferred_path)
         yield {
             'name': model_name,
             'file_dep': [transferred_path],
-            'actions': [(calculate_metrics, [transferred_path, metrics_path, model_name])],
+            'actions': [(calculate_metrics, [transferred_path, metrics_path, model_name, b])],
             'targets': [metrics_path],
             'verbosity': 2
         }
 
 
-def do_evaluation(trans_path, eval_path):
+def do_evaluation(trans_path, eval_path, b=4):
+    init(b)
     df_transferred = load_pickle(trans_path)
     metrics = load_pickle(get_metrics_path(trans_path))
-    evaluation_results = evaluate_model(df_transferred, metrics, eval_path)
+    evaluation_results = evaluate_model([df_transferred], metrics, eval_path)
     save_pickle(evaluation_results, eval_path)
 
 
 def task_evaluation():
     """Evaluate the model considering the calculated metrics"""
     for model_name in models:
-        for style1, style2 in styles_names(model_name):
+        b = model_name[-2] if model_name in old_models else model_name[0]
+        s1, s2 = styles_names(model_name)[0]
 
-            transferred_path = get_transferred_path(style1, style2, model_name)
-            metrics_path = get_metrics_path(transferred_path)
-            eval_path = get_eval_path(transferred_path)
-            yield {
-                'name': f"{model_name}-{style1}_to_{style2}",
-                'file_dep': [transferred_path, get_transferred_path(style1, style2, transferred_path), metrics_path],
-                'actions': [(do_evaluation, [transferred_path, eval_path])],
-                'targets': [eval_path],
-                'verbosity': 2
-            }
+        transferred_path = get_transferred_path(s1, s2, model_name)
+        metrics_path = get_metrics_path(transferred_path)
+        eval_path = get_eval_path(transferred_path)
+        yield {
+            'name': model_name,
+            'file_dep': [transferred_path, metrics_path],
+            'actions': [(do_evaluation, [transferred_path, eval_path, b])],
+            'targets': [eval_path],
+            'verbosity': 2
+        }
 
 
 # To use for debugging

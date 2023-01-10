@@ -131,7 +131,7 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.D
             - Style
             - Title
             - rollNo debe haber muchos
-            - Transferred
+            - NewRoll
             - Differences position
             - Differences relative ranking
             - Differences rate
@@ -150,7 +150,7 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.D
     table = {"Style": [],
              "Title": [],
              "roll": [],
-             "TransferredRoll": [],
+             "NewRoll": [],
              f"{kind} position": [],
              f"{kind} relative ranking": [],
              f"{kind} rate": [],
@@ -160,7 +160,7 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.D
         table["Style"].append(style)
         table["Title"].append(title)
         table["roll"].append(r_orig)
-        table["TransferredRoll"].append(r_trans)
+        table["NewRoll"].append(r_trans)
 
         position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=by_distance)
 

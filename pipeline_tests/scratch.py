@@ -38,20 +38,20 @@ def rename_columns_of_old_pkl(renames: dict):
 
 # rename_columns_of_old_pkl({'Autor': 'Style', 'Titulo': 'Title'})
 rename_columns_of_old_pkl({
-    'Mutacion_add_sub-Bach2Frescobaldi': 'Transferred',
-    'Mutacion_add_sub-Frescobaldi2Bach': 'Transferred',
-    'Mutacion_add_sub-Bach2ragtime': 'Transferred',
-    'Mutacion_add_sub-ragtime2Bach': 'Transferred',
-    'Mutacion_add_sub-Bach2Mozart': 'Transferred',
-    'Mutacion_add_sub-Mozart2Bach': 'Transferred',
+    'Mutacion_add_sub-Bach2Frescobaldi': 'NewRoll',
+    'Mutacion_add_sub-Frescobaldi2Bach': 'NewRoll',
+    'Mutacion_add_sub-Bach2ragtime': 'NewRoll',
+    'Mutacion_add_sub-ragtime2Bach': 'NewRoll',
+    'Mutacion_add_sub-Bach2Mozart': 'NewRoll',
+    'Mutacion_add_sub-Mozart2Bach': 'NewRoll',
 
-    'Mutacion_add_sub-ragtime2Frescobaldi': 'Transferred',
-    'Mutacion_add_sub-Frescobaldi2ragtime': 'Transferred',
-    'Mutacion_add_sub-Mozart2Frescobaldi': 'Transferred',
-    'Mutacion_add_sub-Frescobaldi2Mozart': 'Transferred',
+    'Mutacion_add_sub-ragtime2Frescobaldi': 'NewRoll',
+    'Mutacion_add_sub-Frescobaldi2ragtime': 'NewRoll',
+    'Mutacion_add_sub-Mozart2Frescobaldi': 'NewRoll',
+    'Mutacion_add_sub-Frescobaldi2Mozart': 'NewRoll',
 
-    'Mutacion_add_sub-ragtime2Mozart': 'Transferred',
-    'Mutacion_add_sub-Mozart2ragtime': 'Transferred',
+    'Mutacion_add_sub-ragtime2Mozart': 'NewRoll',
+    'Mutacion_add_sub-Mozart2ragtime': 'NewRoll',
 
 })
 

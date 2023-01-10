@@ -18,7 +18,7 @@ from utils.files_utils import data_path, datasets_debug_path, load_pickle
 from utils.plots_utils import intervals_plot, single_plagiarism_plot, plot_characteristics
 
 
-def evaluate_model(dfs, plagiarism_args=None, intervals_args=None, eval_path=data_path):
+def evaluate_model(dfs: List[pd.DataFrame], plagiarism_args=None, intervals_args=None, eval_path=data_path):
     if not plagiarism_args is None:
         merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', True, 1
         for k, v in plagiarism_args.items():
@@ -51,7 +51,7 @@ def evaluate_model(dfs, plagiarism_args=None, intervals_args=None, eval_path=dat
             # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
 
             audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
-                                    pm=row["Transferred"].midi,
+                                    pm=row["NewRoll"].midi,
                                     path=eval_path)[:-3] + 'mid'
 
             # display_audio(eval_path + audio_file)
