@@ -11,6 +11,7 @@ from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.transfer import transfer_style_to
+from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
@@ -73,13 +74,12 @@ def task_preprocess():
 
 
 def train(df_path, model_name, bars):
-    # init(bars)
-    # styles = [styles_dict[a] for a in model_name[2:4]]
-    # df = load_pickle(df_path)
-    # df = df[df['Style'].isin(styles)]
-    # train_model(df, model_name)
-    print("Lero lero")
-# TODO: Pasarle por parámetro a la tarea las épocas y el ckpt
+    init(bars)
+    styles = [styles_dict[a] for a in model_name[2:4]]
+    df = load_pickle(df_path)
+    df = df[df['Style'].isin(styles)]
+    train_model(df, model_name)
+    # print("Lero lero")
 
 
 def task_train():
