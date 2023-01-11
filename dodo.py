@@ -75,12 +75,16 @@ def task_preprocess():
 
 def train(df_path, model_name, bars):
     init(bars)
-    styles = [styles_dict[a] for a in model_name[2:4]]
-    df = load_pickle(df_path)
-    df = df[df['Style'].isin(styles)]
-    train_model(df, model_name)
-    # print("Lero lero")
-
+    if_train = input("Do you want to train the model [Y/n]? ")
+    if if_train in ['Y', 'y', 'S', 's']:
+        styles = [styles_dict[a] for a in model_name[2:4]]
+        df = load_pickle(df_path)
+        df = df[df['Style'].isin(styles)]
+        train_model(df, model_name)
+    elif if_train in ['N', 'n']:
+        print("Skipping training")
+    else:
+        print("Try again")
 
 def task_train():
     """Trains the model"""
@@ -144,7 +148,6 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
 
     save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
-    print("skip")
 
 
 def task_embeddings():

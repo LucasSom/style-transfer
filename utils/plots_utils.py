@@ -92,9 +92,9 @@ def plot_characteristics(df: pd.DataFrame, characteristics: dict, plot_path: str
     df_tsne = df[["Style", "Embedding"]]
     df_tsne["Type"] = df.shape[0] * ["Fragment"]
 
-    for style, emb in characteristics.items():
+    for style_name, style_obj in characteristics.items():
         # df_tsne.loc[len(df_tsne.index)] = [style, emb, "Style"]
-        style_row = {"Style": style, "Embedding": emb, "Type": "Style"}
+        style_row = {"Style": style_name, "Embedding": style_obj.embedding, "Type": "Style"}
         df_tsne = df_tsne.append(style_row, ignore_index=True)
 
     tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(df_tsne['Embedding']))
