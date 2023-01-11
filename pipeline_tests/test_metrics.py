@@ -6,7 +6,7 @@ from dodo import styles_names, calculate_metrics
 from evaluation.metrics.intervals import plot_matrix_of_adjacent_intervals
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.plagiarism import dumb_pitch_plagiarism
-from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmic_patterns, pattern_to_int
+from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmic_bigrams, pattern_to_int
 from model.colab_tension_vae.params import init
 from roll.guoroll import GuoRoll
 from roll.song import Song
@@ -114,9 +114,9 @@ def test_plot_rhythmic_matrix():
     init(4)
     s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15",
              audio_path=original_audios_path)
-    plot_matrix_of_adjacent_rhythmic_patterns(s, 'melody')
+    plot_matrix_of_adjacent_rhythmic_bigrams(s, 'melody')
     plt.show()
-    plot_matrix_of_adjacent_rhythmic_patterns(s, 'bass')
+    plot_matrix_of_adjacent_rhythmic_bigrams(s, 'bass')
     plt.show()
 
 

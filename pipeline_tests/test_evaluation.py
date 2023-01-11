@@ -7,7 +7,8 @@ from dodo import do_evaluation, styles_names
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
-from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_path, get_transferred_path
+from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_path, get_transferred_path, \
+    get_metrics_path
 
 
 @pytest.fixture
@@ -91,8 +92,10 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
 # --------------------------------------------------- Intervals plots --------------------------------------------------
 def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
-    evaluate_single_intervals_distribution(df_transferred, orig="Bach", dest="ragtime")
-    evaluate_single_intervals_distribution(df_transferred, orig="ragtime", dest="Bach")
+    s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
+    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
+    evaluate_single_intervals_distribution(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
+    evaluate_single_intervals_distribution(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
 
 
 def test_intervals_results():
@@ -113,21 +116,27 @@ def test_intervals_results():
 
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
-    _, _, table, _ = evaluate_multiple_intervals_distribution(bmmr_dfs, True)
+    s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
+    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
+    _, table, _ = evaluate_multiple_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv", index=False)
 
 
 def test_evaluate_intervals_distribution(all_dfs):
     init(4)
-    _, _, table, _ = evaluate_multiple_intervals_distribution(all_dfs, True)
+    s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
+    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
+    _, table, _ = evaluate_multiple_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv", index=False)
 
 
 def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
-    _, _, table, _ = evaluate_multiple_intervals_distribution(all_dfs, context='talk')
+    s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
+    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
+    _, table, _ = evaluate_multiple_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"], context='talk')
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv", index=False)
 
@@ -144,10 +153,10 @@ def test_calculate_resume_table():
     t = calculate_resume_table(df, 1)
     assert list(t["Style"]) == ["a", "b"]
     assert list(t["Target"]) == ["b", "a"]
-    assert list(t["Proportion of winners"]) == [0.5, 0.25]
+    assert list(t["Percentage of winners"]) == [0.5, 0.25]
 
     t = calculate_resume_table(df, 2)
-    assert list(t["Proportion of winners"]) == [0.5, 0.5]
+    assert list(t["Percentage of winners"]) == [0.5, 0.5]
 
 
 def test_evaluate_single_plagiarism(df_transferred):
@@ -243,7 +252,10 @@ def test_display_best_audios(all_dfs):
                        }
     intervals_args = {}
 
-    evaluate_model(all_dfs, plagiarism_args, intervals_args, f"{data_path}/debug_outputs/audios/successful")
+    s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
+    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
+
+    evaluate_model(all_dfs, metrics, plagiarism_args, intervals_args, f"{data_path}/debug_outputs/audios/successful")
 
 
 def test_evaluation_task():

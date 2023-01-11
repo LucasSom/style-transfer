@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def filter_column(df, column="Embedding", tipo='Fragmento'):
     return {
         nombre: roll
@@ -13,3 +16,11 @@ def exp_disponibles(df):
             if c not in c_no_exp
             and 'roll' not in c
             and 'midi' not in c]
+
+
+def normalize(m):
+    m_sum = np.sum(m + eps)
+    return m + eps / m_sum
+
+
+eps = 0.0001

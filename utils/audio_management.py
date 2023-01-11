@@ -57,7 +57,7 @@ def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verb
 
 
 def save_audio(name: str, pm: Union[str, pretty_midi.PrettyMIDI], path: str, verbose=0):
-    if not os.path.isdir(path):
+    if not os.path.exists(path):
         os.makedirs(path)
     fluids_cmd = f"fluidsynth {'-v' if verbose == 2 else ''} -a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
     ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose == 2 else 'quiet'} -f s32le -i -"

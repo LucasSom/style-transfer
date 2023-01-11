@@ -165,7 +165,7 @@ def task_embeddings():
                          [preprocessed_data(b), os.path.dirname(model_path), vae_dir, characteristics_path, emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
-            'uptodate': [False] # [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
+            'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
         }
 
 
@@ -316,11 +316,12 @@ def task_metrics():
         }
 
 
-def do_evaluation(trans_path, eval_path, b=4):
+def do_evaluation(model_name, trans_path, eval_path, b=4):
     init(b)
     df_transferred = load_pickle(trans_path)
     metrics = load_pickle(get_metrics_path(trans_path))
-    evaluation_results = evaluate_model([df_transferred], metrics, eval_path)
+    audio_path = get_audios_path(model_name=model_name)
+    evaluation_results = evaluate_model([df_transferred], metrics, eval_path=audio_path)
     save_pickle(evaluation_results, eval_path)
 
 
@@ -336,7 +337,7 @@ def task_evaluation():
         yield {
             'name': model_name,
             'file_dep': [transferred_path, metrics_path],
-            'actions': [(do_evaluation, [transferred_path, eval_path, b])],
+            'actions': [(do_evaluation, [model_name, transferred_path, eval_path, b])],
             'targets': [eval_path],
             'verbosity': 2
         }
