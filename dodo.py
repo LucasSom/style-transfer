@@ -312,7 +312,8 @@ def task_metrics():
             'file_dep': [transferred_path],
             'actions': [(calculate_metrics, [transferred_path, metrics_path, model_name, b])],
             'targets': [metrics_path],
-            'verbosity': 2
+            'verbosity': 2,
+            # 'uptodate': [False]
         }
 
 

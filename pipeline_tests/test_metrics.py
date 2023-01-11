@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 from matplotlib import pyplot as plt
 
@@ -162,11 +163,14 @@ def test_rhythm_dumb_plagiarism():
 
 # -------------------------------- TASK --------------------------------
 def test_obtain_metrics():
-    model_name = "brmf_4b"
-    e_orig, e_dest = "Bach", "Mozart"
+    init(4)
+    model_name = "4-br"
+    e_orig, e_dest = "Bach", "ragtime"
 
-    df_transferred = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
-    obtain_metrics(df_transferred, e_orig, e_dest)
+    df1 = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
+    df2 = load_pickle(get_transferred_path(e_dest, e_orig, model_name))
+
+    obtain_metrics(pd.concat([df1, df2]), e_orig, e_dest)
 
 
 def test_task():

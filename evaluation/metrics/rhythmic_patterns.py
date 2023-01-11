@@ -19,7 +19,7 @@ def matrix_of_adjacent_rhythmic_bigrams(song: Song, voice='melody'):
     for prev, nxt in zip(rps[:-1], rps[1:]):
         patterns[prev][nxt] += 1
 
-    return patterns
+    return np.array(patterns)
 
 
 def plot_matrix_of_adjacent_rhythmic_bigrams(song: Song, voice='melody'):
@@ -42,7 +42,7 @@ def get_style_rhythmic_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
     df_style = df[df['Style'] == style]
 
     for roll in df_style['roll']:
-        avg += matrix_of_adjacent_rhythmic_bigrams(roll)[0]
+        avg += matrix_of_adjacent_rhythmic_bigrams(roll)
 
     assert df_style.shape[0] != 0
     return avg / df_style.shape[0]
