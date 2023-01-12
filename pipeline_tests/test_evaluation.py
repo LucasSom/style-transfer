@@ -159,16 +159,6 @@ def test_calculate_resume_table():
     assert list(t["Percentage of winners"]) == [0.5, 0.5]
 
 
-def test_evaluate_single_plagiarism(df_transferred):
-    init(4)
-    cached_path1 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table1"
-    cached_path2 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table2"
-    df1 = plot_plagiarism(df_transferred, orig="Bach", dest="ragtime")
-    df2 = plot_plagiarism(df_transferred, orig="ragtime", dest="Bach")
-    print(df1)
-    print(df2)
-
-
 def test_evaluate_plagiarism_1():
     init(4)
     model_name = '4-br'
@@ -250,12 +240,9 @@ def test_display_best_audios():
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
 
-    evaluate_model(metrics, s1, s2, f"{data_path}/debug_outputs/audios/successful",
-                    cache_path=f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2",
-                    merge=False,
-                    by_distance=True,
-                    thold=2
-                   )
+    evaluate_model(metrics, f"{data_path}/debug_outputs/audios/successful",
+                   cache_path=f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2", merge=False,
+                   by_distance=True, thold=2)
 
 
 def test_evaluation_task():

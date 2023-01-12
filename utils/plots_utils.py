@@ -63,9 +63,10 @@ def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', 
     :param style: `style` parameter of seaborn relplot
     :param markers: `markers` parameter of seaborn relplot
     """
-    df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds_list])
-    df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds_list])
+    # df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds])
+    # df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds])
 
+    tsne_result_merged_df = copy.copy(df)
     tsne_result_merged_df['dim_1'] = tsne_ds[:, 0]
     tsne_result_merged_df['dim_2'] = tsne_ds[:, 1]
 
@@ -93,7 +94,6 @@ def plot_characteristics(df: pd.DataFrame, characteristics: dict, plot_path: str
     df_tsne["Type"] = df.shape[0] * ["Fragment"]
 
     for style_name, style_obj in characteristics.items():
-        # df_tsne.loc[len(df_tsne.index)] = [style, emb, "Style"]
         style_row = {"Style": style_name, "Embedding": style_obj.embedding, "Type": "Style"}
         df_tsne = df_tsne.append(style_row, ignore_index=True)
 
@@ -128,10 +128,8 @@ def intervals_plot(df, order: List, context='talk'):
     plt.show()
 
 
-def single_plagiarism_plot(df, context, by_distance):
+def plagiarism_plot(df, context, s1, s2, by_distance):
     kind = "Distance" if by_distance else "Differences"
-    s1 = list(set(df["Style"]))[0]
-    s2 = list(set(df["Style"]))[1]
 
     sns.set_theme()
     sns.set_context(context)

@@ -325,10 +325,10 @@ def do_evaluation(model_name, trans_path, eval_path, s1, s2, b=4):
     metrics = load_pickle(get_metrics_path(trans_path))
     audio_path = get_audios_path(model_name=model_name)
 
-    evaluation_results = evaluate_model(metrics, s1, s2, eval_path=audio_path)
+    evaluation_results = evaluate_model(metrics, eval_path=audio_path)
     save_pickle(evaluation_results, f"{eval_path}_{s1}_to_{s2}")
 
-    evaluation_results = evaluate_model(metrics, s2, s1, eval_path=audio_path)
+    evaluation_results = evaluate_model(metrics, eval_path=audio_path)
     save_pickle(evaluation_results, f"{eval_path}_{s2}_to_{s1}")
 
 
