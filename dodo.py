@@ -295,9 +295,12 @@ def calculate_metrics(trans_path, metrics_file_path, model_name, b=4):
     s1, s2 = styles_names(model_name)[0]
     df_transferred = load_pickle(trans_path)
 
-    metrics = obtain_metrics(df_transferred, s1, s2)
-    # metrics = obtain_metrics(df_transferred, s2, s1)
-    save_pickle(metrics, metrics_file_path)
+    metrics1 = obtain_metrics(df_transferred, s1, s2, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    save_pickle(metrics1, f"{metrics_file_path}_{s1}_to_{s2}")
+
+    metrics2 = obtain_metrics(df_transferred, s2, s1, 'intervals', 'rhythmic_bigrams')
+    metrics2['plagiarism'] = metrics1['plagiarism']
+    save_pickle(metrics2, f"{metrics_file_path}_{s2}_to_{s1}")
 
 
 def task_metrics():
@@ -317,13 +320,17 @@ def task_metrics():
         }
 
 
-def do_evaluation(model_name, trans_path, eval_path, b=4):
+def do_evaluation(model_name, trans_path, eval_path, s1, s2, b=4):
     init(b)
-    df_transferred = load_pickle(trans_path)
     metrics = load_pickle(get_metrics_path(trans_path))
     audio_path = get_audios_path(model_name=model_name)
-    evaluation_results = evaluate_model([df_transferred], metrics, eval_path=audio_path)
-    save_pickle(evaluation_results, eval_path)
+
+    evaluation_results = evaluate_model(metrics, s1, s2, eval_path=audio_path)
+    save_pickle(evaluation_results, f"{eval_path}_{s1}_to_{s2}")
+
+    evaluation_results = evaluate_model(metrics, s2, s1, eval_path=audio_path)
+    save_pickle(evaluation_results, f"{eval_path}_{s2}_to_{s1}")
+
 
 
 def task_evaluation():
@@ -338,9 +345,10 @@ def task_evaluation():
         yield {
             'name': model_name,
             'file_dep': [transferred_path, metrics_path],
-            'actions': [(do_evaluation, [model_name, transferred_path, eval_path, b])],
+            'actions': [(do_evaluation, [model_name, transferred_path, eval_path, s1, s2, b])],
             'targets': [eval_path],
-            'verbosity': 2
+            'verbosity': 2,
+            # 'uptodate': [False]
         }
 
 

@@ -169,6 +169,4 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.D
         table[f"{kind} rate"].append(rate)
         table["N"].append(n)
 
-    df_table = pd.DataFrame(table)
-
-    return df_table
+    return pd.DataFrame(table)

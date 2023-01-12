@@ -6,14 +6,14 @@ from evaluation.metrics.plagiarism import get_plagiarism_ranking_table
 from evaluation.metrics.rhythmic_patterns import get_style_rhythmic_bigrams_avg, matrix_of_adjacent_rhythmic_bigrams
 
 
-def obtain_metrics(df, e_orig, e_dest):
-    return {"original_style": e_orig,
-            "target_style": e_dest,
-            "plagiarism": get_plagiarism_ranking_table(df),
-            "intervals": get_distribution_distances_df(df, e_orig, e_dest),
-            "rhythmic_bigrams": get_distribution_distances_df(df, e_orig, e_dest, rhythm=True),
-            # "musicality": get_information_rate_table(df)
-            }
+def obtain_metrics(df, e_orig, e_dest, *argv):
+    d = {"original_style": e_orig, "target_style": e_dest}
+    for metric in argv:
+        if metric == "plagiarism": d["plagiarism"] = get_plagiarism_ranking_table(df)
+        if metric == "intervals": d["intervals"] = get_distribution_distances_df(df, e_orig, e_dest)
+        if metric == "rhythmic_bigrams": d["intervals"] = get_distribution_distances_df(df, e_orig, e_dest, rhythm=True)
+        # if metric == "musicality": d["intervals"] = get_information_rate_table(df)
+    return d
 
 
 def get_distribution_distances_df(df: pd.DataFrame, orig: str, dest: str, rhythm=False):

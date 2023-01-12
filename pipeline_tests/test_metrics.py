@@ -170,7 +170,7 @@ def test_obtain_metrics():
     df1 = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
     df2 = load_pickle(get_transferred_path(e_dest, e_orig, model_name))
 
-    obtain_metrics(pd.concat([df1, df2]), e_orig, e_dest)
+    obtain_metrics(pd.concat([df1, df2]), e_orig, e_dest, 'plagiarism', 'intervals', 'rhythmic_bigrams')
 
 
 def test_task():

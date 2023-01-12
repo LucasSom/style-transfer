@@ -118,7 +118,7 @@ def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_multiple_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
+    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv", index=False)
 
@@ -127,7 +127,7 @@ def test_evaluate_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_multiple_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
+    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv", index=False)
 
@@ -136,7 +136,7 @@ def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_multiple_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"], context='talk')
+    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"], context='talk')
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv", index=False)
 
@@ -163,42 +163,31 @@ def test_evaluate_single_plagiarism(df_transferred):
     init(4)
     cached_path1 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table1"
     cached_path2 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table2"
-    df1 = evaluate_single_plagiarism(df_transferred, orig="Bach", dest="ragtime", cache_path=cached_path1)
-    df2 = evaluate_single_plagiarism(df_transferred, orig="ragtime", dest="Bach", cache_path=cached_path2)
+    df1 = plot_plagiarism(df_transferred, orig="Bach", dest="ragtime")
+    df2 = plot_plagiarism(df_transferred, orig="ragtime", dest="Bach")
     print(df1)
     print(df2)
 
 
-def test_evaluate_plagiarism_small(bmmr_dfs):
+def test_evaluate_plagiarism_1():
     init(4)
+    model_name = '4-br'
+    s1, s2 = "Bach", "ragtime"
+    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-small"
-    _, table, _ = evaluate_multiple_plagiarism(bmmr_dfs, False, cache_path)
+
+    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None)
     print(table)
 
 
-def test_evaluate_plagiarism_all(all_dfs):
+def test_evaluate_plagiarism_separated_2():
     init(4)
-    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all"
-    _, table, _ = evaluate_multiple_plagiarism(all_dfs, True, cache_path)
-    print(table)
-
-
-def test_evaluate_plagiarism_separated(all_dfs):
-    init(4)
-    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated"
-    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path)
-
-    for s, t in zip(table["Style"], table["Target"]):
-        assert s != t
-
-    table.to_csv(cache_path + '.csv', index=False)
-    print(table)
-
-
-def test_evaluate_plagiarism_separated_2(all_dfs):
-    init(4)
+    model_name = '4-br'
+    s1, s2 = "Bach", "ragtime"
+    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
-    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=2)
+
+    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, thold=2)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -207,10 +196,14 @@ def test_evaluate_plagiarism_separated_2(all_dfs):
     print(table)
 
 
-def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
+def test_evaluate_plagiarism_separated_proportional_10():
     init(4)
+    model_name = '4-br'
+    s1, s2 = "Bach", "ragtime"
+    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
-    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.1)
+
+    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, thold=0.1)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -219,10 +212,14 @@ def test_evaluate_plagiarism_separated_proportional_10(all_dfs):
     print(table)
 
 
-def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
+def test_evaluate_plagiarism_separated_proportional_25():
     init(4)
+    model_name = '4-br'
+    s1, s2 = "Bach", "ragtime"
+    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
-    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.25)
+
+    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, thold=0.25)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -231,10 +228,14 @@ def test_evaluate_plagiarism_separated_proportional_25(all_dfs):
     print(table)
 
 
-def test_evaluate_plagiarism_separated_proportional_50(all_dfs):
+def test_evaluate_plagiarism_separated_proportional_50():
     init(4)
+    model_name = '4-br'
+    s1, s2 = "Bach", "ragtime"
+    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
-    _, table, _ = evaluate_multiple_plagiarism(all_dfs, False, cache_path, thold=0.5)
+
+    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, thold=0.5)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -243,19 +244,18 @@ def test_evaluate_plagiarism_separated_proportional_50(all_dfs):
     print(table)
 
 
-def test_display_best_audios(all_dfs):
+def test_display_best_audios():
     init(4)
-    plagiarism_args = {"cache_path": f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2",
-                       "merge": False,
-                       "by_distance": True,
-                       "thold": 2
-                       }
-    intervals_args = {}
 
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
 
-    evaluate_model(all_dfs, metrics, plagiarism_args, intervals_args, f"{data_path}/debug_outputs/audios/successful")
+    evaluate_model(metrics, s1, s2, f"{data_path}/debug_outputs/audios/successful",
+                    cache_path=f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2",
+                    merge=False,
+                    by_distance=True,
+                    thold=2
+                   )
 
 
 def test_evaluation_task():
@@ -265,4 +265,4 @@ def test_evaluation_task():
         transferred_path = get_transferred_path(style1, style2, model_name)
         eval_path = get_eval_path(transferred_path)
 
-        do_evaluation(transferred_path, eval_path)
+        do_evaluation(transferred_path, transferred_path, eval_path, style1, style2)

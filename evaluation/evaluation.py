@@ -1,47 +1,37 @@
 import os
 from collections import Counter
-from typing import List
+from typing import List, Union
 
 import dfply
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from matplotlib.ticker import PercentFormatter
 
-from evaluation.metrics.plagiarism import get_most_similar_roll, get_plagiarism_ranking_table
+from evaluation.metrics.plagiarism import get_most_similar_roll
 from model.colab_tension_vae.params import init
 from utils.audio_management import save_audio, display_audio
 from utils.files_utils import data_path, datasets_debug_path, load_pickle
 from utils.plots_utils import intervals_plot, single_plagiarism_plot
 
 
-def evaluate_model(dfs: List[pd.DataFrame], metrics, plagiarism_args=None, intervals_args=None, eval_path=data_path):
-    if intervals_args is None: intervals_args = {}
-    if plagiarism_args is None: plagiarism_args = {}
-
-    print("===== Evaluating plagiarism =====")
-    merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', True, 1
-    for k, v in plagiarism_args.items():
-        if k == "merge": merge_pl = v
-        elif k == "cache_path": cache_path = v
+def evaluate_model(metrics, orig, dest, eval_path=data_path, **kwargs):
+    merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
+    for k, v in kwargs.items():
+        if k == "cache_path": cache_path = v
         elif k == "context": context = v
         elif k == "by_distance": by_distance = v
         elif k == "thold": thold = v
-    merged_df, table, p_successful_rolls = evaluate_multiple_plagiarism(dfs, merge_pl, cache_path, context, by_distance,
-                                                                        thold)
-    print(merged_df)
+
+    print("===== Evaluating plagiarism =====")
+    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], orig, dest, context,
+                                                    by_distance, thold)
     print(table)
 
-
     print("===== Evaluate interval distributions =====")
-    merge_i, context = False, 'talk'
-    for k, v in intervals_args.items():
-        if k == "merge": merge_i = v
-        elif k == "context": context = v
-    df_to_plot, table, i_successful_rolls = evaluate_multiple_intervals_distribution(metrics["intervals"],
-                                                                                     metrics["original_style"],
-                                                                                     metrics["target_style"],
-                                                                                     context)
+    df_to_plot, table, i_successful_rolls = evaluate_intervals_distribution(metrics["intervals"],
+                                                                            metrics["original_style"],
+                                                                            metrics["target_style"],
+                                                                            context)
     print(df_to_plot)
     print(table)
     # plot_characteristics(df_to_plot, )
@@ -50,7 +40,6 @@ def evaluate_model(dfs: List[pd.DataFrame], metrics, plagiarism_args=None, inter
     successful_rolls.dropna(inplace=True)
     for _, row in successful_rolls.iterrows():
         # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
-
         audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
                                 pm=row["NewRoll"].midi,
                                 path=eval_path)[:-3] + 'mid'
@@ -97,41 +86,28 @@ def evaluate_plagiarism_coincidences(df, direction, by_distance=False) -> float:
     return sum(similarities) / len(similarities)
 
 
-def evaluate_single_plagiarism(df, orig, dest, cache_path, by_distance=False, plot=True, context='talk'):
-    plagiarism_df = get_plagiarism_ranking_table(df, cache_path=cache_path, by_distance=by_distance)
+def plot_plagiarism(df, orig, dest, by_distance=False, context='talk'):
+    # plagiarism_df = get_plagiarism_ranking_table(df, cache_path=cache_path, by_distance=by_distance)
 
-    if plot:
-        kind = "Distance" if by_distance else "Differences"
+    kind = "Distance" if by_distance else "Differences"
 
-        sns.set_theme()
-        sns.set_context(context)
-        sns.displot(data=plagiarism_df, x=f"{kind} position")
-        # sns.displot(data=plagiarism_df, x="Distance position", kind="kde")
-        plt.title(f'Plagiarism ranking of {orig} transformed to {dest}')
-        plt.show()
-    return plagiarism_df
+    sns.set_theme()
+    sns.set_context(context)
+    sns.displot(data=df, x=f"{kind} position")
+    # sns.displot(data=plagiarism_df, x="Distance position", kind="kde")
+    plt.title(f'Plagiarism ranking of {orig} transformed to {dest}')
+    plt.show()
 
 
-def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, context='talk', by_distance=True, thold=1):
+def evaluate_plagiarism(df: pd.DataFrame, orig, dest, context='talk', by_distance=False, thold=1):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
     """
     kind = "Distance" if by_distance else "Differences"
-    merged_df = pd.DataFrame()
-    dfs_with_rank = []
 
-    for df in dfs:
-        s1 = list(set(df["Style"]))[0]
-        s2 = list(set(df["Style"]))[1]
-
-        df1 = evaluate_single_plagiarism(df, s1, s2, cache_path, by_distance=by_distance, plot=False, context=context)
-        df1["target"] = [s2 if s1 == df1["Style"][i] else s1 for i in range(df1.shape[0])]
-
-        if merge:
-            merged_df = pd.concat([merged_df, df1])  # , df2])
-        else:
-            dfs_with_rank.append(df1)  # pd.concat([df1, df2]))
+    plot_plagiarism(df, orig, dest, by_distance=by_distance, context=context)
+    df["target"] = [dest if orig == df["Style"][i] else orig for i in range(df.shape[0])]
 
     remap_dict = {f'{kind} relative ranking': f'Rel {kind[:4]}', f'{kind} position': f'Abs {kind[:4]}'}
 
@@ -139,43 +115,21 @@ def evaluate_multiple_plagiarism(dfs: List[pd.DataFrame], merge, cache_path, con
     sns.set_context(context)
 
     table_results = pd.DataFrame()
-    successful_rolls = pd.DataFrame()
 
-    if merge:
-        merged_df = (merged_df
-                     >> dfply.gather("type", "value", [f"{kind} relative ranking"])
-                     >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
-                     )
-        sns.displot(data=merged_df,
-                    col="target",
-                    row="Style",
-                    x="value",
-                    hue="type",
-                    kind='hist',
-                    stat='proportion',
-                    col_order=merged_df.Style.unique(),
-                    row_order=merged_df.Style.unique())
+    successful_rolls = df[df[f"{kind} position"] == 1]
+    df_abs = (df
+              >> dfply.gather("type", "value", [f"{kind} position"])
+              >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
+              )
 
-        plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-
-        plt.savefig(os.path.join(data_path, "debug_outputs", "single_plagiarism_plot.png"))
-        plt.show()
-    else:
-        for i, df in enumerate(dfs_with_rank):
-            successful_rolls = pd.concat([successful_rolls, df[df[f"{kind} position"] == 1]])
-            df_abs = (df
-                      >> dfply.gather("type", "value", [f"{kind} position"])
-                      >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
-                      )
-
-            table = calculate_resume_table(df_abs, thold)
-            # table = get_plagiarism_results(df_abs, s1, s2, by_distance=by_distance, presentation_context=context)
-            single_plagiarism_plot(df, context, by_distance)
-            table_results = pd.concat([table_results, table])
+    table = calculate_resume_table(df_abs, thold)
+    # table = get_plagiarism_results(df_abs, s1, s2, by_distance=by_distance, presentation_context=context)
+    single_plagiarism_plot(df, context, by_distance)
+    table_results = pd.concat([table_results, table])
 
 
     table_results.sort_values(by="Percentage of winners", ascending=False, inplace=True)
-    return merged_df, table_results, successful_rolls
+    return table_results, successful_rolls
 
 
 def evaluate_single_intervals_distribution(orig, dest, interval_distances, plot=True, context='talk'):
@@ -217,7 +171,7 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
                          })
 
 
-def evaluate_multiple_intervals_distribution(interval_distances, orig, dest, context='talk'):
+def evaluate_intervals_distribution(interval_distances, orig, dest, context='talk'):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
