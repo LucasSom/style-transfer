@@ -70,7 +70,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
-    path_to_save = f"{vae_dir}/ckpt/"
+    path_to_save = f"{vae_dir}/ckpt/" if ckpt > 0 else f"{vae_dir}/"
     if os.path.isdir(path_to_save):
         shutil.rmtree(path_to_save)
     else:
@@ -85,7 +85,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
         mode='min',
     )
 
-    if ckpt == 0: ckpt = final_epoch + 1
+    if ckpt == 0: ckpt = final_epoch
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         callbacks = vae.fit(
             x=ds,

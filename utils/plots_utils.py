@@ -63,8 +63,8 @@ def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', 
     :param style: `style` parameter of seaborn relplot
     :param markers: `markers` parameter of seaborn relplot
     """
-    df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds])
-    df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds])
+    # df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds])
+    # df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds])
 
     tsne_result_merged_df = copy.copy(df)
     tsne_result_merged_df['dim_1'] = tsne_ds[:, 0]

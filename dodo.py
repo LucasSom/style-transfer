@@ -126,20 +126,20 @@ def analyze_training(df_path, model_name, bars, targets):
     plot_tsne(df_emb, tsne_emb, plots_path)
 
     df_reconstructed = get_reconstruction(df, model, model_name, inplace=False)
-    save_pickle(df_reconstructed, targets)
+    save_pickle(df_reconstructed, targets[0])
 
 
 
 def task_test():
-    """Shows the reconstruction of the model over an original song and a TSNE plot of the songs in the latent space."""
+    """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
         b = model_name[-2] if model_name in old_models else model_name[0]
-        # init(b)
+        small = len(model_name) == 10
         vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b), vae_path],
-            'actions': [(analyze_training, [preprocessed_data(b), model_name, b])],
+            'file_dep': [preprocessed_data(b, small), vae_path],
+            'actions': [(analyze_training, [preprocessed_data(b, small), model_name, b])],
             'targets': [get_reconstruction_path(model_name)]
         }
 
