@@ -87,7 +87,7 @@ def train(df_path, model_name, bars):
     init(bars)
     if_train = input("Do you want to train the model [Y/n]? ")
     if if_train in ['Y', 'y', 'S', 's']:
-        styles = [styles_dict[a] for a in model_name[2:4]] if len(model_name) < 10 else ["small_Bach", "small_ragtime"]
+        styles = ["small_Bach", "small_ragtime"] if "small" in model_name else [styles_dict[a] for a in model_name[2:4]]
         df = load_pickle(df_path)
         df = df[df['Style'].isin(styles)]
         train_model(df, model_name)
@@ -100,7 +100,7 @@ def task_train():
     """Trains the model"""
     for model_name in models:
         b = model_name[-2] if model_name in old_models else model_name[0]
-        small = len(model_name) == 10
+        small = "small" in model_name
         vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
@@ -134,7 +134,7 @@ def task_test():
     """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
         b = model_name[-2] if model_name in old_models else model_name[0]
-        small = len(model_name) == 10
+        small = "small" in model_name
         vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
@@ -167,12 +167,17 @@ def task_embeddings():
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
+        small = "small" in model_name
 
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b), vae_path],
+            'file_dep': [preprocessed_data(b, small), vae_path],
             'actions': [(do_embeddings,
-                         [preprocessed_data(b), os.path.dirname(model_path), vae_dir, characteristics_path, emb_path, b]
+                         [preprocessed_data(b, small),
+                          os.path.dirname(model_path),
+                          vae_dir,
+                          characteristics_path,
+                          emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
             'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
