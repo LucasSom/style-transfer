@@ -18,16 +18,13 @@ from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_characteristics
 
 
-def preprocessed_data(b):
-    return f"{preprocessed_data_path}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
-
-
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
+small_subdatasets = ["small_Bach", "small_ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
 bars = [4]  # [4, 8]
 old_models = ['brmf_4b', 'brmf_8b']
-models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + old_models
+models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + old_models + ["4-small_br"]
 # models = ["brmf_4b"]
 
 
@@ -45,6 +42,12 @@ def styles_names(model_name):
         for s1, s2 in copy(styles):
             styles.append((s2, s1))
     return styles
+
+
+def preprocessed_data(b, small=False):
+    if small:
+        return f"{preprocessed_data_path}{b}-small_br.pkl"
+    return f"{preprocessed_data_path}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
 
 
 DOIT_CONFIG = {'verbosity': 2}
@@ -71,6 +74,13 @@ def task_preprocess():
             'targets': [preprocessed_data(b)],
             'uptodate': [os.path.isfile(preprocessed_data(b))]
         }
+    yield {
+        # 'file_dep': files,
+        'name': f"small_4bars",
+        'actions': [(preprocess, [4], {'folders': small_subdatasets})],
+        'targets': [preprocessed_data(4, True)],
+        'uptodate': [os.path.isfile(preprocessed_data(4, True))]
+    }
 
 
 def train(df_path, model_name, bars):
