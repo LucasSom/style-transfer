@@ -89,7 +89,7 @@ def get_model_paths(model_name: str):
 
 
 def get_metrics_path(transferred_path: str):
-    metrics_file_path = f"{root_file_name(transferred_path)}-metrics.pkl"
+    metrics_file_path = f"{root_file_name(transferred_path)}-metrics"
     make_dirs_if_not_exists(metrics_file_path)
     return metrics_file_path
 
@@ -116,7 +116,7 @@ def get_reconstruction_path(model_name: str):
 
 
 def get_eval_path(transferred_path: str):
-    eval_path = f"{transferred_path}-eval.pkl"
+    eval_path = f"{root_file_name(transferred_path)}-eval"
     return eval_path
 
 

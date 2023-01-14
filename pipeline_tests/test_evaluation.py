@@ -8,7 +8,7 @@ from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_path, get_transferred_path, \
-    get_metrics_path
+    get_metrics_path, get_characteristics_path
 
 
 @pytest.fixture
@@ -94,8 +94,8 @@ def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    evaluate_single_intervals_distribution(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
-    evaluate_single_intervals_distribution(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
+    plot_intervals_distribution(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
+    plot_intervals_distribution(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
 
 
 def test_intervals_results():
@@ -118,7 +118,7 @@ def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
+    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv", index=False)
 
@@ -127,7 +127,7 @@ def test_evaluate_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
+    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv", index=False)
 
@@ -136,7 +136,7 @@ def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"], context='talk')
+    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"], context='talk')
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv", index=False)
 
@@ -240,7 +240,7 @@ def test_display_best_audios():
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
 
-    evaluate_model(metrics, f"{data_path}/debug_outputs/audios/successful",
+    evaluate_model(metrics, {}, f"{data_path}/debug_outputs/audios/successful",
                    cache_path=f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2", merge=False,
                    by_distance=True, thold=2)
 
@@ -248,8 +248,11 @@ def test_display_best_audios():
 def test_evaluation_task():
     init(4)
     model_name = "4-br"
+
+    styles_path = get_characteristics_path(model_name)
+
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
         eval_path = get_eval_path(transferred_path)
 
-        do_evaluation(transferred_path, transferred_path, eval_path, style1, style2)
+        do_evaluation(transferred_path, styles_path, eval_path, style1, style2)

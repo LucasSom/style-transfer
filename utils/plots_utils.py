@@ -63,8 +63,8 @@ def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', 
     :param style: `style` parameter of seaborn relplot
     :param markers: `markers` parameter of seaborn relplot
     """
-    # df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds])
-    # df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds])
+    df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds])
+    df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds])
 
     tsne_result_merged_df = copy.copy(df)
     tsne_result_merged_df['dim_1'] = tsne_ds[:, 0]
@@ -89,15 +89,19 @@ def plot_tsne(df, tsnes, plot_path, plot_name='tsne', style=None):
     return grid
 
 
-def plot_characteristics(df: pd.DataFrame, characteristics: dict, plot_path: str, plot_name="characteristics"):
-    df_tsne = df[["Style", "Embedding"]]
+def plot_characteristics(df: pd.DataFrame, plot_path: str, emb_column: str, emb_styles, plot_name="characteristics"):
+    df_tsne = df[["Style", emb_column]]
     df_tsne["Type"] = df.shape[0] * ["Fragment"]
 
-    for style_name, style_obj in characteristics.items():
-        style_row = {"Style": style_name, "Embedding": style_obj.embedding, "Type": "Style"}
+    for style_name, style_emb in emb_styles.items():
+        style_row = {"Style": style_name, emb_column: style_emb, "Type": "Style"}
         df_tsne = df_tsne.append(style_row, ignore_index=True)
 
-    tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(df_tsne['Embedding']))
+    embeddings = list(df_tsne[emb_column])
+    for i, x in enumerate(embeddings):
+        embeddings[i] = np.hstack(x)
+
+    tsne: np.ndarray = TSNE(n_components=2).fit_transform(embeddings)
     grid = plot_tsne(df_tsne, tsne, plot_path, plot_name, style="Type")
     return grid
 
