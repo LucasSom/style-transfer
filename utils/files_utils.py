@@ -88,8 +88,8 @@ def get_model_paths(model_name: str):
     return model_dir, vae_dir, vae_path
 
 
-def get_metrics_path(transferred_path: str):
-    metrics_file_path = f"{root_file_name(transferred_path)}-metrics"
+def get_metrics_dir(transferred_path: str):
+    metrics_file_path = f"{os.path.dirname(os.path.dirname(transferred_path))}/metrics"
     make_dirs_if_not_exists(metrics_file_path)
     return metrics_file_path
 
@@ -115,8 +115,9 @@ def get_reconstruction_path(model_name: str):
     return os.path.join(get_logs_path(model_name), 'reconstruction.pkl')
 
 
-def get_eval_path(transferred_path: str):
-    eval_path = f"{root_file_name(transferred_path)}-eval"
+def get_eval_dir(transferred_path: str):
+    eval_path = f"{os.path.dirname(os.path.dirname(transferred_path))}/Evaluation"
+    make_dirs_if_not_exists(eval_path)
     return eval_path
 
 
