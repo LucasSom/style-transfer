@@ -87,7 +87,7 @@ def train(df_path, model_name, bars):
     init(bars)
     if_train = input("Do you want to train the model [Y/n]? ")
     if if_train in ['Y', 'y', 'S', 's']:
-        styles = [styles_dict[a] for a in model_name[2:4]]
+        styles = [styles_dict[a] for a in model_name[2:4]] if len(model_name) < 10 else ["small_Bach", "small_ragtime"]
         df = load_pickle(df_path)
         df = df[df['Style'].isin(styles)]
         train_model(df, model_name)
@@ -100,12 +100,12 @@ def task_train():
     """Trains the model"""
     for model_name in models:
         b = model_name[-2] if model_name in old_models else model_name[0]
-        # init(b)
+        small = len(model_name) == 10
         vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b)],
-            'actions': [(train, [preprocessed_data(b), model_name, b])],
+            'file_dep': [preprocessed_data(b, small)],
+            'actions': [(train, [preprocessed_data(b, small), model_name, b])],
             'targets': [vae_path],
             'uptodate': [True]
         }
