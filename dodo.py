@@ -36,6 +36,9 @@ def styles_names(model_name):
         m1 = styles_dict[model_name[-1]]
         m2 = styles_dict[model_name[-2]]
         styles = [(m1, m2), (m2, m1)]
+    elif "small" in model_name:
+        b, r = small_subdatasets
+        styles = [(b, r), (r, b)]
     else:
         b, f, m, r = subdatasets
         styles = [(b, f), (b, m), (b, r), (f, m), (f, r), (m, r)]
@@ -221,6 +224,75 @@ def task_transfer_style():
         }
 
 
+def calculate_metrics(trans_path, char_path, metrics_file_path, model_name, b=4):
+    init(b)
+    s1, s2 = styles_names(model_name)[0]
+    df_transferred = load_pickle(trans_path)
+    styles = load_pickle(char_path)
+
+    metrics1, characteristics = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    save_pickle(metrics1, f"{metrics_file_path}_{s1}_to_{s2}")
+    save_pickle(characteristics, char_path)
+
+    metrics2, _ = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams')
+    metrics2['plagiarism'] = metrics1['plagiarism']
+    save_pickle(metrics2, f"{metrics_file_path}_{s2}_to_{s1}")
+
+
+def task_metrics():
+    """Calculate different metrics for a produced dataset"""
+    for model_name in models:
+        b = model_name[-2] if model_name in old_models else model_name[0]
+        s1, s2 = styles_names(model_name)[0]
+        transferred_path = get_transferred_path(s1, s2, model_name)
+        characteristics_path = get_characteristics_path(model_name)
+        metrics_path = get_metrics_path(transferred_path)
+        yield {
+            'name': model_name,
+            'file_dep': [transferred_path, characteristics_path],
+            'actions': [(calculate_metrics, [transferred_path, characteristics_path, metrics_path, model_name, b])],
+            'targets': [f"{metrics_path}_{s1}_to_{s2}.pkl", f"{metrics_path}_{s2}_to_{s1}.pkl"],
+            'verbosity': 2,
+            # 'uptodate': [False]
+        }
+
+
+def do_evaluation(trans_path, styles_path, eval_path, s1, s2, b=4):
+    init(b)
+    metrics_basename = get_metrics_path(trans_path)
+
+    styles = load_pickle(styles_path)
+
+    metrics = load_pickle(f"{metrics_basename}_{s1}_to_{s2}")
+    evaluation_results = evaluate_model(metrics, styles, eval_path=eval_path)
+    save_pickle(evaluation_results, f"{eval_path}_{s1}_to_{s2}")
+
+    metrics = load_pickle(f"{metrics_basename}_{s2}_to_{s1}")
+    evaluation_results = evaluate_model(metrics, styles, eval_path=eval_path)
+    save_pickle(evaluation_results, f"{eval_path}_{s2}_to_{s1}")
+
+
+
+def task_evaluation():
+    """Evaluate the model considering the calculated metrics"""
+    for model_name in models:
+        b = model_name[-2] if model_name in old_models else model_name[0]
+        s1, s2 = styles_names(model_name)[0]
+
+        transferred_path = get_transferred_path(s1, s2, model_name)
+        styles_path = get_characteristics_path(model_name)
+        metrics_path = get_metrics_path(transferred_path)
+        eval_path = get_eval_path(transferred_path)
+        yield {
+            'name': model_name,
+            'file_dep': [transferred_path, metrics_path, styles_path, f"{metrics_path}_{s1}_to_{s2}.pkl"],
+            'actions': [(do_evaluation, [transferred_path, styles_path, eval_path, s1, s2, b])],
+            'targets': [f"{eval_path}_{s1}_to_{s2}.pkl", f"{eval_path}_{s2}_to_{s1}.pkl"],
+            'verbosity': 2,
+            'uptodate': [False]
+        }
+
+
 def audio_generation(transferred_path, audios_path, suffix=None, column=None, orig=None, dest=None):
     df_transferred = load_pickle(transferred_path)
     generate_audios(df_transferred, audios_path, column=column, suffix=suffix, verbose=1)
@@ -303,75 +375,6 @@ def task_sample_sheets():
                 'verbosity': 2,
                 'uptodate': [False]
             }
-
-
-def calculate_metrics(trans_path, char_path, metrics_file_path, model_name, b=4):
-    init(b)
-    s1, s2 = styles_names(model_name)[0]
-    df_transferred = load_pickle(trans_path)
-    styles = load_pickle(char_path)
-
-    metrics1, characteristics = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
-    save_pickle(metrics1, f"{metrics_file_path}_{s1}_to_{s2}")
-    save_pickle(characteristics, char_path)
-
-    metrics2, _ = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams')
-    metrics2['plagiarism'] = metrics1['plagiarism']
-    save_pickle(metrics2, f"{metrics_file_path}_{s2}_to_{s1}")
-
-
-def task_metrics():
-    """Calculate different metrics for a produced dataset"""
-    for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
-        s1, s2 = styles_names(model_name)[0]
-        transferred_path = get_transferred_path(s1, s2, model_name)
-        characteristics_path = get_characteristics_path(model_name)
-        metrics_path = get_metrics_path(transferred_path)
-        yield {
-            'name': model_name,
-            'file_dep': [transferred_path, characteristics_path],
-            'actions': [(calculate_metrics, [transferred_path, characteristics_path, metrics_path, model_name, b])],
-            'targets': [f"{metrics_path}_{s1}_to_{s2}.pkl", f"{metrics_path}_{s2}_to_{s1}.pkl"],
-            'verbosity': 2,
-            # 'uptodate': [False]
-        }
-
-
-def do_evaluation(trans_path, styles_path, eval_path, s1, s2, b=4):
-    init(b)
-    metrics_basename = get_metrics_path(trans_path)
-
-    styles = load_pickle(styles_path)
-
-    metrics = load_pickle(f"{metrics_basename}_{s1}_to_{s2}")
-    evaluation_results = evaluate_model(metrics, styles, eval_path=eval_path)
-    save_pickle(evaluation_results, f"{eval_path}_{s1}_to_{s2}")
-
-    metrics = load_pickle(f"{metrics_basename}_{s2}_to_{s1}")
-    evaluation_results = evaluate_model(metrics, styles, eval_path=eval_path)
-    save_pickle(evaluation_results, f"{eval_path}_{s2}_to_{s1}")
-
-
-
-def task_evaluation():
-    """Evaluate the model considering the calculated metrics"""
-    for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
-        s1, s2 = styles_names(model_name)[0]
-
-        transferred_path = get_transferred_path(s1, s2, model_name)
-        styles_path = get_characteristics_path(model_name)
-        metrics_path = get_metrics_path(transferred_path)
-        eval_path = get_eval_path(transferred_path)
-        yield {
-            'name': model_name,
-            'file_dep': [transferred_path, metrics_path, styles_path, f"{metrics_path}_{s1}_to_{s2}.pkl"],
-            'actions': [(do_evaluation, [transferred_path, styles_path, eval_path, s1, s2, b])],
-            'targets': [f"{eval_path}_{s1}_to_{s2}.pkl", f"{eval_path}_{s2}_to_{s1}.pkl"],
-            'verbosity': 2,
-            'uptodate': [False]
-        }
 
 
 # To use for debugging
