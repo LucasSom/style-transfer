@@ -86,8 +86,8 @@ def task_preprocess():
     }
 
 
-def train(df_path, model_name, bars):
-    init(bars)
+def train(df_path, model_name, b):
+    init(b)
     if_train = input("Do you want to train the model [Y/n]? ")
     if if_train in ['Y', 'y', 'S', 's']:
         styles = ["small_Bach", "small_ragtime"] if "small" in model_name else [styles_dict[a] for a in model_name[2:4]]
@@ -114,8 +114,8 @@ def task_train():
         }
 
 
-def analyze_training(df_path, model_name, bars, targets):
-    init(bars)
+def analyze_training(df_path, model_name, b, targets):
+    init(b)
     model_path, vae_dir, _ = get_model_paths(model_name)
     model = load_model(vae_dir)
     model_name = os.path.basename(model_name)
@@ -147,17 +147,17 @@ def task_test():
         }
 
 
-def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, bars):
-    init(bars)
+def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, b):
+    init(b)
     print(os.path.abspath(vae_path))
     model = load_model(os.path.abspath(vae_path))
-    plots_path = os.path.join(data_path, model_path, "plots")
+    plots_path = os.path.join(model_path, "plots")
     df = load_pickle(df_path)
 
     df_emb, styles_char = obtain_characteristics(df, model)
     # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
-    plot_characteristics(df_emb, plots_path, "Embedding", {n: s.embedding for n, s in styles_char.items()})
+    plot_characteristics(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_path, include_songs=False)
 
     save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
@@ -177,13 +177,14 @@ def task_embeddings():
             'file_dep': [preprocessed_data(b, small), vae_path],
             'actions': [(do_embeddings,
                          [preprocessed_data(b, small),
-                          os.path.dirname(model_path),
+                          model_path,
                           vae_dir,
                           characteristics_path,
                           emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
             'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
+            # 'uptodate': [False]
         }
 
 
@@ -230,11 +231,10 @@ def calculate_metrics(trans_path, char_path, metrics_dir, model_name, b=4):
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(char_path)
 
-    metrics1, characteristics = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
     save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
-    save_pickle(characteristics, char_path)
 
-    metrics2, _ = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams')
+    metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams')
     metrics2['plagiarism'] = metrics1['plagiarism']
     save_pickle(metrics2, f"{metrics_dir}/metrics_{s2}_to_{s1}")
 

@@ -16,6 +16,7 @@ from utils.files_utils import data_path
 def save_plot(plot_path, plot_name):
     if not os.path.isdir(plot_path):
         os.makedirs(plot_path)
+    print(f"Saving plot as {plot_path}/{plot_name}.png")
     plt.savefig(f"{plot_path}/{plot_name}.png")
 
 
@@ -89,7 +90,8 @@ def plot_tsne(df, tsnes, plot_path, plot_name='tsne', style=None):
     return grid
 
 
-def plot_characteristics(df: pd.DataFrame, plot_path: str, emb_column: str, emb_styles, plot_name="characteristics"):
+def plot_characteristics(df: pd.DataFrame, emb_column: str, emb_styles, plot_dir: str, plot_name="characteristics",
+                         include_songs=True):
     df_tsne = df[["Style", emb_column]]
     df_tsne["Type"] = df.shape[0] * ["Fragment"]
 
@@ -97,12 +99,13 @@ def plot_characteristics(df: pd.DataFrame, plot_path: str, emb_column: str, emb_
         style_row = {"Style": style_name, emb_column: style_emb, "Type": "Style"}
         df_tsne = df_tsne.append(style_row, ignore_index=True)
 
+    df_tsne = df_tsne if include_songs else df_tsne[df_tsne["Type"] == "Style"]
     embeddings = list(df_tsne[emb_column])
     for i, x in enumerate(embeddings):
         embeddings[i] = np.hstack(x)
 
     tsne: np.ndarray = TSNE(n_components=2).fit_transform(embeddings)
-    grid = plot_tsne(df_tsne, tsne, plot_path, plot_name, style="Type")
+    grid = plot_tsne(df_tsne, tsne, plot_dir, plot_name, style=("Type" if include_songs else None))
     return grid
 
 def plot_area(area, color):

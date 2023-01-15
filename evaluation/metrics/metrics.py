@@ -20,7 +20,7 @@ def obtain_metrics(df, e_orig, e_dest, characteristics, *argv):
         if metric == "plagiarism": d["plagiarism"] = get_plagiarism_ranking_table(df)
 
         # if metric == "musicality": d["intervals"] = get_information_rate_table(df)
-    return d, characteristics
+    return d
 
 
 def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: dict, rhythm=False):

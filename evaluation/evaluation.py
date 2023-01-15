@@ -160,16 +160,20 @@ def evaluate_model(metrics, styles_char, eval_path=data_path, **kwargs):
                                                                           metrics["original_style"],
                                                                           metrics["target_style"], context)
     print(table)
-    plot_characteristics(df_to_plot, f"{eval_path}/plots/intervals/m", "m", {n: s.intervals_distribution for n, s in styles_char.items()})
-    plot_characteristics(df_to_plot, f"{eval_path}/plots/intervals/mt", "m'", {n: s.intervals_distribution for n, s in styles_char.items()})
+    plot_characteristics(df_to_plot, "m", {n: s.intervals_distribution for n, s in styles_char.items()},
+                         f"{eval_path}/plots/intervals/m")
+    plot_characteristics(df_to_plot, "m'", {n: s.intervals_distribution for n, s in styles_char.items()},
+                         f"{eval_path}/plots/intervals/mt")
 
     print("===== Evaluating rhythmic bigrams distributions =====")
     df_to_plot, table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
                                                                           metrics["original_style"],
                                                                           metrics["target_style"], context)
     print(table)
-    plot_characteristics(df_to_plot, f"{eval_path}/plots/r_bigrams/m", "m", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()})
-    plot_characteristics(df_to_plot, f"{eval_path}/plots/r_bigrams/mt", "m'", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()})
+    plot_characteristics(df_to_plot, "m", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
+                         f"{eval_path}/plots/r_bigrams/m")
+    plot_characteristics(df_to_plot, "m'", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
+                         f"{eval_path}/plots/r_bigrams/mt")
 
     print("===== Evaluating plagiarism =====")
     table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"],

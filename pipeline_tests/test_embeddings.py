@@ -45,13 +45,13 @@ def test_obtain_embeddings(brmf4_prep):
 
 def test_analyze_training(brmf4_emb):
     model_name = 'brmf_4b'
-    analyze_training(df_path=preprocessed_data(4), model_name=model_name, bars=4,
+    analyze_training(df_path=preprocessed_data(4), model_name=model_name, b=4,
                      targets=get_reconstruction_path(model_name))
 
 
 def test_characteristics(brmf4_emb):
-    model_name = 'brmf_4b'
-    model_path = data_path + '/brmf_4b/vae'
+    model_name = '4-small_br'
+    model_path = data_path + f'/{model_name}/vae'
     do_embeddings(preprocessed_data(4), model_path, model_path, get_characteristics_path(model_name),
                   get_emb_path(model_name), 4)
 
