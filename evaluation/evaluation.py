@@ -12,7 +12,7 @@ from model.colab_tension_vae.params import init
 from utils.audio_management import save_audio, display_audio
 from utils.files_utils import data_path, datasets_debug_path, load_pickle
 from utils.plots_utils import intervals_plot, plagiarism_plot, calculate_TSNEs, plot_tsnes_comparison, plot_tsne, \
-    plot_characteristics
+    plot_embeddings
 
 
 def calculate_resume_table(df, thold=1):
@@ -160,9 +160,9 @@ def evaluate_model(metrics, styles_char, eval_path=data_path, **kwargs):
                                                                           metrics["original_style"],
                                                                           metrics["target_style"], context)
     print(table)
-    plot_characteristics(df_to_plot, "m", {n: s.intervals_distribution for n, s in styles_char.items()},
+    plot_embeddings(df_to_plot, "m", {n: s.intervals_distribution for n, s in styles_char.items()},
                          f"{eval_path}/plots/intervals/m")
-    plot_characteristics(df_to_plot, "m'", {n: s.intervals_distribution for n, s in styles_char.items()},
+    plot_embeddings(df_to_plot, "m'", {n: s.intervals_distribution for n, s in styles_char.items()},
                          f"{eval_path}/plots/intervals/mt")
 
     print("===== Evaluating rhythmic bigrams distributions =====")
@@ -170,9 +170,9 @@ def evaluate_model(metrics, styles_char, eval_path=data_path, **kwargs):
                                                                           metrics["original_style"],
                                                                           metrics["target_style"], context)
     print(table)
-    plot_characteristics(df_to_plot, "m", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
+    plot_embeddings(df_to_plot, "m", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
                          f"{eval_path}/plots/r_bigrams/m")
-    plot_characteristics(df_to_plot, "m'", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
+    plot_embeddings(df_to_plot, "m'", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
                          f"{eval_path}/plots/r_bigrams/mt")
 
     print("===== Evaluating plagiarism =====")

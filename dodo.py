@@ -15,7 +15,7 @@ from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_characteristics
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings
 
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -157,7 +157,7 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
     df_emb, styles_char = obtain_characteristics(df, model)
     # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
-    plot_characteristics(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_path, include_songs=False)
+    plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_path, include_songs=True)
 
     save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
