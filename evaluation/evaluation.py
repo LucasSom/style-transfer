@@ -173,14 +173,15 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
                                                     metrics["target_style"], context, by_distance, thold)
     print(table)
 
-    print("===== Creating audios of succesfull rolls =====")
+    print("===== Selecting audios of successful rolls =====")
     successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
     successful_rolls = pd.merge(successful_rolls, r_successful_rolls, how="inner", on=["Style", "Title"])
     successful_rolls.dropna(inplace=True)
 
-    for _, row in successful_rolls.iterrows():
-        # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
-        audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
-                                pm=row["NewRoll"].midi,
-                                path=eval_path)[:-3] + 'mid'
-        display_audio(audio_file)
+    return successful_rolls
+    # for _, row in successful_rolls.iterrows():
+    #     # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
+    #     audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
+    #                             pm=row["NewRoll"].midi,
+    #                             path=eval_path)[:-3] + 'mid'
+    #     display_audio(audio_file)
