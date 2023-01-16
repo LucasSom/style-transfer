@@ -35,14 +35,12 @@ def generate_audios(df, path=f"{data_path}audios/", column=None, suffix=None, ve
     return save_audios(titles, midis, path=path, verbose=verbose)
 
 
-def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verbose=0) \
-        -> List[str]:
+def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verbose=0) -> List[str]:
     """
     Generate mp3 from midis.
 
     :param titles: list of titles of each midi (they might have the same length).
     :param midis: list of pretty midis to convert to mp3.
-    :param oldPMs: pretty midis of the original song.
     :param path: where to save the files.
     :param verbose: 0 = no verbose; 1 = only project actions; 2 = all processes.
     :return: list of names (inside path) of the mp3 files saved.

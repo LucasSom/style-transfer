@@ -72,11 +72,6 @@ def get_embedding_path(model_name, characteristics=False):
     return os.path.join(get_embedding_dir(model_name), 'authors_characteristics' if characteristics else 'df_emb')
 
 
-# def get_preproc_small_path(b):
-#     return os.path.join(data_path, 'preprocessed_data',
-#                         f'bach-rag-moz-fres-{b}_small.pkl')
-
-
 def get_model_paths(model_name: str):
     model_dir = os.path.join(data_path, model_name)
     vae_dir = os.path.join(model_dir, "vae")

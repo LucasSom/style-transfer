@@ -86,9 +86,6 @@ def test_characteristics(): # TODO: correr este test para ver cómo inicializo S
                   get_emb_path(model_name), 4)
 
 def test_all_models_characteristics():
-    import h5py
-    print(h5py.__version__)
-
     for model_name in models:
         model_path = data_path + f'/{model_name}/vae'
         do_embeddings(preprocessed_data(4), model_path, model_path, get_characteristics_path(model_name),

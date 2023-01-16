@@ -1,6 +1,5 @@
 import os
 from collections import Counter
-from typing import List, Union
 
 import dfply
 import matplotlib.pyplot as plt
@@ -140,7 +139,7 @@ def evaluate_bigrams_distribution(interval_distances, orig, dest, context='talk'
     return df_to_plot, table_results, successful_rolls
 
 
-def evaluate_rhythmic_bigrams(df: pd.DataFrame, orig, dest, plots_path, context='talk'):
+def evaluate_rhythmic_bigrams(df: pd.DataFrame, plots_path):
     tsne_emb = calculate_TSNEs(df, column_discriminator="Style")[0]
 
     plot_tsnes_comparison(df, tsne_emb, plots_path)
@@ -192,15 +191,3 @@ def evaluate_model(metrics, styles_char, eval_path=data_path, **kwargs):
                                 pm=row["NewRoll"].midi,
                                 path=eval_path)[:-3] + 'mid'
         display_audio(audio_file)
-
-
-if __name__ == "__main__":
-    init(4)
-    # df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_ragtime.pkl"))
-    # df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Bach.pkl"))
-    # df = pd.concat([df1, df2], axis=0)
-    #
-    # df = get_plagiarism_ranking_table(df)
-    # save_pickle(df, f"{datasets_debug_path}/plagiarism_ranking_table")
-    df = load_pickle(f"{datasets_debug_path}/plagiarism_ranking_table")
-    df.to_csv(f"{data_path}/debug_outputs/plagiarism_ranking_table.csv")

@@ -1,12 +1,13 @@
+import datetime
 import getopt
 import os
 import shutil
 import sys
 from typing import List, Union
 
-import datetime
 import numpy as np
 import pandas as pd
+
 try:
     from keras.callbacks import ModelCheckpoint
 except ImportError:
@@ -15,7 +16,7 @@ except ImportError:
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path, path_saved_models, get_logs_path, \
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path, get_logs_path, \
     get_model_paths
 
 

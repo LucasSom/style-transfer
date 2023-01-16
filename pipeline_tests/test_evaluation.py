@@ -105,8 +105,8 @@ def test_intervals_results():
                  + 10 * ["log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style"],
          'value': 5 * [-2] + [4, -1, -1, 4, 4] + [-3, -3, 2, -3, -3] + 5 * [-1]
          }
-    df = pd.DataFrame(d)
-    df_results = get_intervals_results(df, 'a', 'b')
+    d = pd.DataFrame(d)
+    df_results = get_intervals_results(d, 'a', 'b')
 
     assert list(df_results[df_results["Transference"] == f"a to b"]["% got closer"])[0] == 100
     assert list(df_results[df_results["Transference"] == f"b to a"]["% got closer"])[0] == 40
@@ -148,14 +148,14 @@ def test_calculate_resume_table():
          "target": ["b", "a", "b", "a", "a", "a"],
          "value": [1, 2, 4, 1, 4, 5]
          }
-    df = pd.DataFrame(d)
+    d = pd.DataFrame(d)
 
-    t = calculate_resume_table(df, 1)
+    t = calculate_resume_table(d, 1)
     assert list(t["Style"]) == ["a", "b"]
     assert list(t["Target"]) == ["b", "a"]
     assert list(t["Percentage of winners"]) == [0.5, 0.25]
 
-    t = calculate_resume_table(df, 2)
+    t = calculate_resume_table(d, 2)
     assert list(t["Percentage of winners"]) == [0.5, 0.5]
 
 
@@ -164,7 +164,6 @@ def test_evaluate_plagiarism_1():
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
-    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-small"
 
     _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None)
     print(table)
