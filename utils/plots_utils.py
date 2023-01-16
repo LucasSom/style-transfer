@@ -10,6 +10,8 @@ from matplotlib.ticker import PercentFormatter
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
+from evaluation.metrics.intervals import matrix_of_adjacent_intervals
+from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
 from model.embeddings.style import Style
 from utils.files_utils import data_path
 
@@ -113,7 +115,23 @@ def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_sty
     return grid
 
 
-def plot_distributions(styles: Dict[str, Style], plot_dir: str, plot_name: str):
+def plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot=None):
+    intervals_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['intervals_distribution']))
+    rhythmic_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['rhythmic_bigrams_distribution']))
+
+    tsne_df['intervals_dim_1'] = intervals_tsne[:, 0]
+    tsne_df['intervals_dim_2'] = intervals_tsne[:, 1]
+    tsne_df['rhythmic_dim_1'] = rhythmic_tsne[:, 0]
+    tsne_df['rhythmic_dim_2'] = rhythmic_tsne[:, 1]
+
+    sns.relplot(x='intervals_dim_1', y='intervals_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6, style=style_plot)
+    save_plot(plot_dir, plot_name + "-intervals", "Intervals distribution")
+
+    sns.relplot(x='rhythmic_dim_1', y='rhythmic_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6, style=style_plot)
+    save_plot(plot_dir, plot_name + "-rhythmic_bigrams", "Rhythmic bigrams distribution")
+
+
+def plot_characteristics_distributions(styles: Dict[str, Style], plot_dir: str, plot_name: str):
     """
     Generate 2 t-SNEs plots of the styles characteristic distributions: one with the intervals distribution and the
     other with the rhythmic bigrams distribution.
@@ -133,24 +151,51 @@ def plot_distributions(styles: Dict[str, Style], plot_dir: str, plot_name: str):
         tsne_df["Style"].append(s)
     tsne_df = pd.DataFrame(tsne_df)
 
-    tsne_df['intervals_distributions'] = tsne_df.apply(lambda row: np.hstack(row["Style"].intervals_distribution), axis=1)
-    tsne_df['rhythmic_bigrams_distributions'] = tsne_df.apply(lambda row: np.hstack(row["Style"].rhythmic_bigrams_distribution), axis=1)
+    tsne_df['intervals_distribution'] = tsne_df.apply(lambda row: np.hstack(row["Style"].intervals_distribution), axis=1)
+    tsne_df['rhythmic_bigrams_distribution'] = tsne_df.apply(lambda row: np.hstack(row["Style"].rhythmic_bigrams_distribution), axis=1)
 
-    intervals_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['intervals_distributions']))
-    rhythmic_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['rhythmic_bigrams_distributions']))
+    plot_tsne_distributions(tsne_df, plot_dir, plot_name)
 
 
-    tsne_df['intervals_dim_1'] = intervals_tsne[:, 0]
-    tsne_df['intervals_dim_2'] = intervals_tsne[:, 1]
+def plot_fragments_distributions(df: pd.DataFrame, styles: Dict[str, Style], plot_dir: str, plot_name: str):
+    """
+    Generate 2 tSNEs plots of the fragments and styles characteristic distributions: one with the intervals
+    distribution and the other with the rhythmic bigrams distribution.
 
-    tsne_df['rhythmic_dim_1'] = rhythmic_tsne[:, 0]
-    tsne_df['rhythmic_dim_2'] = rhythmic_tsne[:, 1]
+    Parameters
+    ----------
+    df : DataFrame
+        It has to have columns "Style", "m" and "m'"
 
-    sns.relplot(x='intervals_dim_1', y='intervals_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6)
-    save_plot(plot_dir, plot_name + "-intervals", "Intervals distribution")
+    styles : dictionary(k: string, v: Style object)
+        Dictionary that maps style names (strings) with its correspondent Style object.
 
-    sns.relplot(x='rhythmic_dim_1', y='rhythmic_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6)
-    save_plot(plot_dir, plot_name + "-rhythmic_bigrams", "Rhythmic bigrams distribution")
+    plot_dir : string
+        Directory where to save the generated plots.
+
+    plot_name : string
+        File name prefixes. It will be added suffixes "-intervals.png" and "-rhythmic_bigrams.png" to each plot
+
+    """
+    tsne_df = {"Name": [], "Type": [], "intervals_distribution": [], "rhythmic_bigrams_distribution": []}
+
+    for _, r in df.iterrows():
+        tsne_df["Name"] += ["m", "m'"]
+        tsne_df["Type"] += ["fragment", "fragment"]
+        tsne_df["intervals_distribution"].append(np.hstack(matrix_of_adjacent_intervals(r["roll"])[0]))
+        tsne_df["intervals_distribution"].append(np.hstack(matrix_of_adjacent_intervals(r["NewRoll"])[0]))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["roll"])))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["NewRoll"])))
+
+    for n, s in styles.items():
+        tsne_df["Name"].append(n)
+        tsne_df["Type"].append("style")
+        tsne_df["intervals_distribution"].append(np.hstack(s.intervals_distribution))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(s.rhythmic_bigrams_distribution))
+
+    tsne_df = pd.DataFrame(tsne_df)
+
+    plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot="Type")
 
 
 

@@ -7,11 +7,10 @@ import pandas as pd
 import seaborn as sns
 
 from evaluation.metrics.plagiarism import get_most_similar_roll
-from model.colab_tension_vae.params import init
 from utils.audio_management import save_audio, display_audio
-from utils.files_utils import data_path, datasets_debug_path, load_pickle
+from utils.files_utils import data_path
 from utils.plots_utils import intervals_plot, plagiarism_plot, calculate_TSNEs, plot_tsnes_comparison, plot_tsne, \
-    plot_embeddings
+    plot_fragments_distributions
 
 
 def calculate_resume_table(df, thold=1):
@@ -80,14 +79,14 @@ def evaluate_plagiarism(df: pd.DataFrame, orig, dest, context='talk', by_distanc
     return table_results, successful_rolls
 
 
-def plot_intervals_distribution(orig, dest, interval_distances, context='talk'):
+def plot_intervals_improvements(orig, dest, interval_distances, context='talk'):
     sns.set_theme()
     sns.set_context(context)
     sns.kdeplot(data=interval_distances, x="log(m's/ms)")
     sns.displot(data=interval_distances, x="log(m's'/ms')", kind="kde")
-    plt.title(f'Interval distribution of \n{orig}? transformed to {dest}?')
+    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
     plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
-    plt.show()
+    # plt.show()
 
 
 def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation_context='talk'):
@@ -122,21 +121,21 @@ def evaluate_bigrams_distribution(interval_distances, orig, dest, context='talk'
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
     """
-    plot_intervals_distribution(orig, dest, interval_distances, context)
+    plot_intervals_improvements(orig, dest, interval_distances, context)
 
     remap_dict = {"log(m's/ms)": "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style",
                   "log(m's'/ms')": "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"}
 
     successful_rolls = interval_distances[interval_distances["log(m's'/ms')"] < 0]
-    df_to_plot = (interval_distances
+    df = (interval_distances
           >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
           >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
           )
 
-    table_results = get_intervals_results(df_to_plot, orig, dest, context)
+    table_results = get_intervals_results(df, orig, dest, context)
 
     table_results.sort_values(by=["% got closer"], ascending=False, inplace=True)
-    return df_to_plot, table_results, successful_rolls
+    return df, table_results, successful_rolls
 
 
 def evaluate_rhythmic_bigrams(df: pd.DataFrame, plots_path):
@@ -146,7 +145,7 @@ def evaluate_rhythmic_bigrams(df: pd.DataFrame, plots_path):
     plot_tsne(df, tsne_emb, plots_path)
 
 
-def evaluate_model(metrics, styles_char, eval_path=data_path, **kwargs):
+def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
     for k, v in kwargs.items():
         if k == "context": context = v
@@ -159,20 +158,14 @@ def evaluate_model(metrics, styles_char, eval_path=data_path, **kwargs):
                                                                           metrics["original_style"],
                                                                           metrics["target_style"], context)
     print(table)
-    plot_embeddings(df_to_plot, "m", {n: s.intervals_distribution for n, s in styles_char.items()},
-                         f"{eval_path}/plots/intervals/m")
-    plot_embeddings(df_to_plot, "m'", {n: s.intervals_distribution for n, s in styles_char.items()},
-                         f"{eval_path}/plots/intervals/mt")
 
     print("===== Evaluating rhythmic bigrams distributions =====")
     df_to_plot, table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
                                                                           metrics["original_style"],
                                                                           metrics["target_style"], context)
     print(table)
-    plot_embeddings(df_to_plot, "m", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
-                         f"{eval_path}/plots/r_bigrams/m")
-    plot_embeddings(df_to_plot, "m'", {n: s.rhythmic_bigrams_distribution for n, s in styles_char.items()},
-                         f"{eval_path}/plots/r_bigrams/mt")
+
+    plot_fragments_distributions(df, styles_char, f"{eval_path}/plots", "Transformation_distribution")
 
     print("===== Evaluating plagiarism =====")
     table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"],

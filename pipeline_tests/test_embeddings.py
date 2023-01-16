@@ -9,7 +9,7 @@ from model.embeddings.embeddings import obtain_embeddings
 from model.embeddings.style import Style
 from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models, get_embedding_path, \
     get_reconstruction_path, get_characteristics_path, get_emb_path, data_path
-from utils.plots_utils import plot_distributions
+from utils.plots_utils import plot_characteristics_distributions
 
 
 @pytest.fixture
@@ -76,7 +76,7 @@ def test_analyze_training():
 def test_plot_distributions(characteristics):
     plot_dir = data_path + 'debug_outputs/'
     plot_name = "distributions"
-    plot_distributions(characteristics, plot_dir, plot_name)
+    plot_characteristics_distributions(characteristics, plot_dir, plot_name)
 
 
 def test_characteristics(): # TODO: correr este test para ver cómo inicializo Style

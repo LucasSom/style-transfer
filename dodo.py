@@ -15,7 +15,7 @@ from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, plot_distributions
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, plot_characteristics_distributions
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
@@ -157,7 +157,7 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
     # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
     plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir, include_songs=True)
-    plot_distributions(styles_char, plots_dir, "Distributions_characteristics")
+    plot_characteristics_distributions(styles_char, plots_dir, "Distributions_characteristics")
 
     save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
@@ -183,8 +183,8 @@ def task_embeddings():
                           emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
-            # 'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
-            'uptodate': [False]
+            'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
+            # 'uptodate': [False]
         }
 
 
@@ -261,14 +261,15 @@ def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
     init(b)
     metrics_dir = get_metrics_dir(trans_path)
 
+    df_transferred = load_pickle(trans_path)
     styles = load_pickle(styles_path)
 
     metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
-    evaluation_results = evaluate_model(metrics, styles, eval_path=eval_dir)
+    evaluation_results = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
     save_pickle(evaluation_results, f"{eval_dir}/df_{s1}_to_{s2}")
 
     metrics = load_pickle(f"{metrics_dir}/metrics_{s2}_to_{s1}")
-    evaluation_results = evaluate_model(metrics, styles, eval_path=eval_dir)
+    evaluation_results = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
     save_pickle(evaluation_results, f"{eval_dir}/df_{s2}_to_{s1}")
 
 

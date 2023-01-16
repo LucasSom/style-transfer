@@ -94,8 +94,8 @@ def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
-    plot_intervals_distribution(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
-    plot_intervals_distribution(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
+    plot_intervals_improvements(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
+    plot_intervals_improvements(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
 
 
 def test_intervals_results():
@@ -239,7 +239,7 @@ def test_display_best_audios():
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
 
-    evaluate_model(metrics, {}, f"{data_path}/debug_outputs/audios/successful",
+    evaluate_model(None, metrics, {}, f"{data_path}/debug_outputs/audios/successful",
                    cache_path=f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2", merge=False,
                    by_distance=True, thold=2)
 
