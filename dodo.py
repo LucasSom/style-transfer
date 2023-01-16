@@ -15,8 +15,7 @@ from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings
-
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, plot_distributions
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
@@ -151,13 +150,14 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
     init(b)
     print(os.path.abspath(vae_path))
     model = load_model(os.path.abspath(vae_path))
-    plots_path = os.path.join(model_path, "plots")
+    plots_dir = os.path.join(model_path, "plots")
     df = load_pickle(df_path)
 
     df_emb, styles_char = obtain_characteristics(df, model)
     # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
-    plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_path, include_songs=True)
+    plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir, include_songs=True)
+    plot_distributions(styles_char, plots_dir, "Distributions_characteristics")
 
     save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
@@ -183,8 +183,8 @@ def task_embeddings():
                           emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
-            'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
-            # 'uptodate': [False]
+            # 'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
+            'uptodate': [False]
         }
 
 

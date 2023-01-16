@@ -1,6 +1,6 @@
 import copy
 import os
-from typing import List, Union
+from typing import List, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -10,6 +10,7 @@ from matplotlib.ticker import PercentFormatter
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
+from model.embeddings.style import Style
 from utils.files_utils import data_path
 
 
@@ -101,8 +102,8 @@ def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_sty
     df_tsne["Type"] = df.shape[0] * ["Fragment"]
 
     for style_name, style_emb in emb_styles.items():
-        style_row = {"Style": style_name, emb_column: style_emb, "Type": "Style"}
-        df_tsne = df_tsne.append(style_row, ignore_index=True)
+        style_row = {"Style": [style_name], emb_column: [style_emb], "Type": ["Style"]}
+        df_tsne = pd.concat([df_tsne, pd.DataFrame(style_row)])
 
     df_tsne = df_tsne if include_songs else df_tsne[df_tsne["Type"] == "Style"]
     embeddings = list(df_tsne[emb_column])
@@ -114,9 +115,22 @@ def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_sty
     return grid
 
 
-def plot_distributions(characteristics, plot_dir, plot_name):
+def plot_distributions(styles: Dict[str, Style], plot_dir: str, plot_name: str):
+    """
+    Generate 2 t-SNEs plots of the styles characteristic distributions: one with the intervals distribution and the
+    other with the rhythmic bigrams distribution.
+
+    Parameters
+    ----------
+    styles : Dictionary that maps style names (strings) with its correspondent Style object.
+
+    plot_dir : Directory where to save the generated plots.
+
+    plot_name : File name prefixes. It will be added suffixes "-intervals.png" and "-rhythmic_bigrams.png" to each plot
+
+    """
     tsne_df = {"Name": [], "Style": []}
-    for n, s in characteristics.items():
+    for n, s in styles.items():
         tsne_df["Name"].append(n)
         tsne_df["Style"].append(s)
     tsne_df = pd.DataFrame(tsne_df)
