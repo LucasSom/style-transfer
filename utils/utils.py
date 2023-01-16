@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 
@@ -24,3 +25,12 @@ def normalize(m):
 
 
 eps = 0.0001
+
+
+def show_sheets(df_transferred, column, sheets_path, suffix):
+    titles = (df_transferred['Title'] if suffix is None
+              else df_transferred['Title'].map(lambda t: f'{t}_{suffix}'))
+    rolls = df_transferred[column]
+    for title, roll in zip(titles, rolls):
+        sheet_path = os.path.join(sheets_path, title)
+        roll.display_score(file_name=sheet_path, fmt='png', do_display=False)
