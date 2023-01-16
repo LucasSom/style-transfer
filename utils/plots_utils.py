@@ -1,6 +1,6 @@
 import copy
 import os
-from typing import List
+from typing import List, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -10,13 +10,22 @@ from matplotlib.ticker import PercentFormatter
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
+from evaluation.metrics.intervals import matrix_of_adjacent_intervals
+from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
+from model.embeddings.style import Style
 from utils.files_utils import data_path
 
 
-def save_plot(plot_path, plot_name):
-    if not os.path.isdir(plot_path):
-        os.makedirs(plot_path)
-    plt.savefig(f"{plot_path}/{plot_name}.png")
+def save_plot(plot_dir, plot_name, title=None):
+    if not title is None: plt.title(title)
+    if not os.path.isdir(plot_dir):
+        os.makedirs(plot_dir)
+    print(f"Saving plot as {plot_dir}/{plot_name}.png")
+    plt.savefig(f"{plot_dir}/{plot_name}.png")
+
+
+def plot_area(area, color):
+    plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)
 
 
 def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
@@ -63,9 +72,8 @@ def plot_tsnes_comparison(df, tsne_ds, plot_path, column_discriminator='Style', 
     :param style: `style` parameter of seaborn relplot
     :param markers: `markers` parameter of seaborn relplot
     """
-    df['dim_1'] = np.concatenate([tr[:, 0] for tr in tsne_ds_list])
-    df['dim_2'] = np.concatenate([tr[:, 1] for tr in tsne_ds_list])
 
+    tsne_result_merged_df = copy.copy(df)
     tsne_result_merged_df['dim_1'] = tsne_ds[:, 0]
     tsne_result_merged_df['dim_2'] = tsne_ds[:, 1]
 
@@ -87,22 +95,108 @@ def plot_tsne(df, tsnes, plot_path, plot_name='tsne', style=None):
     save_plot(plot_path, plot_name)
     return grid
 
-
-def plot_characteristics(df: pd.DataFrame, characteristics: dict, plot_path: str, plot_name="characteristics"):
-    df_tsne = df[["Style", "Embedding"]]
+def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_styles, plot_dir: str, plot_name="embeddings",
+                    include_songs=True):
+    # columns_to_plot = ["Style", emb_column] if type(emb_column) is str else ["Style"] + emb_column
+    df_tsne = df[["Style", emb_column]]
     df_tsne["Type"] = df.shape[0] * ["Fragment"]
 
-    for style_name, style_obj in characteristics.items():
-        # df_tsne.loc[len(df_tsne.index)] = [style, emb, "Style"]
-        style_row = {"Style": style_name, "Embedding": style_obj.embedding, "Type": "Style"}
-        df_tsne = df_tsne.append(style_row, ignore_index=True)
+    for style_name, style_emb in emb_styles.items():
+        style_row = {"Style": [style_name], emb_column: [style_emb], "Type": ["Style"]}
+        df_tsne = pd.concat([df_tsne, pd.DataFrame(style_row)])
 
-    tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(df_tsne['Embedding']))
-    grid = plot_tsne(df_tsne, tsne, plot_path, plot_name, style="Type")
+    df_tsne = df_tsne if include_songs else df_tsne[df_tsne["Type"] == "Style"]
+    embeddings = list(df_tsne[emb_column])
+    for i, x in enumerate(embeddings):
+        embeddings[i] = np.hstack(x)
+
+    tsne: np.ndarray = TSNE(n_components=2).fit_transform(embeddings)
+    grid = plot_tsne(df_tsne, tsne, plot_dir, plot_name, style=("Type" if include_songs else None))
     return grid
 
-def plot_area(area, color):
-    plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)
+
+def plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot=None):
+    intervals_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['intervals_distribution']))
+    rhythmic_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['rhythmic_bigrams_distribution']))
+
+    tsne_df['intervals_dim_1'] = intervals_tsne[:, 0]
+    tsne_df['intervals_dim_2'] = intervals_tsne[:, 1]
+    tsne_df['rhythmic_dim_1'] = rhythmic_tsne[:, 0]
+    tsne_df['rhythmic_dim_2'] = rhythmic_tsne[:, 1]
+
+    sns.relplot(x='intervals_dim_1', y='intervals_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6, style=style_plot)
+    save_plot(plot_dir, plot_name + "-intervals", "Intervals distribution")
+
+    sns.relplot(x='rhythmic_dim_1', y='rhythmic_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6, style=style_plot)
+    save_plot(plot_dir, plot_name + "-rhythmic_bigrams", "Rhythmic bigrams distribution")
+
+
+def plot_characteristics_distributions(styles: Dict[str, Style], plot_dir: str, plot_name: str):
+    """
+    Generate 2 t-SNEs plots of the styles characteristic distributions: one with the intervals distribution and the
+    other with the rhythmic bigrams distribution.
+
+    Parameters
+    ----------
+    styles : Dictionary that maps style names (strings) with its correspondent Style object.
+
+    plot_dir : Directory where to save the generated plots.
+
+    plot_name : File name prefixes. It will be added suffixes "-intervals.png" and "-rhythmic_bigrams.png" to each plot
+
+    """
+    tsne_df = {"Name": [], "Style": []}
+    for n, s in styles.items():
+        tsne_df["Name"].append(n)
+        tsne_df["Style"].append(s)
+    tsne_df = pd.DataFrame(tsne_df)
+
+    tsne_df['intervals_distribution'] = tsne_df.apply(lambda row: np.hstack(row["Style"].intervals_distribution), axis=1)
+    tsne_df['rhythmic_bigrams_distribution'] = tsne_df.apply(lambda row: np.hstack(row["Style"].rhythmic_bigrams_distribution), axis=1)
+
+    plot_tsne_distributions(tsne_df, plot_dir, plot_name)
+
+
+def plot_fragments_distributions(df: pd.DataFrame, styles: Dict[str, Style], plot_dir: str, plot_name: str):
+    """
+    Generate 2 tSNEs plots of the fragments and styles characteristic distributions: one with the intervals
+    distribution and the other with the rhythmic bigrams distribution.
+
+    Parameters
+    ----------
+    df : DataFrame
+        It has to have columns "Style", "m" and "m'"
+
+    styles : dictionary(k: string, v: Style object)
+        Dictionary that maps style names (strings) with its correspondent Style object.
+
+    plot_dir : string
+        Directory where to save the generated plots.
+
+    plot_name : string
+        File name prefixes. It will be added suffixes "-intervals.png" and "-rhythmic_bigrams.png" to each plot
+
+    """
+    tsne_df = {"Name": [], "Type": [], "intervals_distribution": [], "rhythmic_bigrams_distribution": []}
+
+    for _, r in df.iterrows():
+        tsne_df["Name"] += ["m", "m'"]
+        tsne_df["Type"] += ["fragment", "fragment"]
+        tsne_df["intervals_distribution"].append(np.hstack(matrix_of_adjacent_intervals(r["roll"])[0]))
+        tsne_df["intervals_distribution"].append(np.hstack(matrix_of_adjacent_intervals(r["NewRoll"])[0]))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["roll"])))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["NewRoll"])))
+
+    for n, s in styles.items():
+        tsne_df["Name"].append(n)
+        tsne_df["Type"].append("style")
+        tsne_df["intervals_distribution"].append(np.hstack(s.intervals_distribution))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(s.rhythmic_bigrams_distribution))
+
+    tsne_df = pd.DataFrame(tsne_df)
+
+    plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot="Type")
+
 
 
 def intervals_plot(df, order: List, context='talk'):
@@ -128,10 +222,8 @@ def intervals_plot(df, order: List, context='talk'):
     plt.show()
 
 
-def single_plagiarism_plot(df, context, by_distance):
+def plagiarism_plot(df, context, s1, s2, by_distance):
     kind = "Distance" if by_distance else "Differences"
-    s1 = list(set(df["Style"]))[0]
-    s2 = list(set(df["Style"]))[1]
 
     sns.set_theme()
     sns.set_context(context)

@@ -1,6 +1,5 @@
 import os
 from collections import Counter
-from typing import List, Union
 
 import dfply
 import matplotlib.pyplot as plt
@@ -8,42 +7,10 @@ import pandas as pd
 import seaborn as sns
 
 from evaluation.metrics.plagiarism import get_most_similar_roll
-from model.colab_tension_vae.params import init
 from utils.audio_management import save_audio, display_audio
-from utils.files_utils import data_path, datasets_debug_path, load_pickle
-from utils.plots_utils import intervals_plot, single_plagiarism_plot
-
-
-def evaluate_model(metrics, orig, dest, eval_path=data_path, **kwargs):
-    merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
-    for k, v in kwargs.items():
-        if k == "cache_path": cache_path = v
-        elif k == "context": context = v
-        elif k == "by_distance": by_distance = v
-        elif k == "thold": thold = v
-
-    print("===== Evaluating plagiarism =====")
-    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], orig, dest, context,
-                                                    by_distance, thold)
-    print(table)
-
-    print("===== Evaluate interval distributions =====")
-    df_to_plot, table, i_successful_rolls = evaluate_intervals_distribution(metrics["intervals"],
-                                                                            metrics["original_style"],
-                                                                            metrics["target_style"],
-                                                                            context)
-    print(df_to_plot)
-    print(table)
-    # plot_characteristics(df_to_plot, )
-
-    successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
-    successful_rolls.dropna(inplace=True)
-    for _, row in successful_rolls.iterrows():
-        # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
-        audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
-                                pm=row["NewRoll"].midi,
-                                path=eval_path)[:-3] + 'mid'
-        display_audio(audio_file)
+from utils.files_utils import data_path
+from utils.plots_utils import intervals_plot, plagiarism_plot, calculate_TSNEs, plot_tsnes_comparison, plot_tsne, \
+    plot_fragments_distributions
 
 
 def calculate_resume_table(df, thold=1):
@@ -86,35 +53,17 @@ def evaluate_plagiarism_coincidences(df, direction, by_distance=False) -> float:
     return sum(similarities) / len(similarities)
 
 
-def plot_plagiarism(df, orig, dest, by_distance=False, context='talk'):
-    # plagiarism_df = get_plagiarism_ranking_table(df, cache_path=cache_path, by_distance=by_distance)
-
-    kind = "Distance" if by_distance else "Differences"
-
-    sns.set_theme()
-    sns.set_context(context)
-    sns.displot(data=df, x=f"{kind} position")
-    # sns.displot(data=plagiarism_df, x="Distance position", kind="kde")
-    plt.title(f'Plagiarism ranking of {orig} transformed to {dest}')
-    plt.show()
-
-
 def evaluate_plagiarism(df: pd.DataFrame, orig, dest, context='talk', by_distance=False, thold=1):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
     """
-    kind = "Distance" if by_distance else "Differences"
-
-    plot_plagiarism(df, orig, dest, by_distance=by_distance, context=context)
-    df["target"] = [dest if orig == df["Style"][i] else orig for i in range(df.shape[0])]
-
-    remap_dict = {f'{kind} relative ranking': f'Rel {kind[:4]}', f'{kind} position': f'Abs {kind[:4]}'}
-
     sns.set_theme()
     sns.set_context(context)
+    kind = "Distance" if by_distance else "Differences"
+    remap_dict = {f'{kind} relative ranking': f'Rel {kind[:4]}', f'{kind} position': f'Abs {kind[:4]}'}
 
-    table_results = pd.DataFrame()
+    df["target"] = [dest if orig == df["Style"][i] else orig for i in range(df.shape[0])]
 
     successful_rolls = df[df[f"{kind} position"] == 1]
     df_abs = (df
@@ -122,26 +71,22 @@ def evaluate_plagiarism(df: pd.DataFrame, orig, dest, context='talk', by_distanc
               >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
               )
 
-    table = calculate_resume_table(df_abs, thold)
+    table_results = calculate_resume_table(df_abs, thold)
     # table = get_plagiarism_results(df_abs, s1, s2, by_distance=by_distance, presentation_context=context)
-    single_plagiarism_plot(df, context, by_distance)
-    table_results = pd.concat([table_results, table])
-
+    plagiarism_plot(df, context, orig, dest, by_distance)
 
     table_results.sort_values(by="Percentage of winners", ascending=False, inplace=True)
     return table_results, successful_rolls
 
 
-def evaluate_single_intervals_distribution(orig, dest, interval_distances, plot=True, context='talk'):
-    if plot:
-        sns.set_theme()
-        sns.set_context(context)
-        sns.kdeplot(data=interval_distances, x="log(m's/ms)")
-        sns.displot(data=interval_distances, x="log(m's'/ms')", kind="kde")
-        plt.title(f'Interval distribution of \n{orig}? transformed to {dest}?')
-        plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
-        plt.show()
-    return interval_distances
+def plot_intervals_improvements(orig, dest, interval_distances, context='talk'):
+    sns.set_theme()
+    sns.set_context(context)
+    sns.kdeplot(data=interval_distances, x="log(m's/ms)")
+    sns.displot(data=interval_distances, x="log(m's'/ms')", kind="kde")
+    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
+    plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
+    # plt.show()
 
 
 def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation_context='talk'):
@@ -171,57 +116,71 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
                          })
 
 
-def evaluate_intervals_distribution(interval_distances, orig, dest, context='talk'):
+def evaluate_bigrams_distribution(interval_distances, orig, dest, context='talk'):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
     """
-    dfs_to_plot = []
-
-    df = evaluate_single_intervals_distribution(orig, dest, interval_distances, False, context)
-    # df1["target"] = [dest for _ in range(df1.shape[0])]
-
-    # df2 = evaluate_single_intervals_distribution(dest, orig, interval_distances, False, context)
-    # df2["target"] = [orig for _ in range(df2.shape[0])]
-
-    # dfs_to_plot.append(pd.concat([df1, df2]))
+    plot_intervals_improvements(orig, dest, interval_distances, context)
 
     remap_dict = {"log(m's/ms)": "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style",
                   "log(m's'/ms')": "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"}
 
-    table_results = pd.DataFrame()
-    successful_rolls = pd.DataFrame()
-    df_to_plot = pd.DataFrame()
-
-    # if merge:
-    #     merged_df = (merged_df
-    #                  >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
-    #                  >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
-    #                  )
-    #
-    #     intervals_plot(merged_df, merged_df['Style'].unique(), context)
-
-    successful_rolls = pd.concat([successful_rolls, df[df["log(m's'/ms')"] < 0]])
-    df = (df
+    successful_rolls = interval_distances[interval_distances["log(m's'/ms')"] < 0]
+    df = (interval_distances
           >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
           >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
           )
 
-    table = get_intervals_results(df, orig, dest, context)
-    table_results = pd.concat([table_results, table])
-    df_to_plot = pd.concat([df_to_plot, df])
+    table_results = get_intervals_results(df, orig, dest, context)
 
     table_results.sort_values(by=["% got closer"], ascending=False, inplace=True)
-    return df_to_plot, table_results, successful_rolls
+    return df, table_results, successful_rolls
 
 
-if __name__ == "__main__":
-    init(4)
-    # df1 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_Bach_ragtime.pkl"))
-    # df2 = load_pickle(os.path.join(data_path, "embeddings/brmf_4b/df_transferred_ragtime_Bach.pkl"))
-    # df = pd.concat([df1, df2], axis=0)
-    #
-    # df = get_plagiarism_ranking_table(df)
-    # save_pickle(df, f"{datasets_debug_path}/plagiarism_ranking_table")
-    df = load_pickle(f"{datasets_debug_path}/plagiarism_ranking_table")
-    df.to_csv(f"{data_path}/debug_outputs/plagiarism_ranking_table.csv")
+def evaluate_rhythmic_bigrams(df: pd.DataFrame, plots_path):
+    tsne_emb = calculate_TSNEs(df, column_discriminator="Style")[0]
+
+    plot_tsnes_comparison(df, tsne_emb, plots_path)
+    plot_tsne(df, tsne_emb, plots_path)
+
+
+def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
+    merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
+    for k, v in kwargs.items():
+        if k == "context": context = v
+        elif k == "by_distance": by_distance = v
+        elif k == "thold": thold = v
+
+
+    print("===== Evaluating interval distributions =====")
+    df_to_plot, table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
+                                                                          metrics["original_style"],
+                                                                          metrics["target_style"], context)
+    print(table)
+
+    print("===== Evaluating rhythmic bigrams distributions =====")
+    df_to_plot, table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+                                                                          metrics["original_style"],
+                                                                          metrics["target_style"], context)
+    print(table)
+
+    plot_fragments_distributions(df, styles_char, f"{eval_path}/plots", "Transformation_distribution")
+
+    print("===== Evaluating plagiarism =====")
+    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"],
+                                                    metrics["original_style"],
+                                                    metrics["target_style"], context, by_distance, thold)
+    print(table)
+
+    print("===== Creating audios of succesfull rolls =====")
+    successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
+    successful_rolls = pd.merge(successful_rolls, r_successful_rolls, how="inner", on=["Style", "Title"])
+    successful_rolls.dropna(inplace=True)
+
+    for _, row in successful_rolls.iterrows():
+        # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
+        audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
+                                pm=row["NewRoll"].midi,
+                                path=eval_path)[:-3] + 'mid'
+        display_audio(audio_file)

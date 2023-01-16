@@ -1,13 +1,12 @@
 import os.path
-from collections import Counter
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
 
 from model.colab_tension_vae import params
 from roll.guoroll import GuoRoll
-from utils.files_utils import root_file_name, load_pickle, save_pickle
+from utils.files_utils import root_file_name
 
 
 # TODO: revisar porque el pading en realidad no debería estar si ya le paso solo la matriz que importa.

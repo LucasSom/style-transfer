@@ -7,8 +7,8 @@ from dodo import do_evaluation, styles_names
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
-from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_path, get_transferred_path, \
-    get_metrics_path
+from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
+    get_metrics_dir, get_characteristics_path
 
 
 @pytest.fixture
@@ -93,9 +93,9 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
 def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    evaluate_single_intervals_distribution(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
-    evaluate_single_intervals_distribution(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
+    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
+    plot_intervals_improvements(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
+    plot_intervals_improvements(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
 
 
 def test_intervals_results():
@@ -105,8 +105,8 @@ def test_intervals_results():
                  + 10 * ["log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style"],
          'value': 5 * [-2] + [4, -1, -1, 4, 4] + [-3, -3, 2, -3, -3] + 5 * [-1]
          }
-    df = pd.DataFrame(d)
-    df_results = get_intervals_results(df, 'a', 'b')
+    d = pd.DataFrame(d)
+    df_results = get_intervals_results(d, 'a', 'b')
 
     assert list(df_results[df_results["Transference"] == f"a to b"]["% got closer"])[0] == 100
     assert list(df_results[df_results["Transference"] == f"b to a"]["% got closer"])[0] == 40
@@ -117,8 +117,8 @@ def test_intervals_results():
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
+    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
+    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv", index=False)
 
@@ -126,8 +126,8 @@ def test_evaluate_intervals_distribution_small(bmmr_dfs):
 def test_evaluate_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
+    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
+    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"])
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv", index=False)
 
@@ -135,8 +135,8 @@ def test_evaluate_intervals_distribution(all_dfs):
 def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_intervals_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"], context='talk')
+    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
+    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"], metrics["target_style"], context='talk')
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv", index=False)
 
@@ -148,33 +148,22 @@ def test_calculate_resume_table():
          "target": ["b", "a", "b", "a", "a", "a"],
          "value": [1, 2, 4, 1, 4, 5]
          }
-    df = pd.DataFrame(d)
+    d = pd.DataFrame(d)
 
-    t = calculate_resume_table(df, 1)
+    t = calculate_resume_table(d, 1)
     assert list(t["Style"]) == ["a", "b"]
     assert list(t["Target"]) == ["b", "a"]
     assert list(t["Percentage of winners"]) == [0.5, 0.25]
 
-    t = calculate_resume_table(df, 2)
+    t = calculate_resume_table(d, 2)
     assert list(t["Percentage of winners"]) == [0.5, 0.5]
-
-
-def test_evaluate_single_plagiarism(df_transferred):
-    init(4)
-    cached_path1 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table1"
-    cached_path2 = f"{data_path}/debug_outputs/tables/plagiarism_ranking_table2"
-    df1 = plot_plagiarism(df_transferred, orig="Bach", dest="ragtime")
-    df2 = plot_plagiarism(df_transferred, orig="ragtime", dest="Bach")
-    print(df1)
-    print(df2)
 
 
 def test_evaluate_plagiarism_1():
     init(4)
-    model_name = '4-br'
+    model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
-    cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-small"
 
     _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None)
     print(table)
@@ -182,7 +171,7 @@ def test_evaluate_plagiarism_1():
 
 def test_evaluate_plagiarism_separated_2():
     init(4)
-    model_name = '4-br'
+    model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
@@ -198,7 +187,7 @@ def test_evaluate_plagiarism_separated_2():
 
 def test_evaluate_plagiarism_separated_proportional_10():
     init(4)
-    model_name = '4-br'
+    model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
@@ -214,7 +203,7 @@ def test_evaluate_plagiarism_separated_proportional_10():
 
 def test_evaluate_plagiarism_separated_proportional_25():
     init(4)
-    model_name = '4-br'
+    model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
@@ -230,7 +219,7 @@ def test_evaluate_plagiarism_separated_proportional_25():
 
 def test_evaluate_plagiarism_separated_proportional_50():
     init(4)
-    model_name = '4-br'
+    model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
@@ -248,21 +237,21 @@ def test_display_best_audios():
     init(4)
 
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    metrics = load_pickle(get_metrics_path(get_transferred_path(s1, s2, model_name)))
+    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
 
-    evaluate_model(metrics, s1, s2, f"{data_path}/debug_outputs/audios/successful",
-                    cache_path=f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2",
-                    merge=False,
-                    by_distance=True,
-                    thold=2
-                   )
+    evaluate_model(None, metrics, {}, f"{data_path}/debug_outputs/audios/successful",
+                   cache_path=f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2", merge=False,
+                   by_distance=True, thold=2)
 
 
 def test_evaluation_task():
     init(4)
-    model_name = "4-br"
+    model_name = "4-small_br"
+
+    styles_path = get_characteristics_path(model_name)
+
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
-        eval_path = get_eval_path(transferred_path)
+        eval_path = get_eval_dir(transferred_path)
 
-        do_evaluation(transferred_path, transferred_path, eval_path, style1, style2)
+        do_evaluation(transferred_path, styles_path, eval_path, style1, style2)

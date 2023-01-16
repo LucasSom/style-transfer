@@ -1,12 +1,13 @@
+import datetime
 import getopt
 import os
 import shutil
 import sys
 from typing import List, Union
 
-import datetime
 import numpy as np
 import pandas as pd
+
 try:
     from keras.callbacks import ModelCheckpoint
 except ImportError:
@@ -15,7 +16,7 @@ except ImportError:
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path, path_saved_models, get_logs_path, \
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path, get_logs_path, \
     get_model_paths
 
 
@@ -70,7 +71,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
-    path_to_save = f"{vae_dir}/ckpt/"
+    path_to_save = f"{vae_dir}/ckpt/" if ckpt > 0 else f"{vae_dir}/"
     if os.path.isdir(path_to_save):
         shutil.rmtree(path_to_save)
     else:
@@ -85,7 +86,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
         mode='min',
     )
 
-    if ckpt == 0: ckpt = final_epoch + 1
+    if ckpt == 0: ckpt = final_epoch
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         callbacks = vae.fit(
             x=ds,

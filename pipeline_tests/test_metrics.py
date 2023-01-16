@@ -7,12 +7,12 @@ from dodo import styles_names, calculate_metrics
 from evaluation.metrics.intervals import plot_matrix_of_adjacent_intervals
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.plagiarism import dumb_pitch_plagiarism
-from evaluation.metrics.rhythmic_patterns import plot_matrix_of_adjacent_rhythmic_bigrams, pattern_to_int
+from evaluation.metrics.rhythmic_bigrams import plot_matrix_of_adjacent_rhythmic_bigrams, pattern_to_int
 from model.colab_tension_vae.params import init
 from roll.guoroll import GuoRoll
 from roll.song import Song
 from utils.files_utils import data_tests_path, load_pickle, original_audios_path, datasets_debug_path, \
-    get_transferred_path, get_metrics_path
+    get_transferred_path, get_metrics_dir, get_characteristics_path
 
 
 @pytest.fixture
@@ -164,20 +164,24 @@ def test_rhythm_dumb_plagiarism():
 # -------------------------------- TASK --------------------------------
 def test_obtain_metrics():
     init(4)
-    model_name = "4-br"
+    model_name = "4-small_br"
     e_orig, e_dest = "Bach", "ragtime"
 
     df1 = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
     df2 = load_pickle(get_transferred_path(e_dest, e_orig, model_name))
 
-    obtain_metrics(pd.concat([df1, df2]), e_orig, e_dest, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    char_path = get_characteristics_path(model_name)
+    styles = load_pickle(char_path)
+
+    obtain_metrics(pd.concat([df1, df2]), e_orig, e_dest, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
 
 
 def test_task():
-    model_name = "4-br"
+    model_name = "4-small_br"
 
     s1, s2 = styles_names(model_name)[0]
     transferred_path = get_transferred_path(s1, s2, model_name)
-    metrics_path = get_metrics_path(transferred_path)
+    metrics_path = get_metrics_dir(transferred_path)
+    char_path = get_characteristics_path(model_name)
 
-    calculate_metrics(transferred_path, metrics_path, model_name)
+    calculate_metrics(transferred_path, char_path, metrics_path, model_name)

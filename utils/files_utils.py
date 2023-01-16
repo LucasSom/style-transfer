@@ -72,11 +72,6 @@ def get_embedding_path(model_name, characteristics=False):
     return os.path.join(get_embedding_dir(model_name), 'authors_characteristics' if characteristics else 'df_emb')
 
 
-# def get_preproc_small_path(b):
-#     return os.path.join(data_path, 'preprocessed_data',
-#                         f'bach-rag-moz-fres-{b}_small.pkl')
-
-
 def get_model_paths(model_name: str):
     model_dir = os.path.join(data_path, model_name)
     vae_dir = os.path.join(model_dir, "vae")
@@ -88,8 +83,8 @@ def get_model_paths(model_name: str):
     return model_dir, vae_dir, vae_path
 
 
-def get_metrics_path(transferred_path: str):
-    metrics_file_path = f"{root_file_name(transferred_path)}-metrics.pkl"
+def get_metrics_dir(transferred_path: str):
+    metrics_file_path = f"{os.path.dirname(os.path.dirname(transferred_path))}/metrics"
     make_dirs_if_not_exists(metrics_file_path)
     return metrics_file_path
 
@@ -115,8 +110,9 @@ def get_reconstruction_path(model_name: str):
     return os.path.join(get_logs_path(model_name), 'reconstruction.pkl')
 
 
-def get_eval_path(transferred_path: str):
-    eval_path = f"{transferred_path}-eval.pkl"
+def get_eval_dir(transferred_path: str):
+    eval_path = f"{os.path.dirname(os.path.dirname(transferred_path))}/Evaluation"
+    make_dirs_if_not_exists(eval_path)
     return eval_path
 
 
