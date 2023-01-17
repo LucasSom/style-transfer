@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import pytest
 from matplotlib import pyplot as plt
 
@@ -155,7 +154,6 @@ def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_r
     assert b, m == (15, 14)
 
 
-# TODO
 def test_rhythm_dumb_plagiarism():
     pass
 

@@ -7,10 +7,8 @@ import pandas as pd
 import seaborn as sns
 
 from evaluation.metrics.plagiarism import get_most_similar_roll
-from utils.audio_management import save_audio, display_audio
 from utils.files_utils import data_path
-from utils.plots_utils import bigrams_plot, plagiarism_plot, calculate_TSNEs, plot_tsnes_comparison, plot_tsne, \
-    plot_fragments_distributions
+from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_fragments_distributions
 
 
 def calculate_resume_table(df, thold=1):
