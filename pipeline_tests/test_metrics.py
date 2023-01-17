@@ -165,15 +165,14 @@ def test_rhythm_dumb_plagiarism():
 def test_obtain_metrics():
     init(4)
     model_name = "4-small_br"
-    e_orig, e_dest = "Bach", "ragtime"
+    e_orig, e_dest = "small_Bach", "small_ragtime"
 
-    df1 = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
-    df2 = load_pickle(get_transferred_path(e_dest, e_orig, model_name))
+    df = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
 
     char_path = get_characteristics_path(model_name)
     styles = load_pickle(char_path)
 
-    obtain_metrics(pd.concat([df1, df2]), e_orig, e_dest, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    obtain_metrics(df, e_orig, e_dest, styles, 'rhythmic_bigrams', 'plagiarism', 'intervals')
 
 
 def test_task():

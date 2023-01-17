@@ -9,7 +9,7 @@ import seaborn as sns
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.audio_management import save_audio, display_audio
 from utils.files_utils import data_path
-from utils.plots_utils import intervals_plot, plagiarism_plot, calculate_TSNEs, plot_tsnes_comparison, plot_tsne, \
+from utils.plots_utils import bigrams_plot, plagiarism_plot, calculate_TSNEs, plot_tsnes_comparison, plot_tsne, \
     plot_fragments_distributions
 
 
@@ -53,7 +53,7 @@ def evaluate_plagiarism_coincidences(df, direction, by_distance=False) -> float:
     return sum(similarities) / len(similarities)
 
 
-def evaluate_plagiarism(df: pd.DataFrame, orig, dest, context='talk', by_distance=False, thold=1):
+def evaluate_plagiarism(df: pd.DataFrame, orig, dest, eval_dir, by_distance=False, context='talk', thold=1):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
@@ -73,7 +73,7 @@ def evaluate_plagiarism(df: pd.DataFrame, orig, dest, context='talk', by_distanc
 
     table_results = calculate_resume_table(df_abs, thold)
     # table = get_plagiarism_results(df_abs, s1, s2, by_distance=by_distance, presentation_context=context)
-    plagiarism_plot(df, context, orig, dest, by_distance)
+    plagiarism_plot(df, orig, dest, by_distance, eval_dir, context)
 
     table_results.sort_values(by="Percentage of winners", ascending=False, inplace=True)
     return table_results, successful_rolls
@@ -89,7 +89,7 @@ def plot_intervals_improvements(orig, dest, interval_distances, context='talk'):
     # plt.show()
 
 
-def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation_context='talk'):
+def get_bigrams_results(df: pd.DataFrame, orig: str, target: str, eval_dir: str, plot_name: str, presentation_context='talk'):
     """
     Calculate the percentage of rolls that improve with the transformation (how many rolls got away from the old style
      and how many got closer to the new one).
@@ -97,6 +97,8 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
     :param df: dataframe with distances values. It must have at least the columns 'orig', 'target', 'type' and 'value'.
     :param orig: name of a style to analyze.
     :param target: name of the other style to analyze.
+    :param eval_dir: directory where save the plots
+    :param plot_name: name of the plot (used for the title and the file name)
     :param presentation_context: plot context ('talk' as default, 'paper' or 'poster').
     :return: It returns a DataFrame with columns 'Transference', '% got away' and '% got closer'
     """
@@ -105,7 +107,7 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
 
     df_got_away = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style"]
     df_got_closer = df_s1_to_s2[df_s1_to_s2['type'] == "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"]
-    intervals_plot(df_s1_to_s2, [orig, target], presentation_context)
+    bigrams_plot(df_s1_to_s2, [orig, target], eval_dir, plot_name, presentation_context)
 
     results[f"{orig} to {target}"] = df_got_away[df_got_away['value'] > 0].shape[0] / df_got_away.shape[0], \
                                      df_got_closer[df_got_closer['value'] < 0].shape[0] / df_got_closer.shape[0]
@@ -116,33 +118,26 @@ def get_intervals_results(df: pd.DataFrame, orig: str, target: str, presentation
                          })
 
 
-def evaluate_bigrams_distribution(interval_distances, orig, dest, context='talk'):
+def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_name, context='talk'):
     """
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
     """
-    plot_intervals_improvements(orig, dest, interval_distances, context)
+    plot_intervals_improvements(orig, dest, bigram_distances, context)
 
     remap_dict = {"log(m's/ms)": "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style",
                   "log(m's'/ms')": "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"}
 
-    successful_rolls = interval_distances[interval_distances["log(m's'/ms')"] < 0]
-    df = (interval_distances
+    successful_rolls = bigram_distances[bigram_distances["log(m's'/ms')"] < 0]
+    df = (bigram_distances
           >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
           >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
           )
 
-    table_results = get_intervals_results(df, orig, dest, context)
+    table_results = get_bigrams_results(df, orig, dest, eval_path, plot_name, context)
 
     table_results.sort_values(by=["% got closer"], ascending=False, inplace=True)
     return df, table_results, successful_rolls
-
-
-def evaluate_rhythmic_bigrams(df: pd.DataFrame, plots_path):
-    tsne_emb = calculate_TSNEs(df, column_discriminator="Style")[0]
-
-    plot_tsnes_comparison(df, tsne_emb, plots_path)
-    plot_tsne(df, tsne_emb, plots_path)
 
 
 def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
@@ -152,25 +147,26 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
         elif k == "by_distance": by_distance = v
         elif k == "thold": thold = v
 
+    print("===== Evaluating rhythmic bigrams distributions =====")
+    df_to_plot, table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+                                                                          metrics["original_style"],
+                                                                          metrics["target_style"],
+                                                                          eval_path, "Rhythmic bigrams", context)
+    print(table)
 
     print("===== Evaluating interval distributions =====")
     df_to_plot, table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
                                                                           metrics["original_style"],
-                                                                          metrics["target_style"], context)
+                                                                          metrics["target_style"],
+                                                                          eval_path, "Interval", context)
     print(table)
 
-    print("===== Evaluating rhythmic bigrams distributions =====")
-    df_to_plot, table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
-                                                                          metrics["original_style"],
-                                                                          metrics["target_style"], context)
-    print(table)
 
-    plot_fragments_distributions(df, styles_char, f"{eval_path}/plots", "Transformation_distribution")
+    plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
 
     print("===== Evaluating plagiarism =====")
-    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"],
-                                                    metrics["original_style"],
-                                                    metrics["target_style"], context, by_distance, thold)
+    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
+                                                    metrics["target_style"], eval_path, by_distance, context, thold)
     print(table)
 
     print("===== Selecting audios of successful rolls =====")
@@ -179,9 +175,3 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     successful_rolls.dropna(inplace=True)
 
     return successful_rolls
-    # for _, row in successful_rolls.iterrows():
-    #     # display(PlayMidi(row["roll"].midi[:-3] + 'mid'))
-    #     audio_file = save_audio(name=f"{row['Title']}_to_{row['target_x']}",
-    #                             pm=row["NewRoll"].midi,
-    #                             path=eval_path)[:-3] + 'mid'
-    #     display_audio(audio_file)

@@ -155,7 +155,6 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
     df = load_pickle(df_path)
 
     df_emb, styles_char = obtain_characteristics(df, model)
-    # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
     plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir, include_songs=True)
     plot_characteristics_distributions(styles_char, plots_dir, "Distributions_characteristics")
@@ -292,7 +291,7 @@ def task_evaluation():
             'actions': [(do_evaluation, [transferred_path, styles_path, eval_dir, s1, s2, b])],
             'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl", f"{eval_dir}/successful_rolls-{s2}_to_{s1}.pkl"],
             'verbosity': 2,
-            # 'uptodate': [False]
+            'uptodate': [False]
         }
 
 

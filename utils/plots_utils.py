@@ -18,10 +18,10 @@ from utils.files_utils import data_path
 
 def save_plot(plot_dir, plot_name, title=None):
     if not title is None: plt.title(title)
-    if not os.path.isdir(plot_dir):
-        os.makedirs(plot_dir)
-    print(f"Saving plot as {plot_dir}/{plot_name}.png")
-    plt.savefig(f"{plot_dir}/{plot_name}.png")
+    if not os.path.isdir(plot_dir + "/plots/"):
+        os.makedirs(plot_dir + "/plots/")
+    print(f"Saving plot as {plot_dir}/plots/{plot_name}.png")
+    plt.savefig(f"{plot_dir}/plots/{plot_name}.png")
 
 
 def plot_area(area, color):
@@ -184,8 +184,8 @@ def plot_fragments_distributions(df: pd.DataFrame, styles: Dict[str, Style], plo
         tsne_df["Type"] += ["fragment", "fragment"]
         tsne_df["intervals_distribution"].append(np.hstack(matrix_of_adjacent_intervals(r["roll"])[0]))
         tsne_df["intervals_distribution"].append(np.hstack(matrix_of_adjacent_intervals(r["NewRoll"])[0]))
-        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["roll"])))
-        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["NewRoll"])))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["roll"])[0]))
+        tsne_df["rhythmic_bigrams_distribution"].append(np.hstack(matrix_of_adjacent_rhythmic_bigrams(r["NewRoll"])[0]))
 
     for n, s in styles.items():
         tsne_df["Name"].append(n)
@@ -199,7 +199,7 @@ def plot_fragments_distributions(df: pd.DataFrame, styles: Dict[str, Style], plo
 
 
 
-def intervals_plot(df, order: List, context='talk'):
+def bigrams_plot(df, order: List, eval_dir, plot_name, context='talk'):
     if len(order) == 2:
         col = [order[0]]
         row = [order[1]]
@@ -212,17 +212,13 @@ def intervals_plot(df, order: List, context='talk'):
     sns.set_context(context)
 
     sns.displot(data=df, x="value", hue="type", kind='kde', col_order=col, row_order=row)
-    # plt.show()
-
     plot_area((0, 1), 'C0')
     plot_area((-1, 0), 'C1')
 
-    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
-    plt.savefig(os.path.join(data_path, f"debug_outputs/plots/intervals/{orig}_to_{dest}.png"))
-    plt.show()
+    save_plot(eval_dir, plot_name, f'{plot_name} distribution of \n{orig} transformed to {dest}')
 
 
-def plagiarism_plot(df, context, s1, s2, by_distance):
+def plagiarism_plot(df, s1, s2, by_distance, eval_dir, context):
     kind = "Distance" if by_distance else "Differences"
 
     sns.set_theme()
@@ -237,6 +233,6 @@ def plagiarism_plot(df, context, s1, s2, by_distance):
 
         plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
-        plt.savefig(os.path.join(data_path, "debug_outputs/plots/plagiarism/pruebas",
-                                 f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"))
-        plt.show()
+        plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"
+        title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
+        save_plot(eval_dir, plot_name, title)

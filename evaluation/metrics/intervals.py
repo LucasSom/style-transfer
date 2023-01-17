@@ -9,7 +9,7 @@ from utils.utils import normalize
 
 
 def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):
-    intervals = roll_or_song.get_adjacent_intervals(voice)
+    intervals: List[int] = roll_or_song.get_adjacent_intervals(voice)
 
     return np.histogram2d(intervals[:-1], intervals[1:], bins=(range(-12, 13), range(-12, 13)))
 
@@ -29,7 +29,7 @@ def get_interval_distribution_params(intervals: List[int]):
 
 def get_style_intervals_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
     """
-    Computes the average embedding of the rolls of the style
+    Compute the average distribution of the interval bigrams of the rolls of the style
     :param df: df with columns 'Style' and 'roll'
     :param style: it must be one of the Style column
 
