@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from evaluation.metrics.intervals import get_matrix_comparisons, matrix_of_adjacent_intervals
+from evaluation.metrics.musicality import get_information_rate_table
 from evaluation.metrics.plagiarism import get_plagiarism_ranking_table
 from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
 
@@ -19,7 +20,7 @@ def obtain_metrics(df, e_orig, e_dest, characteristics, *argv):
 
         if metric == "plagiarism": d["plagiarism"] = get_plagiarism_ranking_table(df)
 
-        # if metric == "musicality": d["intervals"] = get_information_rate_table(df)
+        if metric == "musicality": d["musicality"] = get_information_rate_table(df)
     return d
 
 

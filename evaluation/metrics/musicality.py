@@ -1,8 +1,8 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy
-
-from model.colab_tension_vae.params import config
 
 
 def information_rate(m):
@@ -14,8 +14,12 @@ def information_rate(m):
     ir = []
 
     for t in range(1, m.shape[0]):
-        stats[np.where(m[t - 1, :])[0][0], np.where(m[t, :])[0][0]] += 1
-        ir.append(entropy(stats.sum(axis=0)) - entropy(stats[np.where(m[t - 1, :])[0][0], :]))
+        try:
+            stats[np.where(m[t - 1, :])[0][0], np.where(m[t, :])[0][0]] += 1
+            ir.append(entropy(stats.sum(axis=0)) - entropy(stats[np.where(m[t - 1, :])[0][0], :]))
+        except:
+            if len(list(np.where(m[t, :])[0])) == 0:
+                warnings.warn(f"Skipping IR calculation of index {t} because it was empty.")
     return np.mean(ir)
 
 

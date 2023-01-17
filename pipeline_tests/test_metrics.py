@@ -170,7 +170,10 @@ def test_obtain_metrics():
     char_path = get_characteristics_path(model_name)
     styles = load_pickle(char_path)
 
-    obtain_metrics(df, e_orig, e_dest, styles, 'rhythmic_bigrams', 'plagiarism', 'intervals')
+    # obtain_metrics(df, e_orig, e_dest, styles, 'rhythmic_bigrams', 'plagiarism', 'intervals')
+    d = obtain_metrics(df, e_orig, e_dest, styles, 'musicality')
+    print("")
+    print(d["musicality"])
 
 
 def test_task():

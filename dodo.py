@@ -231,10 +231,10 @@ def calculate_metrics(trans_path, char_path, metrics_dir, model_name, b=4):
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(char_path)
 
-    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams', 'musicality')
     save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
 
-    metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams')
+    metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams', 'musicality')
     metrics2['plagiarism'] = metrics1['plagiarism']
     save_pickle(metrics2, f"{metrics_dir}/metrics_{s2}_to_{s1}")
 
@@ -253,7 +253,7 @@ def task_metrics():
             'actions': [(calculate_metrics, [transferred_path, characteristics_path, metrics_path, model_name, b])],
             'targets': [f"{metrics_path}/metrics_{s1}_to_{s2}.pkl", f"{metrics_path}/metrics_{s2}_to_{s1}.pkl"],
             'verbosity': 2,
-            # 'uptodate': [False]
+            'uptodate': [False]
         }
 
 
