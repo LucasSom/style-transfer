@@ -4,8 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from evaluation.metrics.metrics import get_matrix_comparisons
-from utils.utils import normalize
+from utils.utils import normalize, get_matrix_comparisons
 
 
 def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):

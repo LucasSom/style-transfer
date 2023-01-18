@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from scipy.stats import entropy
 
 
 def filter_column(df, column="Embedding", tipo='Fragmento'):
@@ -34,3 +35,24 @@ def show_sheets(df_transferred, column, sheets_path, suffix):
     for title, roll in zip(titles, rolls):
         sheet_path = os.path.join(sheets_path, title)
         roll.display_score(file_name=sheet_path, fmt='png', do_display=False)
+
+
+def get_matrix_comparisons(m_orig, m_trans, orig_avg, trans_avg):
+    """
+    :param m_orig: matrix of the original roll
+    :param m_trans: matrix of the transformed roll
+    :param orig_avg: matrix from the original style
+    :param trans_avg: matrix from the target style
+    """
+    return {
+        "ms": cmp_matrices(m_orig, orig_avg),
+        "ms'": cmp_matrices(m_orig, trans_avg),
+        "m's": cmp_matrices(m_trans, orig_avg),
+        "m's'": cmp_matrices(m_trans, trans_avg)
+    }
+
+
+def cmp_matrices(m, avg):
+    assert m.shape == avg.shape
+    m_normalized = normalize(m)
+    return np.mean([entropy(avg, m_normalized), entropy(m_normalized, avg)])

@@ -246,7 +246,7 @@ def test_evaluate_plagiarism_separated_proportional_50():
     print(table)
 
 
-def test_display_best_audios():
+def test_evaluate_model():
     init(4)
 
     s1, s2, model_name = "small_Bach", "small_ragtime", "4-small_br"

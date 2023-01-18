@@ -1,3 +1,4 @@
+import copy
 import warnings
 
 import numpy as np
@@ -20,24 +21,20 @@ def information_rate(m):
         except:
             if len(list(np.where(m[t, :])[0])) == 0:
                 warnings.warn(f"Skipping IR calculation of index {t} because it was empty.")
+            else:
+                warnings.warn(f"Skipping IR calculation of index {t} even if it was not empty.")
     return np.mean(ir)
 
 
-def get_information_rate_table(df):
+def get_information_rate_table(df, inplace=True):
     """
-    :param df: df_transferred
+    :param df: df with columns 'Title', 'Style', 'roll' and 'NewRoll'.
+    :param inplace: whether to modify the input dataframe.
+    :return: DataFrame with the same columns as input with the addition of 'IR orig' and 'IR trans'.
     """
-    table = {"Style": [],
-             "Title": [],
-             # "dest_name": [],
-             "IR orig": [],
-             "IR trans": [],
-             }
+    df_out = df if inplace else copy.copy(df)
 
-    for title, style, r_orig, r_trans in zip(df["Title"], df["Style"], df['roll'], df["NewRoll"]):
-        table["Style"].append(style)
-        table["Title"].append(title)
-        table["IR orig"].append(information_rate(r_orig.matrix))
-        table["IR trans"].append(information_rate(r_trans.matrix))
+    df_out["IR orig"] = df_out.apply(lambda row: information_rate(row["roll"].matrix), axis=1)
+    df_out["IR trans"] = df_out.apply(lambda row: information_rate(row["NewRoll"].matrix), axis=1)
 
-    return pd.DataFrame(table)
+    return df_out

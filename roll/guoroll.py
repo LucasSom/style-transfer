@@ -1,5 +1,6 @@
 import os
 import glob
+import random
 from typing import List
 
 import music21 as m21
@@ -145,6 +146,42 @@ class GuoRoll:
 
         print("File saved in ", os.path.abspath(lily))
         return lily
+
+
+    def _get_permutation(self, changes, permutation, voice):
+        durations = []
+        for i, c in enumerate(changes):
+            if i == changes.shape[0] - 1:
+                durations.append((c, self.matrix.shape[0] - c))
+            else:
+                durations.append((c, changes[i+1] - c))
+
+        random.shuffle(durations)
+
+        i = 0
+        for start, duration in durations:
+            for j in range(i, i+duration):
+                permutation[j] += voice[start]
+            i += duration
+
+        return permutation
+
+    def permute(self, melody_changes, bass_changes):
+        permutation = np.zeros(self.matrix.shape)
+
+        voice = np.concatenate((self.get_melody(),                                  # matrix of 64 x 74 (in 4 bars)
+                                np.zeros((self.matrix.shape[0],                     # matrix of 64 x 15 (in 4 bars)
+                                          self.matrix.shape[1] - self.get_melody().shape[1]))),
+                               axis=1)                                              # result: matrix of 64 x 89
+        permutation = self._get_permutation(melody_changes, permutation, voice)
+
+        voice = np.concatenate((np.zeros((self.get_melody().shape[0], self.get_melody().shape[1] + 1)),
+                                self.get_bass(),
+                                np.zeros((self.get_bass().shape[0], 1))
+                                ), axis=1)
+        permutation = self._get_permutation(bass_changes, permutation, voice)
+
+        return permutation
 
 
 def rolls_to_midis(rolls):

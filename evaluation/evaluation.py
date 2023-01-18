@@ -1,11 +1,15 @@
 import os
 from collections import Counter
+from statistics import mean
+from typing import List
 
 import dfply
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.files_utils import data_path
 from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_fragments_distributions
@@ -135,8 +139,42 @@ def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_
     table_results = get_bigrams_results(df, orig, dest, eval_path, plot_name, context)
 
     table_results.sort_values(by=["% got closer"], ascending=False, inplace=True)
-    return df, table_results, successful_rolls
+    return table_results, successful_rolls
 
+
+def evaluate_musicality(df, eval_path, context='talk', permutations=10, alpha=0.1):
+    def roll_IRs_permutations(roll, n) -> List[int]:
+        melody_changes = np.argwhere(roll.get_melody_changes() == 1)
+        bass_changes = np.argwhere(roll.get_bass_changes() == 1)
+
+        melody_changes = melody_changes.reshape(melody_changes.shape[0])
+        bass_changes = bass_changes.reshape(bass_changes.shape[0])
+
+        ps = [roll.permute(melody_changes, bass_changes) for _ in range(n)]
+        return list(map(information_rate, ps))
+
+    def distribution(irs: List[int]):
+        ... # TODO: TO IMPLEMENT
+
+    df["IRs of permutations"] = df.apply(lambda row: roll_IRs_permutations(row['roll'], permutations), axis=1)
+    df["Distribution of probability of IRs"] = df.apply(lambda row: distribution(row['IRs of permutations']), axis=1)
+    df["Average IR of permutations"] = df.apply(lambda row: mean(row["IRs of permutations"]), axis=1)
+    df["Distance difference"] = df.apply(lambda row:
+                                         abs(row["IR trans"] - row["Average IR of permutations"])
+                                         - abs(row["IR trans"] - row["IR orig"]),
+                                         axis=1)
+
+    def hypothesis_test(df, alpha) -> pd.DataFrame:
+        ... # TODO: TO IMPLEMENT
+
+    df_verified_precondition = hypothesis_test(df, alpha)
+    successful_rolls = df_verified_precondition[df_verified_precondition["Distance difference"] > 0]
+    table_results = pd.DataFrame({
+        "% IR from original roll has low probability to be in the IRs permutations distribution" : [df_verified_precondition.shape[0] / df.shape[0] * 100],
+        "% have more musicality than permutations": [successful_rolls.shape[0] / df.shape[0] * 100]
+    })
+
+    return table_results, successful_rolls
 
 def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
@@ -145,31 +183,38 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
         elif k == "by_distance": by_distance = v
         elif k == "thold": thold = v
 
-    print("===== Evaluating rhythmic bigrams distributions =====")
-    df_to_plot, table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
-                                                                          metrics["original_style"],
-                                                                          metrics["target_style"],
-                                                                          eval_path, "Rhythmic bigrams", context)
+    # print("===== Evaluating rhythmic bigrams distributions =====")
+    # table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+    #                                                           metrics["original_style"],
+    #                                                           metrics["target_style"],
+    #                                                           eval_path, "Rhythmic bigrams", context)
+    # print(table)
+    #
+    # print("===== Evaluating interval distributions =====")
+    # table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
+    #                                                           metrics["original_style"],
+    #                                                           metrics["target_style"],
+    #                                                           eval_path, "Interval", context)
+    # print(table)
+    #
+    # plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
+    #
+    #
+    # print("===== Evaluating plagiarism =====")
+    # table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
+    #                                                 metrics["target_style"], eval_path, by_distance, context, thold)
+    # print(table)
+
+
+    print("===== Evaluating musicality =====")
+    table, ir_successful_rolls = evaluate_musicality(metrics["musicality"], eval_path, context)
     print(table)
 
-    print("===== Evaluating interval distributions =====")
-    df_to_plot, table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
-                                                                          metrics["original_style"],
-                                                                          metrics["target_style"],
-                                                                          eval_path, "Interval", context)
-    print(table)
-
-
-    plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
-
-    print("===== Evaluating plagiarism =====")
-    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
-                                                    metrics["target_style"], eval_path, by_distance, context, thold)
-    print(table)
 
     print("===== Selecting audios of successful rolls =====")
     successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
     successful_rolls = pd.merge(successful_rolls, r_successful_rolls, how="inner", on=["Style", "Title"])
+    successful_rolls = pd.merge(successful_rolls, ir_successful_rolls, how="inner", on=["Style", "Title"])
     successful_rolls.dropna(inplace=True)
 
     return successful_rolls

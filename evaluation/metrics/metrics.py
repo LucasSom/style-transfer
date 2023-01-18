@@ -1,12 +1,11 @@
 import numpy as np
 import pandas as pd
-from scipy.stats import entropy
 
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
 from evaluation.metrics.musicality import get_information_rate_table
 from evaluation.metrics.plagiarism import get_plagiarism_ranking_table
 from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
-from utils.utils import normalize
+from utils.utils import get_matrix_comparisons
 
 
 def obtain_metrics(df, e_orig, e_dest, characteristics, *argv):
@@ -24,28 +23,6 @@ def obtain_metrics(df, e_orig, e_dest, characteristics, *argv):
 
         if metric == "musicality": d["musicality"] = get_information_rate_table(df)
     return d
-
-
-
-def cmp_matrices(m, avg):
-    assert m.shape == avg.shape
-    m_normalized = normalize(m)
-    return np.mean([entropy(avg, m_normalized), entropy(m_normalized, avg)])
-
-
-def get_matrix_comparisons(m_orig, m_trans, orig_avg, trans_avg):
-    """
-    :param m_orig: matrix of the original roll
-    :param m_trans: matrix of the transformed roll
-    :param orig_avg: matrix from the original style
-    :param trans_avg: matrix from the target style
-    """
-    return {
-        "ms": cmp_matrices(m_orig, orig_avg),
-        "ms'": cmp_matrices(m_orig, trans_avg),
-        "m's": cmp_matrices(m_trans, orig_avg),
-        "m's'": cmp_matrices(m_trans, trans_avg)
-    }
 
 
 def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: dict, rhythm=False):
