@@ -3,8 +3,8 @@ from typing import List
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from scipy.stats import entropy
 
+from evaluation.metrics.metrics import get_matrix_comparisons
 from utils.utils import normalize
 
 
@@ -43,27 +43,6 @@ def get_style_intervals_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
 
     assert df_style.shape[0] != 0
     return normalize(avg / df_style.shape[0])
-
-
-def cmp_matrices(m, avg):
-    assert m.shape == avg.shape
-    m_normalized = normalize(m)
-    return np.mean([entropy(avg, m_normalized), entropy(m_normalized, avg)])
-
-
-def get_matrix_comparisons(m_orig, m_trans, orig_avg, trans_avg):
-    """
-    :param m_orig: matrix of the original roll
-    :param m_trans: matrix of the transformed roll
-    :param orig_avg: matrix from the original style
-    :param trans_avg: matrix from the target style
-    """
-    return {
-        "ms": cmp_matrices(m_orig, orig_avg),
-        "ms'": cmp_matrices(m_orig, trans_avg),
-        "m's": cmp_matrices(m_trans, orig_avg),
-        "m's'": cmp_matrices(m_trans, trans_avg)
-    }
 
 
 def evaluate_interval_distribution(m_orig, m_trans, orig_avg, trans_avg):
