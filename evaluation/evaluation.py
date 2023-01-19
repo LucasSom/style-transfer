@@ -1,6 +1,5 @@
 import os
 from collections import Counter
-from statistics import mean
 from typing import List
 
 import dfply
@@ -142,7 +141,7 @@ def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_
     return table_results, successful_rolls
 
 
-def evaluate_musicality(df, eval_path, context='talk', permutations=10, alpha=0.1):
+def evaluate_musicality(df, permutations=10, alpha=0.1):
     def roll_IRs_permutations(roll, n) -> List[int]:
         melody_changes = np.argwhere(roll.get_melody_changes() == 1)
         bass_changes = np.argwhere(roll.get_bass_changes() == 1)
@@ -154,23 +153,29 @@ def evaluate_musicality(df, eval_path, context='talk', permutations=10, alpha=0.
         return list(map(information_rate, ps))
 
     def distribution(irs: List[int]):
-        ... # TODO: TO IMPLEMENT
+        return {"mean": np.mean(irs), "std": np.std(irs)}
 
     df["IRs of permutations"] = df.apply(lambda row: roll_IRs_permutations(row['roll'], permutations), axis=1)
-    df["Distribution of probability of IRs"] = df.apply(lambda row: distribution(row['IRs of permutations']), axis=1)
-    df["Average IR of permutations"] = df.apply(lambda row: mean(row["IRs of permutations"]), axis=1)
+    # df["Distribution of probability of IRs"] = df.apply(lambda row: distribution(row['IRs of permutations']), axis=1)
+    df["IRs mean"] = df.apply(lambda row: np.mean(row['IRs of permutations']), axis=1)
+    df["IRs std"] = df.apply(lambda row: np.std(row['IRs of permutations']), axis=1)
+
+    df["Average IR of permutations"] = df.apply(lambda row: np.mean(row["IRs of permutations"]), axis=1)
     df["Distance difference"] = df.apply(lambda row:
                                          abs(row["IR trans"] - row["Average IR of permutations"])
                                          - abs(row["IR trans"] - row["IR orig"]),
                                          axis=1)
 
     def hypothesis_test(df, alpha) -> pd.DataFrame:
-        ... # TODO: TO IMPLEMENT
+        df["Hypothesis Test"] = df.apply(lambda row: row["IR orig"] < row["IRs mean"] - row["IRs std"]
+                                                     or row["IR orig"] > row["IRs mean"] + row["IRs std"], axis=1)
 
-    df_verified_precondition = hypothesis_test(df, alpha)
-    successful_rolls = df_verified_precondition[df_verified_precondition["Distance difference"] > 0]
+        return df[df["Hypothesis Test"]]
+
+    df_verified_hypothesis = hypothesis_test(df, alpha)
+    successful_rolls = df_verified_hypothesis[df_verified_hypothesis["Distance difference"] > 0]
     table_results = pd.DataFrame({
-        "% IR from original roll has low probability to be in the IRs permutations distribution" : [df_verified_precondition.shape[0] / df.shape[0] * 100],
+        "% IR from original roll has low probability to be in the IRs permutations distribution" : [df_verified_hypothesis.shape[0] / df.shape[0] * 100],
         "% have more musicality than permutations": [successful_rolls.shape[0] / df.shape[0] * 100]
     })
 
@@ -183,31 +188,31 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
         elif k == "by_distance": by_distance = v
         elif k == "thold": thold = v
 
-    # print("===== Evaluating rhythmic bigrams distributions =====")
-    # table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
-    #                                                           metrics["original_style"],
-    #                                                           metrics["target_style"],
-    #                                                           eval_path, "Rhythmic bigrams", context)
-    # print(table)
-    #
-    # print("===== Evaluating interval distributions =====")
-    # table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
-    #                                                           metrics["original_style"],
-    #                                                           metrics["target_style"],
-    #                                                           eval_path, "Interval", context)
-    # print(table)
-    #
-    # plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
-    #
-    #
-    # print("===== Evaluating plagiarism =====")
-    # table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
-    #                                                 metrics["target_style"], eval_path, by_distance, context, thold)
-    # print(table)
+    print("===== Evaluating rhythmic bigrams distributions =====")
+    table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+                                                              metrics["original_style"],
+                                                              metrics["target_style"],
+                                                              eval_path, "Rhythmic bigrams", context)
+    print(table)
+
+    print("===== Evaluating interval distributions =====")
+    table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
+                                                              metrics["original_style"],
+                                                              metrics["target_style"],
+                                                              eval_path, "Interval", context)
+    print(table)
+
+    plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
+
+
+    print("===== Evaluating plagiarism =====")
+    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
+                                                    metrics["target_style"], eval_path, by_distance, context, thold)
+    print(table)
 
 
     print("===== Evaluating musicality =====")
-    table, ir_successful_rolls = evaluate_musicality(metrics["musicality"], eval_path, context)
+    table, ir_successful_rolls = evaluate_musicality(metrics["musicality"])
     print(table)
 
 
