@@ -2,6 +2,7 @@ import copy
 import os
 from typing import List, Union, Dict
 
+import dfply
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -17,6 +18,9 @@ from utils.files_utils import data_path
 
 
 def save_plot(plot_dir, plot_name, title=None):
+    """
+    Save the plot in a subfolder 'plots' of plot_dir with name 'plot_name and title 'title'.
+    """
     if not title is None: plt.title(title)
     if not os.path.isdir(plot_dir + "/plots/"):
         os.makedirs(plot_dir + "/plots/")
@@ -27,6 +31,10 @@ def save_plot(plot_dir, plot_name, title=None):
 def plot_area(area, color):
     plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)
 
+
+
+def plot_styles_bigrams_entropy(df):
+    ...
 
 def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
     plt.figure(figsize=figsize)
@@ -236,3 +244,27 @@ def plagiarism_plot(df, s1, s2, by_distance, eval_dir, context):
         plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"
         title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
         save_plot(eval_dir, plot_name, title)
+
+def plot_IR_distributions(df: pd.DataFrame, plot_dir):
+    for style in set(df["Style"]):
+        df_style = df[df["Style"] == style]
+
+        df_permutations = pd.DataFrame()
+        for _, row in df_style.iterrows():
+            irs = row["IRs perm"]
+            df_permutation = pd.DataFrame({"Style": [style for _ in range(len(irs))],
+                                           "type": ["IR perm" for _ in range(len(irs))],
+                                           "IR": [ir for ir in irs],
+                                           })
+            df_permutations = pd.concat([df_permutations, df_permutation])
+
+        df_style = (df_style
+                    >> dfply.gather("type", "IR", ["IR orig", "IR trans"])
+                   )
+        df_to_plot = pd.concat([df_style[["Style", "type", "IR"]], df_permutations])
+
+        sns.displot(df_to_plot[["type", "IR"]].reset_index(), x="IR", kind='kde', hue='type', rug=True)
+        # sns.displot(df_to_plot[["type", "IR"]], kind="kde", hue='type', rug=True)
+
+
+        save_plot(plot_dir, f"IR-{style}", f"IR distribution of {style} style")

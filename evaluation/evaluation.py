@@ -11,7 +11,7 @@ import seaborn as sns
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.files_utils import data_path
-from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_fragments_distributions
+from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_fragments_distributions, plot_IR_distributions
 
 
 def calculate_resume_table(df, thold=1):
@@ -141,7 +141,7 @@ def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_
     return table_results, successful_rolls
 
 
-def evaluate_musicality(df, permutations=10, alpha=0.1):
+def evaluate_musicality(df, plot_dir, permutations=10, alpha=0.1):
     def roll_IRs_permutations(roll, n) -> List[int]:
         melody_changes = np.argwhere(roll.get_melody_changes() == 1)
         bass_changes = np.argwhere(roll.get_bass_changes() == 1)
@@ -155,16 +155,16 @@ def evaluate_musicality(df, permutations=10, alpha=0.1):
     def distribution(irs: List[int]):
         return {"mean": np.mean(irs), "std": np.std(irs)}
 
-    df["IRs of permutations"] = df.apply(lambda row: roll_IRs_permutations(row['roll'], permutations), axis=1)
+    df["IRs perm"] = df.apply(lambda row: roll_IRs_permutations(row['roll'], permutations), axis=1)
     # df["Distribution of probability of IRs"] = df.apply(lambda row: distribution(row['IRs of permutations']), axis=1)
-    df["IRs mean"] = df.apply(lambda row: np.mean(row['IRs of permutations']), axis=1)
-    df["IRs std"] = df.apply(lambda row: np.std(row['IRs of permutations']), axis=1)
+    df["IRs mean"] = df.apply(lambda row: np.mean(row['IRs perm']), axis=1)
+    df["IRs std"] = df.apply(lambda row: np.std(row['IRs perm']), axis=1)
 
-    df["Average IR of permutations"] = df.apply(lambda row: np.mean(row["IRs of permutations"]), axis=1)
     df["Distance difference"] = df.apply(lambda row:
-                                         abs(row["IR trans"] - row["Average IR of permutations"])
-                                         - abs(row["IR trans"] - row["IR orig"]),
+                                         abs(row["IR trans"] - row["IRs mean"]) - abs(row["IR trans"] - row["IR orig"]),
                                          axis=1)
+
+    plot_IR_distributions(df[["Style", "IR orig", "IR trans", "IRs perm"]], plot_dir)
 
     def hypothesis_test(df, alpha) -> pd.DataFrame:
         df["Hypothesis Test"] = df.apply(lambda row: row["IR orig"] < row["IRs mean"] - row["IRs std"]
@@ -212,7 +212,7 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
 
 
     print("===== Evaluating musicality =====")
-    table, ir_successful_rolls = evaluate_musicality(metrics["musicality"])
+    table, ir_successful_rolls = evaluate_musicality(metrics["musicality"], eval_path)
     print(table)
 
 
