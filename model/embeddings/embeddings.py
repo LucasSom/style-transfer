@@ -10,22 +10,23 @@ from roll.guoroll import GuoRoll
 from utils.files_utils import get_audios_path
 
 
-def obtain_embeddings(df: pd.DataFrame, vae, inplace=False) -> pd.DataFrame:
+def obtain_embeddings(df: pd.DataFrame, vae, samples=500, inplace=False) -> pd.DataFrame:
     """
-    Takes a DataFrame and a model, and applies the 'encoder' function to all rolls of the df.
+    Takes a DataFrame and a model, and applies the 'encoder' function to a sample of rolls of the df.
 
     :param df: dataframe with rolls to which encode
     :param vae: trained model
+    :param samples: number of fragments to sample for each style
     :param inplace: if True, perform operation in-place.
     :return: the input DataFrame with a new column 'Embedding' with the result of the encoding (ndarrays of shape (96,))
     """
     if inplace:
         # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
-        df = df.groupby('Title').sample(random_state=42)
+        df = df.groupby('Style').sample(samples, random_state=42)
         df_emb = df
     else:
         # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
-        df_emb = df.groupby('Title').sample(random_state=42)
+        df_emb = df.groupby('Style').sample(samples, random_state=42)
     # df_sampled['Embedding'].iloc[0][0]
 
     t = vae.get_layer(name='encoder')(np.stack([r.matrix for r in df_emb['roll']]))
