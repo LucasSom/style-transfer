@@ -21,7 +21,7 @@ def save_plot(plot_dir, plot_name, title=None):
     """
     Save the plot in a subfolder 'plots' of plot_dir with name 'plot_name and title 'title'.
     """
-    if not title is None: plt.title(title)
+    plt.title(title) if not title is None else plt.title(plot_name)
     if not os.path.isdir(plot_dir + "/plots/"):
         os.makedirs(plot_dir + "/plots/")
     print(f"Saving plot as {plot_dir}/plots/{plot_name}.png")
@@ -33,8 +33,10 @@ def plot_area(area, color):
 
 
 
-def plot_styles_bigrams_entropy(df):
-    ...
+def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexity"):
+    sns.scatterplot(data=entropies, x="Melodic entropy", y="Rhythmic entropy", hue="Style")
+    save_plot(plot_dir, plot_name, "Styles entropy for melody and rhythm")
+
 
 def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
     plt.figure(figsize=figsize)

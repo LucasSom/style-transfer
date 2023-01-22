@@ -6,7 +6,7 @@ from keras.saving.save import load_model
 
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
-from evaluation.metrics.metrics import obtain_metrics
+from evaluation.metrics.metrics import obtain_metrics, styles_bigrams_entropy
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
@@ -15,7 +15,8 @@ from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, plot_characteristics_distributions
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
+    plot_characteristics_distributions, plot_styles_bigrams_entropy
 from utils.utils import show_sheets
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -84,6 +85,27 @@ def task_preprocess():
         'targets': [preprocessed_data(4, True)],
         'uptodate': [os.path.isfile(preprocessed_data(4, True))]
     }
+
+
+def data_analysis(df_path, eval_dir, b):
+    init(b)
+    df = load_pickle(df_path)
+    entropies = styles_bigrams_entropy(df)
+    plot_styles_bigrams_entropy(entropies, eval_dir)
+
+
+def task_analyze_data():
+    """Get an analysis of the dataset"""
+    for b in bars:
+        eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+
+        yield {
+            'name': f"{b}bars",
+            'file_dep': [preprocessed_data(b)],
+            'actions': [(data_analysis, [preprocessed_data(b), eval_dir, b])],
+            'targets': [eval_dir + '/plots/styles_complexity.png'],
+            'uptodate': [True]
+        }
 
 
 def train(df_path, model_name, b):
