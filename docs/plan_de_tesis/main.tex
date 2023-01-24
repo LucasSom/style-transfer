@@ -45,64 +45,148 @@
 \maketitle
 
 \section*{Introducción}
-En los últimos años, nuevas propuestas de arquitecturas de redes neuronales han permitido modelar producciones humanas complejas como el texto escrito. Esto se ha utilizado, por ejemplo, para realizar traducción automática \cite{stahlberg2020neural}, detección de lenguaje de odio \cite{macavaney2019hate} y producción automática de noticias \cite{popel2020news}. Asimismo las mismas técnicas han sido utilizadas para modelar otra producción humana con fines comunicacionales: la música \cite{briot2020deep}. Entre los logros más salientes se encuentran generar un agente que improvisa a la par de un pianista \cite{benetatos2020bachduet}, generar composiciones con estructuras jerárquicas coherentes \cite{Berardinis} y componer automáticamente a partir de un ejemplo musical pero decidiendo el estilo independientemente \cite{payne2019musenet}. 
-Estos resultados inspiraron una primera idea de investigación: utilizar técnicas de composición automática para producir posibles continuaciones para la obra inconclusa de Mozart, la misa Requiem K626. Esta idea puede formularse de forma más gneral como la tarea de \emph{transferencia de estilo}, donde se busca tomar un fragmento musical y reinterpretarlo en un estilo distinto al original.
+En los últimos años, nuevas propuestas de arquitecturas de redes neuronales han
+permitido modelar producciones humanas complejas como el texto escrito. Esto se
+ha utilizado, por ejemplo, para realizar traducción automática
+\cite{stahlberg2020neural}, detección de lenguaje de odio
+\cite{macavaney2019hate} y producción automática de noticias
+\cite{popel2020news}. Asimismo las mismas técnicas han sido utilizadas para
+modelar otra producción humana con fines comunicacionales: la música
+\cite{briot2020deep}. Entre los logros más salientes se encuentran generar un
+agente que improvisa a la par de un pianista \cite{benetatos2020bachduet},
+generar composiciones con estructuras jerárquicas coherentes \cite{Berardinis}
+y componer automáticamente continuaciones a partir de un extracto musical pero
+decidiendo el estilo de la composición de forma independiente
+\cite{payne2019musenet}. En este trabajo proponemos generar y evaluar un modelo  
+para la tarea de \emph{transferencia de estilo}, donde se busca tomar un
+fragmento musical y reinterpretarlo en un estilo musical distinto al original.
 
-En el área de composición automática de música se persiguen diversos objetivos. Algunos trabajos buscan simplemente poder generar composiciones, normalmente con restricciones de estilo o instrumentación, por ejemplo melodías de RagTime \cite{sun2015ragtime}, melodías y acompaniamientos de corales de Bach \cite{hadjeres2017bach} o secuencias de acordes de estilo Blues \cite{eck2002first}. En otros casos, se busca tener control más detallado sobre las composiciones a partir de información contextual para el modelo. Ejemplos de esto es la composición de patrones de batería a partir de una línea de bajo \cite{makris2017bass} o composición de melodías en estilo pop a partir de una secuencia de acordes \cite{yang2017midinet}. Finalmente, algunos sistemas buscan poder controlar el estilo de la composición, como ser MuseNet \cite{payne2019musenet} o DeepJ \cite{mao2018deepj}.
+En el área de composición automática de música se persiguen diversos objetivos.
+Algunos trabajos buscan simplemente poder generar composiciones, normalmente
+con restricciones de estilo o instrumentación. Por ejemplo,
+\cite{sun2015ragtime} compone melodías de RagTime, \cite{hadjeres2017bach}
+produce melodías y acompaniamientos de corales de Bach y \cite{eck2002first}
+presenta secuencias de acordes de estilo Blues. En otros casos, se busca tener
+control más detallado sobre las composiciones a partir de información
+contextual para el modelo. Ejemplos de esto es la composición de patrones de
+batería a partir de una línea de bajo \cite{makris2017bass} o composición de
+melodías en estilo pop a partir de una secuencia de acordes
+\cite{yang2017midinet}. Finalmente, algunos sistemas buscan poder controlar el
+estilo de la composición, como ser MuseNet \cite{payne2019musenet} o DeepJ
+\cite{mao2018deepj}.
 
-No obstante, este trabajo se enfoca en la tarea de \emph{transferencia de estilo}, donde se busca reinterpretar un fragmento en un estilo particular. Este problema fue abordado en el ámbito de imágenes, donde es posible modificar fotos para darles el estilo artístico de una artista en particular \cite{gatys2015style} o para modificar atributos particulares (por ejemplo, agregarle anteojos a la foto de una cara) \cite{upchurch2016feature}. Este tipo de transformaciones se han llevado a cabo mediante manipulaciones del espacio latente generado por redes neuronales que aprenden a codificar instancias del dominio de trabajo en espacios de baja dimensionalidad como son las arquitecturas autoencoders \cite{hou2016feature}. Esta tecnica también se ha utilizado para manipular fragmentos musicales. MusicVAE \cite{roberts2019musicvae} permite generar nuevos fragmentos musicales como la interpolación entre otros dos fragmentos. En el trabajo de Guo et al. \cite{guo2020variational}, esta técnica si uiliza para modificar atributos musicales específicos como el nivel de tensión tonal. En este trabajo proponemos basarnos en estas tecnicas para proponer y evaluar un modelo que permita hacer transferencia de estilo para fragmentos musicales.
- 
-\todo[inline]{Acá falta un último párrafo hablando de la propuesta de metodología de evaluación. Que la tarea de transferencia de estilo no está tan explorada (por lo que se dijo antes) y que se suele evaluar de forma subjetiva mediante evaluaciones de escucha. Como objetivo secundario de este trabajo, proponemos una metodología de evaluación objetiva.}
+Este trabajo se enfoca en la tarea de \emph{transferencia de
+estilo}, donde se busca reinterpretar un fragmento musical dado en un estilo
+particular. Este problema fue abordado en el ámbito de imágenes, donde es
+posible modificar fotos para darles el estilo artístico de una artista en
+particular \cite{gatys2015style} o para modificar atributos particulares (por
+ejemplo, agregarle anteojos a la foto de una cara) \cite{upchurch2016feature}.
+Este tipo de transformaciones se han llevado a cabo mediante manipulaciones del
+espacio latente generado por redes neuronales que aprenden a codificar
+instancias del dominio de trabajo en espacios de baja dimensionalidad, como son
+las arquitecturas autoencoders \cite{hou2016feature}. Esta tecnica también se
+ha utilizado para manipular fragmentos musicales. Por ejemplo, MusicVAE
+\cite{roberts2019musicvae} permite generar nuevos fragmentos musicales como la
+interpolación entre otros dos fragmentos. En el trabajo de Guo et al.
+\cite{guo2020variational}, esta técnica se utiliza para modificar atributos
+musicales específicos, como el nivel de tensión tonal. En el presente trabajo
+proponemos basarnos en estas tecnicas para proponer y evaluar un modelo que
+permita hacer transferencia de estilo para fragmentos musicales.
 
-%\suggestM{}{La propuesta se enmarca en el trabajo doctoral del director, que se enfoca en el desarrollo de modelos computacionales que hagan mímica del proceso de cognición humana al percibir y producir información en el tiempo. En particular es de interés el modelado de cognición musical, por ser un estímulo estructurado que refleja varias capacidades cognitivas de interés, como ser la búsqueda de patrones y la predicción de eventos futuros. La presente propuesta busca interiorizarse con los avances en el modelado de secuencias estructuradas.}
+Las tareas de generación automática de estímulos musicales no pueden ser
+evaluadas de forma supervisada como otras tareas de inteligencia artificial
+debido a que se están generando ejemplos nuevos. Es por así que la evaluación
+suele consistir de comparaciones entre modelos \cite{Berardinis}, evaluaciones
+donde personas deben juzgar las nuevas producciones \cite{hadjeres2017bach} o
+métricas que implementan juicios humanos para evaluar correctitud para la
+tarea \cite{benetatos2020bachduet}. Debido a que en la revisión bibliográfica 
+realizada no encontramos trabajos que aborden la tarea de transferencia de
+estilos, como parte del trabajo tomaremos el enfoque de
+\cite{benetatos2020bachduet} y propondremos métricas de evaluación para la
+tarea.
 
 \section*{Actividades y metodologías}
-\suggestM{El presente plan de tesis consiste las siguientes tareas. Luego del listado se presenta más detalle respecto de las mismas.}{Se presenta el siguiente detalle de tareas:}
+El presente plan de tesis consiste de las siguientes tareas. Luego del listado
+se presenta más detalle respecto de las mismas.
 
 \begin{itemize}
-\item Interiorización y aprendizaje de las técnicas utilizadas en el área \suggestM{mediante la lectura de un libro de técnicas de aprendizaje profundo (Goodfellow 2016 \cite{goodfellow2016deep} y un libro de técnicas de composición automática (Briot 2020) \cite{briot2020depp}}{}\cite{briot2020deep, goodfellow2016deep}.
-    \item Entendimiento de los datasets existentes de música clásica simbólica  \cite{Cuthbert2010Music21AT}.
-    \item Desarrollo de una propuesta de arquitectura para la tarea deseada \suggestM{}{}\cite{guo2020variational, roberts2019musicvae}.
-    \item \suggestM{Preparación del pipeline de preprocesamiento}{Preprocesamiento} del dataset para la arquitectura propuesta \suggestM{\cite{Cuthbert2010Music21AT}}{}.
-    \item Entrenamiento de modelos en base a la arquitectura y diferentes datasets o preprocesamientos.
-    \item Desarrollo de propuestas de evaluación de las producciones realizadas.
-    \item Implementación de las evaluaciones.
-      \suggestM{\item Escritura de la tesis.}{}
+\item Interiorización y aprendizaje de las técnicas utilizadas en el área
+  mediante la lectura de un libro de técnicas de aprendizaje profundo
+  (Goodfellow et al. 2016 \cite{goodfellow2016deep}) y un libro de técnicas de
+  composición automática (Briot et al. 2020 \cite{briot2020deep}).
+\item Entendimiento de los datasets existentes de música clásica simbólica  \cite{Cuthbert2010Music21AT}.
+\item Desarrollo de una propuesta de arquitectura para la tarea deseada \cite{guo2020variational, roberts2019musicvae}.
+\item Preparación del pipeline de preprocesamiento del dataset para la arquitectura propuesta \cite{Cuthbert2010Music21AT}.
+\item Entrenamiento de modelos en base a la arquitectura y diferentes datasets o preprocesamientos.
+\item Desarrollo de propuestas de evaluación de las producciones realizadas.
+\item Implementación de las evaluaciones.
+\item Escritura de la tesis.
 \end{itemize}
 
 \subsection*{Técnicas}
-El problema de transferencia de estilos ha tenido su auge en los últimos años con el desarrollo de las nuevas técnicas de aprendizaje profundo. En este sentido, ya que en el problema específico de la música no se han propuesto técnicas específicas, surge la propuesta de basarse en técnicas aplicadas a imágenes \cite{briot2020deep}. En particular, una de estas aproximaciones es con el uso de Autoencoders \cite{goodfellow2016deep} y la consecuente manipulación de los datos en el espacio latente.
-\todo[inline]{Esto puede servir para la parte de autoencoders de la intro, acá entraría en más detalle en qué es un autoencoder, porqué tiene sentido el espacio latente}.
+El problema de transferencia de estilos ha tenido su auge en los últimos años
+con el desarrollo de nuevas técnicas de aprendizaje profundo. En este
+sentido, ya que en el problema específico de la música no se han propuesto
+técnicas específicas, surge la propuesta de basarse en técnicas aplicadas a
+imágenes \cite{briot2020deep}. En particular, una de estas aproximaciones es
+con el uso de Autoencoders \cite{goodfellow2016deep}. Estos modelos aprenden a
+codificar un dominio específico en un espacio de dimensionaldad reducida,
+conocido como el espacio latente, para luego decodificarlo. A partir de esto,
+es posible codificar un estímulo al espacio latente, realizar modificaciones
+en este espacio y luego decodificarlo para obtener una versión modificada del
+estímmulo original. Por ejemplo, eso fue realizado en imágenes de caras para
+agregar o remover atributos a la misma (por ejemplo, agregar lentes o
+envejecerlo)  \cite{upchurch2016feature}.
+
+En el dominio de la música, MusicVAE \cite{roberts2019musicvae} es un ejemplo
+de un modelo basado en autoencoders utilizado para composición automática. En
+este caso, el mismo fue utilizado para modificar atributos musicales de un
+fragmento musical (por ejemplo la densidad de notas o el nivel de síncoma), así
+como realizar interpolaciones entre dos fragmentos musicales. Otro ejemplo de
+uso de autoencoders en música es el de Guo et al. \cite{guo2020variational},
+donde la manipulación del espacio latente generado por un autoencoder es
+utilizado para modificar el nivel de tensión de un fragmento musical. En este
+trabajo proponemos basarnos en este último modelo, entrenarlo sobre un conjunto
+de datos de fragementos musicales de distintos estilos y realizar
+modificaciones del espacio latente generado para reinterpretar los fragementos
+en un estilo distinto al original.
 
 \subsection*{Datasets}
-\todo[inline]{Acá empezaría mencionando que parte del trabajo es encontrar datasets útiles para la tarea. Que tienen que tener como característica que incluyan distintos estilos musicales y que sean simbólicos. Además es importante tener en cuenta que los modelos de autoencoders no puede manejar cualquier tipo de instrumentación. Después se puede seguir con lo que pusiste.}
-Se pretende explorar un conjunto de datasets (MAESTRO, Lakh MIDI, Kunstderfuge, 8notes, MWD, Classical Archive, Nottingham, entre otros). En particular, los más adecuados parecerían ser los provistos por \textit{music21} y \textit{kernScores} dada su libre disponibilidad y por contener ejemplos musicales de distintos estilos.
+Como parte del proyecto se debe buscar un conjunto de datos que permitan
+entrenar y evaluar el modelo para la tarea. El conjunto de datos debe cumplir
+con dos características: representación simbólica de los ejemplos musicales y
+contener ejemplos diferenciados en varias categorías. La representación
+simbólica refiere a la definición qué notas suenan y cuando. Esto es en
+contraste con datasets de audio, donde se representa el sonido final.
+La diferenciación en categorías se debe a que buscamos conocer cómo se
+representa cada categoría en el espacio latente y poder realizar la
+reinterpretación de un fragmento de una categoría en otra.
+Entre posibles fuentes de datos se encuentran: MAESTRO, Lakh MIDI,
+Kunstderfuge, 8notes, MWD, Classical Archive y Nottingham.
 
-\subsection*{Arquitectura}
-\suggestM{- Esta oración no me gusta tanto. Iría por algo más en la linea de ''Existen dos arquitecturas de autoencodrers aplicadas a música: MusicVAE y la presentada por Guo 2020. - Describir para qué se usaron las dos. Contar la preferencia por Guo.''}{Para encodear los datos y poder manipularlos en el espacio latente son de utilidad arquitecturas que ya han funcionado para otras tareas.} En este sentido, el Proyecto Magenta ha presentado MusicVAE \cite{roberts2019musicvae} o investigadores de la Universidad de Sussex han presentado una arquitectura más chica y por lo tanto, más accesible en cuanto a capacidad de cómputo \cite{guo2020variational}.
-
-\subsection*{Preprocesamiento}
-La arquitectura elegida necesitará algún formato particular de los datos. En particular, se necesitan como entrada fragmentos regulares de canciones con exactamente 2 tracks (pistas/voces/instrumentos) cada uno. Sin embargo, en los \textit{datasets} elegidos suele haber canciones con más tracks (un ejemplo clásico es el de los corales de Bach que presentan 4 voces). De este modo, hay que reducir de alguna manera los $n$ tracks de la canción en 2 de manera que uno sea el track con la función del bajo y el otro la de melodía. Para resolver este problema se pretende usar herramientas ya desarrolladas para este fin como el \texttt{midi-miner} de Rui Guo \cite{Guo-reduccion}.
-
-Luego, dado que la red necesita una cantidad fija $n$ de \textit{time steps} (nuestra unidad mínima de tiempo de la canción, que correspondería en principio a una semicorchea), se procederá a dividir cada canción (ya reducida en 2 tracks) en fragmentos de $n$ \textit{time steps}. Sin embargo, esta representación asumiría que toda nota musical dura una cantidad entera de \textit{time steps}. Si bien esta asunción es correcta en la mayoría de los casos, hay situaciones en las cuales no se cumple (ritmos más breves que una semicorchea, como la fusa, o los llamados ``valores irregulares'', divisiones con resultado no entero). Con lo cual, habrá que considerar estos casos suprimiendo o truncando los valores no enteros.
-\todo[inline]{Esta parte no se entiende del todo. Acá hay dos ideas: la arquitectura que vamos a usar recibe input de tamaño fijo, por lo que es necesario recortar el las canciones en fragmentos del mismo largo. Por otra parte, también es importante cuantificar el tiempo en unidades regulares. En la mayoría de los casos, esto es fácil de hacer ya que la música en formato simbólico suele anotarse en una grilla discretizada de forma regular. Las excepciones las explicas bien al final del segundo párrafo pero evitaría usar términos musicales.}
-
-
-\subsection*{Entrenamiento y modelo}
-\todo[inline]{No siento que sume mucho esta sección.}
-Para entrenar el modelo se puede analizar la convergencia de la función de pérdida en función del \textit{accuracy} de la coincidencia en cada \textit{time step} de un cambio de sonido (ritmo) y de la coincidencia de la altura del sonido (melodía).
-
-Por otro lado, en principio, si bien los modelos de las arquitecturas propuestas son para 4 compases de 4 tiempos de negra cada uno (64 \textit{time steps}), se propone explorar la vialbilidad de modelos que abarquen mayor cantidad de \textit{time steps}.
-
+Por otra parte, la arquitectura elegida (Guo et al. \cite{guo2020variational})
+necesitará un formato particular de los datos. En particular, se necesitan como
+entrada fragmentos de largo fijo con exactamente 2 pistas (voces o
+instrumentos) cada uno. Esto significa que, en caso de que el fragmento musical
+tenga más de dos pistas, será necesario convertirlas. Se considera utilizar  
+herramientas ya desarrolladas para este fin presentadas por los autores de la
+arquitectura en la que nos vamos a basar (\texttt{midi-miner}
+\cite{Guo-reduccion}).
 
 \subsection*{Evaluación}
-Para evaluar la \textit{performance} de los modelos para esta tarea no hay aún nada estandarizado como métrica cuantitativa puesto que la tarea en sí no está muy desarrollada en la actualidad \cite{briot2020deep}. \color{red}\textbf{REVISAR}\color{black}. La evaluación más estándar es cualitativa, mediante encuestas a personas. 
+Para evaluar la \textit{performance} de los modelos para esta tarea no hay aún
+nada estandarizado como métrica cuantitativa puesto que la tarea en sí no está
+muy desarrollada en la actualidad \cite{briot2020deep}. 
 
-\suggestM{Debido a esto, como parte de este trabajo desarrollaremos métricas de evaluación objetiva de los fragmentos creados por el modelo.}{}
-Por lo tanto, se plantean 3 preguntas iniciales \suggestM{para las cuales definiremos métricas de evaluación. Los puntos a evaluar son}{\textit{ad hoc}} (llamando $m$ al fragmento inicial y $m'$ al generado): 
+Debido a esto, como parte de este trabajo desarrollaremos métricas de evaluación objetiva de los fragmentos creados por el modelo.
+Por lo tanto, se plantean 3 preguntas iniciales para las cuales definiremos
+métricas de evaluación. Si llamamos $m$ al fragmento musical inicial y $m'$ al
+fragmento convertido en un nuevo estilo, querremos evaluar: 
+
 \begin{itemize}
     \item Musicalidad: el fragmento $m'$, ¿suena \textit{musical}?
-    \item Estilo: este fragmento, ¿suena más parecido al estilo al que era nuestra intención cambiarse?
+    \item Estilo: este fragmento, ¿suena reinterpretado al estilo musical
+      objetivo?
     \item Conservación de la canción original: ¿se puede observar que $m'$ está relacionado con $m$? Dicho de otra manera, ¿$m’$ es parecido a $m$?
 \end{itemize}
 
