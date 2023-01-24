@@ -16,7 +16,7 @@ from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
-    plot_characteristics_distributions, plot_styles_bigrams_entropy
+    plot_characteristics_distributions, plot_styles_bigrams_entropy, plot_heatmap
 from utils.utils import show_sheets
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -90,8 +90,11 @@ def task_preprocess():
 def data_analysis(df_path, eval_dir, b):
     init(b)
     df = load_pickle(df_path)
+
     entropies = styles_bigrams_entropy(df)
     plot_styles_bigrams_entropy(entropies, eval_dir)
+
+    plot_heatmap(df, eval_dir)
 
 
 def task_analyze_data():

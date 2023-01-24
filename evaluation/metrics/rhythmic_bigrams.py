@@ -43,8 +43,13 @@ def get_style_rhythmic_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
     avg = np.ones((16, 16))
     df_style = df[df['Style'] == style]
 
-    for roll in df_style['roll']:
-        avg += matrix_of_adjacent_rhythmic_bigrams(roll)[0]
+    avg = get_style_rhythmic_bigrams_sum(avg, df_style)
 
     assert df_style.shape[0] != 0
     return avg / df_style.shape[0]
+
+
+def get_style_rhythmic_bigrams_sum(acc, df_style):
+    for roll in df_style['roll']:
+        acc += matrix_of_adjacent_rhythmic_bigrams(roll)[0]
+    return acc, range(possible_patterns + 1), range(possible_patterns + 1)

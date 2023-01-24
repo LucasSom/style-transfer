@@ -8,11 +8,14 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 from matplotlib.ticker import PercentFormatter
+from scipy.stats import entropy
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
-from evaluation.metrics.intervals import matrix_of_adjacent_intervals
-from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
+from evaluation.metrics.intervals import matrix_of_adjacent_intervals, get_style_intervals_bigrams_avg, \
+    get_style_intervals_bigrams_sum
+from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams, get_style_rhythmic_bigrams_avg, \
+    get_style_rhythmic_bigrams_sum
 from model.embeddings.style import Style
 from utils.files_utils import data_path
 
@@ -38,13 +41,38 @@ def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexit
     save_plot(plot_dir, plot_name, "Styles entropy for melody and rhythm")
 
 
-def plot_metric(callbacks, epoca_final, metric: str, figsize=(20, 10)):
+def plot_heatmap(df, plot_dir):
+    for style in set(df["Style"]):
+        melodic_hist, m_xedges, m_yedges = get_style_intervals_bigrams_sum(np.zeros((24,24)), df[df['Style'] == style])
+        rhythmic_hist, rx, ry = get_style_rhythmic_bigrams_sum(np.zeros((16,16)), df[df['Style'] == style])
+
+        plt.imshow(melodic_hist, interpolation='nearest', origin='lower',
+                   extent=[m_xedges[0], m_xedges[-1], m_yedges[0], m_yedges[-1]])
+        save_plot(plot_dir + "/melodic", f"{style}-melodic", f"Melodic distribution of {style}")
+
+        plt.imshow(rhythmic_hist, interpolation='nearest', origin='lower',
+                   extent=[rx[0], rx[-1], ry[0], ry[-1]])
+        save_plot(plot_dir + "/rhythmic", f"{style}-rhythmic", f"Rhythmic distribution of {style}")
+
+
+        # sub_df = df[df["Style"] == style]
+        #
+        # sub_df['Intervals'] = sub_df.apply(lambda row: matrix_of_adjacent_intervals(row['roll'])[0])
+        # sub_df['Rhythmic bigrams'] = sub_df.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row['roll'])[0])
+        #
+        # sub_df['Melodic entropy'] = sub_df.apply(lambda row: entropy(row['Intervals'], axis=None))
+        # sub_df['Rhythmic entropy'] = sub_df.apply(lambda row: entropy(row['Rhythmic bigrams'], axis=None))
+        #
+        # sns.heatmap(data=sub_df, )
+
+
+def plot_metric(callbacks, final_epoch, metric: str, figsize=(20, 10)):
     plt.figure(figsize=figsize)
     for k, v in callbacks.items():
         if metric in k:
             plt.plot(v, label=k)
     plt.legend()
-    plt.savefig(data_path + f'logs/{params.config.time_step / 16}bars_{epoca_final}epochs_{metric}.png')
+    plt.savefig(data_path + f'logs/{params.config.time_step / 16}bars_{final_epoch}epochs_{metric}.png')
 
 
 def plot_train(callbacks, epoca_final, figsize=(20, 10)):
