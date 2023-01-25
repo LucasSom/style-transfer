@@ -55,7 +55,7 @@ def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt:
 
     with open(f"{vae_dir}/initial_epoch", 'rt') as f:
         initial_epoch = int(f.read())
-    if verbose: print(f"Continuing training from {initial_epoch} epoch")
+    if verbose: print(f"Continuing training from epoch {initial_epoch}")
 
     vae = keras.models.load_model(vae_dir, custom_objects=dict(kl_beta=build_model.kl_beta))
 

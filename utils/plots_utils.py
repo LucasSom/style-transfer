@@ -41,7 +41,7 @@ def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexit
     save_plot(plot_dir, plot_name, "Styles entropy for melody and rhythm")
 
 
-def plot_heatmap(df, plot_dir):
+def plot_styles_heatmaps(df, plot_dir):
     for style in set(df["Style"]):
         melodic_hist, m_xedges, m_yedges = get_style_intervals_bigrams_sum(np.zeros((24,24)), df[df['Style'] == style])
         rhythmic_hist, rx, ry = get_style_rhythmic_bigrams_sum(np.zeros((16,16)), df[df['Style'] == style])
@@ -55,15 +55,8 @@ def plot_heatmap(df, plot_dir):
         save_plot(plot_dir + "/rhythmic", f"{style}-rhythmic", f"Rhythmic distribution of {style}")
 
 
-        # sub_df = df[df["Style"] == style]
-        #
-        # sub_df['Intervals'] = sub_df.apply(lambda row: matrix_of_adjacent_intervals(row['roll'])[0])
-        # sub_df['Rhythmic bigrams'] = sub_df.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row['roll'])[0])
-        #
-        # sub_df['Melodic entropy'] = sub_df.apply(lambda row: entropy(row['Intervals'], axis=None))
-        # sub_df['Rhythmic entropy'] = sub_df.apply(lambda row: entropy(row['Rhythmic bigrams'], axis=None))
-        #
-        # sns.heatmap(data=sub_df, )
+def plot_heatmap_differences():
+    ...
 
 
 def plot_metric(callbacks, final_epoch, metric: str, figsize=(20, 10)):
