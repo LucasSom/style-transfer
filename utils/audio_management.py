@@ -1,7 +1,7 @@
 import os
 import subprocess
 import tempfile
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import music21 as m21
 import pretty_midi
@@ -24,16 +24,18 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def generate_audios(df, path=f"{data_path}audios/", column=None, suffix=None, verbose=0) -> List[str]:
-    column = df.columns[-1] if column is None else column
-    rolls_generated = df[column]
+def generate_audios(df, path=f"{data_path}audios/", suffix=None, verbose=0) -> Tuple[List[str], List[str]]:
     if verbose:
         print("============= Generating audios =============")
-        print("Column used to generate midis:", column)
-    midis = [r.midi for r in rolls_generated]
-    titles = (df['Title'] if suffix is None
-              else df['Title'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
-    return save_audios(titles, midis, path=path, verbose=verbose)
+
+    original_rolls = df["roll"]
+    original_midis = [r.midi for r in original_rolls]
+
+    new_rolls = df["NewRoll"]
+    new_midis = [r.midi for r in new_rolls]
+    new_titles = (df['Title'] if suffix is None
+                  else df['Title'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
+    return save_audios(df['Title'], original_midis, path=path, verbose=verbose), save_audios(new_titles, new_midis, path=path, verbose=verbose)
 
 
 def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verbose=0) -> List[str]:

@@ -1,7 +1,6 @@
 import os.path
 from copy import copy
 
-import pandas as pd
 from doit.api import run
 from keras.saving.save import load_model
 
@@ -324,26 +323,31 @@ def task_evaluation():
 
 
 def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
-                     suffix=None, column=None, orig=None, dest=None):
+                     suffix=None, orig=None, dest=None):
     if succ_rolls_prefix is None:
         df_transferred = load_pickle(transferred_path)
-        generate_audios(df_transferred, audios_path, column=column, suffix=suffix, verbose=1)
-        make_html(df_transferred, orig=orig, targets=[dest], audios_path=audios_path)
+        generate_audios(df_transferred, audios_path, suffix=suffix, verbose=1)
+        make_html(df_transferred, orig=orig, targets=[dest], app_dir=audios_path)
         # TODO: Que targets solo tome al target.
     else:
         successful_dfs = load_pickle(f"{succ_rolls_prefix}{suffix}")
         df_html = pd.DataFrame()
         for k, df in successful_dfs.items():
-            df = df.sample(n=min(10, df.shape[0]), random_state=42)
-            generate_audios(df, audios_path, "NewRoll", f"{k}-{suffix}", 1)
+            df = df.sample(n=min(5, df.shape[0]), random_state=42)
+            original_files, new_files = generate_audios(df, audios_path, f"{k}-{suffix}", 1)
+            df["Original audio files"] = original_files
+            df["New audio files"] = new_files
             df_html = pd.concat([df_html, df])
 
         df = load_pickle(transferred_path)
-        df = df.sample(n=30, random_state=43)
+        df = df.sample(n=5, random_state=43)
+
+        original_files, new_files = generate_audios(df, audios_path, f"random-{suffix}", 1)
+        df["Original audio files"] = original_files
+        df["New audio files"] = new_files
         df_html = pd.concat([df_html, df])
 
-        generate_audios(df, audios_path, "NewRoll", f"random-{suffix}", 1)
-        # make_html(df_html, orig=orig, targets=[dest], audios_path=audios_path)
+        make_html(df_html, orig=orig, targets=[dest], app_dir=os.path.dirname(os.path.dirname(audios_path)) + '/app/')
 
 
 def task_sample_audios():

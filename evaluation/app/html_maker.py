@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from utils.files_utils import data_path, project_path, root_file_name
+from utils.files_utils import data_path, project_path, root_file_name, make_dirs_if_not_exists
 
 
 def make_head(title: str) -> str:
@@ -31,7 +31,7 @@ def make_table(target: str, songs: List[dict]) -> str:
 
       <figure><table>
         <thead>
-        <tr><th>Nombre de canción</th><th>Original</th><th>Reconstrucción</th><th>A {target}</th><th>Opinión</th></tr>
+        <tr><th>Nombre de canción</th><th>Original</th><th>A {target}</th><th>Opinión</th></tr>
         </thead>
         <tbody>
         """
@@ -40,7 +40,7 @@ def make_table(target: str, songs: List[dict]) -> str:
 
         table += f"""    <td>{s['title']}</td>"""
 
-        for path in s['path_orig'], s['path_recon'], s['path_transformed']:
+        for path in s['path_orig'], s['path_transformed']:
             table += f"""    <td><audio controls>
                     <source src="{path}" type="audio/mpeg">
                     Your browser does not support the audio element.
@@ -73,22 +73,22 @@ def make_body(original_style: str, songs: dict) -> str:
     return file + "</body>"
 
 
-def make_html(df_transferred, orig, targets, audios_path=f"{data_path}Audios/"):
+def make_html(df_transferred, orig, targets, app_dir):
     songs = {
-        t: [{'title': root_file_name(r.Title),
-             'path_orig': f"{audios_path}/{root_file_name(r.Title)}_orig_{i+1}.mp3",
-             'path_recon': f"{audios_path}/{root_file_name(r.Title)}_recon_{i+1}.mp3",
-             'path_transformed': f"{audios_path}/{root_file_name(r.Title)}_{orig}_to_{t}_{i+1}.mp3"
+        t: [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0],
+             'path_orig': r["Original audio files"],
+             'path_transformed': r["New audio files"]
              }
             for i, (_, r) in enumerate(df_transferred.iterrows())
             ]
-
         for t in targets
     }
     file = make_head(orig) + make_body(orig, songs)
     file += """\n<a href="./index.html" class="button">Volver al menú</a>"""
 
-    file_name = os.path.join(audios_path, f"../app/audio_{orig}.html")
+    make_dirs_if_not_exists(app_dir)
+    file_name = f"{app_dir}/audio_{orig}.html"
+
     with open(file_name, 'w') as f:
         f.write(file)
         print("Saved HTML file as:", file_name)
