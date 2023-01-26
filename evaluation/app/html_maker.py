@@ -88,7 +88,7 @@ def make_html(df_transferred, orig, targets, audios_path=f"{data_path}Audios/"):
     file = make_head(orig) + make_body(orig, songs)
     file += """\n<a href="./index.html" class="button">Volver al menú</a>"""
 
-    file_name = os.path.join(project_path, f"evaluation/app/audio_{orig}.html")
+    file_name = os.path.join(audios_path, f"../app/audio_{orig}.html")
     with open(file_name, 'w') as f:
         f.write(file)
-        # if verbose: print("Saved as:", file_name)
+        print("Saved HTML file as:", file_name)

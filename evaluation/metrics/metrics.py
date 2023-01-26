@@ -55,6 +55,8 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: d
 
     table = {"Style": [],
              "Title": [],
+             "roll": [],
+             "NewRoll": [],
              "target": [],
              "m": [],
              "m'": [],
@@ -74,6 +76,8 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: d
 
         table["Style"].append(style)
         table["Title"].append(title)
+        table["roll"].append(r_orig)
+        table["NewRoll"].append(r_trans)
         table["target"].append(dest)
         table["m"].append(m_orig)
         table["m'"].append(m_trans)

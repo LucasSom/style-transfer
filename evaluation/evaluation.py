@@ -189,37 +189,47 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
         elif k == "thold": thold = v
 
     print("===== Evaluating rhythmic bigrams distributions =====")
-    table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+    r_table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
                                                               metrics["original_style"],
                                                               metrics["target_style"],
                                                               eval_path, "Rhythmic bigrams", context)
-    print(table)
+    print(r_table)
 
     print("===== Evaluating interval distributions =====")
-    table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
+    i_table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
                                                               metrics["original_style"],
                                                               metrics["target_style"],
                                                               eval_path, "Interval", context)
-    print(table)
+    print(i_table)
 
     plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
 
 
     print("===== Evaluating plagiarism =====")
-    table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
+    p_table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
                                                     metrics["target_style"], eval_path, by_distance, context, thold)
-    print(table)
+    print(p_table)
 
 
     print("===== Evaluating musicality =====")
-    table, ir_successful_rolls = evaluate_musicality(metrics["musicality"], eval_path)
-    print(table)
+    ir_table, ir_successful_rolls = evaluate_musicality(metrics["musicality"], eval_path)
+    print(ir_table)
 
 
     print("===== Selecting audios of successful rolls =====")
     successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
-    successful_rolls = pd.merge(successful_rolls, r_successful_rolls, how="inner", on=["Style", "Title"])
-    successful_rolls = pd.merge(successful_rolls, ir_successful_rolls, how="inner", on=["Style", "Title"])
+    if successful_rolls.shape[0] != 0:
+        successful_rolls = pd.merge(successful_rolls, r_successful_rolls, how="inner", on=["Style", "Title"])
+    if successful_rolls.shape[0] != 0:
+        successful_rolls = pd.merge(successful_rolls, ir_successful_rolls, how="inner", on=["Style", "Title"])
     successful_rolls.dropna(inplace=True)
 
-    return successful_rolls
+    return {"merged": successful_rolls,
+            "interval": i_successful_rolls,
+            "rhythmic": r_successful_rolls,
+            "IR": ir_successful_rolls,
+            "plagiarism": p_successful_rolls}, \
+            {"interval": i_table,
+            "rhythmic": r_table,
+            "IR": ir_table,
+            "plagiarism": p_table}

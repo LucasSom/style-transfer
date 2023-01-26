@@ -22,11 +22,11 @@ def obtain_embeddings(df: pd.DataFrame, vae, samples=500, inplace=False) -> pd.D
     """
     if inplace:
         # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
-        df = df.groupby('Style').sample(samples, random_state=42)
+        df = df.groupby('Style').sample(n=samples, random_state=42)
         df_emb = df
     else:
         # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
-        df_emb = df.groupby('Style').sample(samples, random_state=42)
+        df_emb = df.groupby('Style').sample(n=samples, random_state=42)
     # df_sampled['Embedding'].iloc[0][0]
 
     t = vae.get_layer(name='encoder')(np.stack([r.matrix for r in df_emb['roll']]))
@@ -97,7 +97,7 @@ def matrix_sets_to_matrices(matrix_sets: list):
     return matrices
 
 
-def get_reconstruction(df, model, model_name: str, inplace=False):
-    df_emb = obtain_embeddings(df, model, inplace)
+def get_reconstruction(df, model, model_name: str, samples, inplace=False):
+    df_emb = obtain_embeddings(df, model, samples, inplace)
     get_embeddings_roll_df(df_emb, model, model_name, inplace=True)
     return df_emb

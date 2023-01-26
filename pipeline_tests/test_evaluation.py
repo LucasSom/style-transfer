@@ -3,12 +3,12 @@ import os.path
 import numpy as np
 import pytest
 
-from dodo import do_evaluation, styles_names
+from dodo import do_evaluation, styles_names, audio_generation
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
-    get_metrics_dir, get_characteristics_path
+    get_metrics_dir, get_characteristics_path, get_reconstruction_path, get_audios_path
 
 
 @pytest.fixture
@@ -264,7 +264,8 @@ def test_evaluate_model():
 
 def test_evaluation_task():
     init(4)
-    model_name = "4-small_br"
+    # model_name = "4-small_br"
+    model_name = "4-br"
 
     styles_path = get_characteristics_path(model_name)
 
@@ -273,3 +274,11 @@ def test_evaluation_task():
         eval_path = get_eval_dir(transferred_path)
 
         do_evaluation(transferred_path, styles_path, eval_path, style1, style2)
+
+
+def test_audio_generation():
+    model_name = "4-br"
+    recon_path = get_reconstruction_path(model_name)
+    audios_path = get_audios_path(model_name)
+
+    audio_generation(recon_path, audios_path)
