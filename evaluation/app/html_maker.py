@@ -76,8 +76,8 @@ def make_body(original_style: str, songs: dict) -> str:
 def make_html(df_transferred, orig, targets, app_dir):
     songs = {
         t: [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0],
-             'path_orig': r["Original audio files"],
-             'path_transformed': r["New audio files"]
+             'path_orig': os.path.join('../../', os.path.relpath(r["Original audio files"], project_path)),
+             'path_transformed': os.path.join('../../', os.path.relpath(r["New audio files"], project_path))
              }
             for i, (_, r) in enumerate(df_transferred.iterrows())
             ]
