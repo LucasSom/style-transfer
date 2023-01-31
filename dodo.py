@@ -17,7 +17,7 @@ from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
     plot_characteristics_distributions, plot_styles_bigrams_entropy, plot_styles_heatmaps
-from utils.utils import show_sheets
+from utils.utils import show_sheets, sample_uniformly
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
@@ -31,6 +31,7 @@ models = [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] 
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
+
 
 def styles_names(model_name):
     if len(model_name) == 4:
@@ -124,6 +125,7 @@ def train(df_path, model_name, b):
     else:
         print("Try again")
 
+
 def task_train():
     """Trains the model"""
     for model_name in models:
@@ -157,7 +159,6 @@ def analyze_training(df_path, model_name, b, targets):
     save_pickle(df_reconstructed, targets[0])
 
 
-
 def task_test():
     """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
@@ -181,7 +182,8 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
 
     df_emb, styles_char = obtain_characteristics(df, model)
 
-    plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir, include_songs=True)
+    plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir,
+                    include_songs=True)
     plot_characteristics_distributions(styles_char, plots_dir, "Distributions_characteristics")
 
     save_pickle(styles_char, characteristics_path)
@@ -256,7 +258,8 @@ def calculate_metrics(trans_path, char_path, metrics_dir, model_name, b=4):
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(char_path)
 
-    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams', 'musicality')
+    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams',
+                              'musicality')
     save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
 
     metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams', 'musicality')
@@ -293,12 +296,15 @@ def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
     successful_rolls, table = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
     save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
     save_pickle(table, f"{eval_dir}/results-{s1}_to_{s2}")
+    for t in table.values():
+        print(t)
 
     metrics = load_pickle(f"{metrics_dir}/metrics_{s2}_to_{s1}")
     successful_rolls, table = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
     save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s2}_to_{s1}")
     save_pickle(table, f"{eval_dir}/results-{s2}_to_{s1}")
-
+    for t in table.values():
+        print(t)
 
 
 def task_evaluation():
@@ -316,14 +322,16 @@ def task_evaluation():
             'file_dep': [transferred_path, styles_path,
                          f"{metrics_dir}/metrics_{s1}_to_{s2}.pkl", f"{metrics_dir}/metrics_{s2}_to_{s1}.pkl"],
             'actions': [(do_evaluation, [transferred_path, styles_path, eval_dir, s1, s2, b])],
-            'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl", f"{eval_dir}/successful_rolls-{s2}_to_{s1}.pkl"],
+            'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
+                        f"{eval_dir}/successful_rolls-{s2}_to_{s1}.pkl"],
             'verbosity': 2,
             # 'uptodate': [False]
         }
 
 
 def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
-                     suffix=None, orig=None, dest=None):
+                     suffix=None, orig=None, dest=None, b=4):
+    init(b)
     if succ_rolls_prefix is None:
         df_transferred = load_pickle(transferred_path)
         generate_audios(df_transferred, audios_path, suffix=suffix, verbose=1)
@@ -333,14 +341,14 @@ def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
         successful_dfs = load_pickle(f"{succ_rolls_prefix}{suffix}")
         df_html = pd.DataFrame()
         for k, df in successful_dfs.items():
-            df = df.sample(n=min(5, df.shape[0]), random_state=42)
+            df = sample_uniformly(df, f"{k} rank", n=5)
             original_files, new_files = generate_audios(df, audios_path, f"{k}-{suffix}", 1)
             df["Original audio files"] = original_files
             df["New audio files"] = new_files
             df_html = pd.concat([df_html, df])
 
         df = load_pickle(transferred_path)
-        df = df.sample(n=5, random_state=43)
+        df = df.sample(n=5, random_state=42)
 
         original_files, new_files = generate_audios(df, audios_path, f"random-{suffix}", 1)
         df["Original audio files"] = original_files
@@ -394,6 +402,7 @@ def sheets_generation(transferred_path, sheets_path, suffix=None, column=None, s
     else:
         df_successful = load_pickle(f"{succ_rolls_prefix}{suffix}")
         show_sheets(df_successful, "NewRoll", sheets_path, suffix)
+
 
 def task_sample_sheets():
     """Produce the sheets generated by the style transference"""

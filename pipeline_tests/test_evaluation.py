@@ -93,8 +93,10 @@ def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
-    plot_intervals_improvements(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'])
-    plot_intervals_improvements(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'])
+    plot_intervals_improvements(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'],
+                                plot_path=eval_path)
+    plot_intervals_improvements(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'],
+                                plot_path=eval_path)
 
 
 def test_intervals_results():

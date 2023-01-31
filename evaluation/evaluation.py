@@ -55,10 +55,6 @@ def evaluate_plagiarism_coincidences(df, direction, by_distance=False) -> float:
 
 
 def evaluate_plagiarism(df: pd.DataFrame, orig, dest, eval_dir, by_distance=False, context='talk', thold=1):
-    """
-    Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
-    Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
-    """
     sns.set_theme()
     sns.set_context(context)
     kind = "Distance" if by_distance else "Differences"
@@ -66,7 +62,7 @@ def evaluate_plagiarism(df: pd.DataFrame, orig, dest, eval_dir, by_distance=Fals
 
     df["target"] = [dest if orig == df["Style"][i] else orig for i in range(df.shape[0])]
 
-    successful_rolls = df[df[f"{kind} position"] == 1]
+    sorted_df = df.sort_values(by=[f"{kind} position"])
     df_abs = (df
               >> dfply.gather("type", "value", [f"{kind} position"])
               >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
@@ -77,20 +73,21 @@ def evaluate_plagiarism(df: pd.DataFrame, orig, dest, eval_dir, by_distance=Fals
     plagiarism_plot(df, orig, dest, by_distance, eval_dir, context)
 
     table_results.sort_values(by="Percentage of winners", ascending=False, inplace=True)
-    return table_results, successful_rolls
+    return table_results, sorted_df
 
 
-def plot_intervals_improvements(orig, dest, interval_distances, context='talk'):
+def plot_intervals_improvements(orig, dest, interval_distances, plot_path, context='talk'):
     sns.set_theme()
     sns.set_context(context)
     sns.kdeplot(data=interval_distances, x="log(m's/ms)")
     sns.displot(data=interval_distances, x="log(m's'/ms')", kind="kde")
     plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
-    plt.savefig(os.path.join(data_path, "debug_outputs", f"intervals_{orig}_to_{dest}.png"))
+    plt.savefig(os.path.join(data_path, plot_path, f"intervals_{orig}_to_{dest}.png"))
     # plt.show()
 
 
-def get_bigrams_results(df: pd.DataFrame, orig: str, target: str, eval_dir: str, plot_name: str, presentation_context='talk'):
+def get_bigrams_results(df: pd.DataFrame, orig: str, target: str, eval_dir: str, plot_name: str,
+                        presentation_context='talk'):
     """
     Calculate the percentage of rolls that improve with the transformation (how many rolls got away from the old style
      and how many got closer to the new one).
@@ -124,12 +121,12 @@ def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_
     Estos dfs provendrían de cada df de ida y vuelta. Es decir, serían 6 dfs distintos.
     Considerando esto, en cada df voy a tener 2 estilos, así que evalúo single con ambos.
     """
-    plot_intervals_improvements(orig, dest, bigram_distances, context)
+    plot_intervals_improvements(orig, dest, bigram_distances, eval_path, context)
 
     remap_dict = {"log(m's/ms)": "log(d(m',s)/d(m,s)) (> 0)\n Got away from the old style",
                   "log(m's'/ms')": "log(d(m',s')/d(m,s')) (< 0)\n Got closer to the new style"}
 
-    successful_rolls = bigram_distances[bigram_distances["log(m's'/ms')"] < 0]
+    sorted_df = bigram_distances.sort_values(by=["log(m's'/ms')"])
     df = (bigram_distances
           >> dfply.gather("type", "value", ["log(m's/ms)", "log(m's'/ms')"])
           >> dfply.mutate(type=dfply.X['type'].apply(remap_dict.get))
@@ -138,7 +135,7 @@ def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_
     table_results = get_bigrams_results(df, orig, dest, eval_path, plot_name, context)
 
     table_results.sort_values(by=["% got closer"], ascending=False, inplace=True)
-    return table_results, successful_rolls
+    return table_results, sorted_df
 
 
 def evaluate_musicality(df, plot_dir, permutations=10, alpha=0.1):
@@ -173,63 +170,80 @@ def evaluate_musicality(df, plot_dir, permutations=10, alpha=0.1):
         return df[df["Hypothesis Test"]]
 
     df_verified_hypothesis = hypothesis_test(df, alpha)
-    successful_rolls = df_verified_hypothesis[df_verified_hypothesis["Distance difference"] > 0]
+    sorted_df = df.sort_values(by=["Distance difference"])
     table_results = pd.DataFrame({
-        "% IR from original roll has low probability to be in the IRs permutations distribution" : [df_verified_hypothesis.shape[0] / df.shape[0] * 100],
-        "% have more musicality than permutations": [successful_rolls.shape[0] / df.shape[0] * 100]
+        "% IR from original roll has low probability to be in the IRs permutations distribution": [
+            df_verified_hypothesis.shape[0] / df.shape[0] * 100],
+        "% have more musicality than permutations": [sorted_df.shape[0] / df.shape[0] * 100]
     })
 
-    return table_results, successful_rolls
+    return table_results, sorted_df
+
 
 def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
     for k, v in kwargs.items():
-        if k == "context": context = v
-        elif k == "by_distance": by_distance = v
-        elif k == "thold": thold = v
+        if k == "context":
+            context = v
+        elif k == "by_distance":
+            by_distance = v
+        elif k == "thold":
+            thold = v
 
     print("===== Evaluating rhythmic bigrams distributions =====")
-    r_table, r_successful_rolls = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
-                                                              metrics["original_style"],
-                                                              metrics["target_style"],
-                                                              eval_path, "Rhythmic bigrams", context)
+    r_table, r_sorted_df = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+                                                         metrics["original_style"],
+                                                         metrics["target_style"],
+                                                         eval_path, "Rhythmic bigrams", context)
+    r_sorted_df["Rhythmic style rank"] = range(r_sorted_df.shape[0])
     print(r_table)
 
     print("===== Evaluating interval distributions =====")
-    i_table, i_successful_rolls = evaluate_bigrams_distribution(metrics["intervals"],
-                                                              metrics["original_style"],
-                                                              metrics["target_style"],
-                                                              eval_path, "Interval", context)
+    i_table, i_sorted_df = evaluate_bigrams_distribution(metrics["intervals"],
+                                                         metrics["original_style"],
+                                                         metrics["target_style"],
+                                                         eval_path, "Interval", context)
+    i_sorted_df["Interval style rank"] = range(i_sorted_df.shape[0])
     print(i_table)
 
     plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
 
-
     print("===== Evaluating plagiarism =====")
-    p_table, p_successful_rolls = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
-                                                    metrics["target_style"], eval_path, by_distance, context, thold)
+    p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
+                                               metrics["target_style"], eval_path, by_distance, context, thold)
+    p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
     print(p_table)
 
-
     print("===== Evaluating musicality =====")
-    ir_table, ir_successful_rolls = evaluate_musicality(metrics["musicality"], eval_path)
+    ir_table, ir_sorted_df = evaluate_musicality(metrics["musicality"], eval_path)
+    ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
     print(ir_table)
 
-
     print("===== Selecting audios of successful rolls =====")
-    successful_rolls = pd.merge(p_successful_rolls, i_successful_rolls, how="inner", on=["Style", "Title"])
+    successful_rolls = pd.merge(p_sorted_df, i_sorted_df, how="inner",
+                                on=["Style", "Title", "roll", "NewRoll", "target"])
     if successful_rolls.shape[0] != 0:
-        successful_rolls = pd.merge(successful_rolls, r_successful_rolls, how="inner", on=["Style", "Title"])
+        successful_rolls = pd.merge(successful_rolls, r_sorted_df, how="inner",
+                                    on=["Style", "Title", "roll", "NewRoll", "target"])
     if successful_rolls.shape[0] != 0:
-        successful_rolls = pd.merge(successful_rolls, ir_successful_rolls, how="inner", on=["Style", "Title"])
-    successful_rolls.dropna(inplace=True)
+        successful_rolls = pd.merge(successful_rolls, ir_sorted_df, how="inner",
+                                    on=["Style", "Title", "roll", "NewRoll"])
 
-    return {"merged": successful_rolls,
-            "interval": i_successful_rolls,
-            "rhythmic": r_successful_rolls,
-            "IR": ir_successful_rolls,
-            "plagiarism": p_successful_rolls}, \
-            {"interval": i_table,
-            "rhythmic": r_table,
-            "IR": ir_table,
-            "plagiarism": p_table}
+    successful_rolls = successful_rolls[["Style", "Title", "roll", "NewRoll", "target",
+                                         "Interval style rank", "Rhythmic style rank", "IR rank", "Plagiarism rank"]]
+
+    successful_rolls["Merged rank"] = sum([successful_rolls["Interval style rank"],
+                                           successful_rolls["Rhythmic style rank"],
+                                           successful_rolls["IR rank"],
+                                           successful_rolls["Plagiarism rank"]])
+    successful_rolls.sort_values(by=["Merged rank"], inplace=True)
+
+    return {"Merged": successful_rolls,
+            "Interval style": i_sorted_df,
+            "Rhythmic style": r_sorted_df,
+            "IR": ir_sorted_df,
+            "Plagiarism": p_sorted_df}, \
+        {"interval": i_table,
+         "rhythmic": r_table,
+         "IR": ir_table,
+         "plagiarism": p_table}

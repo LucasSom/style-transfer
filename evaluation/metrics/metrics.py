@@ -13,7 +13,7 @@ from utils.utils import get_matrix_comparisons
 def styles_bigrams_entropy(df) -> DataFrame:
     def calculate_entropy(df_style, style, interval):
         probabilities = get_style_intervals_bigrams_avg(df_style, style) if interval else get_style_rhythmic_bigrams_avg(df_style, style)
-        return entropy(probabilities, axis=None)
+        return entropy(probabilities, axis=0)
 
     d = {"Style": [], "Melodic entropy": [], "Rhythmic entropy": []}
     for style in set(df["Style"]):
@@ -68,24 +68,25 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: d
              "log(m's'/ms')": []
              }
 
-    sub_df = df[df["Style"] == orig]
-    for title, style, r_orig, r_trans in zip(sub_df["Title"], sub_df["Style"], sub_df['roll'], sub_df["NewRoll"]):
-        m_orig = matrix_of_adjacent_rhythmic_bigrams(r_orig)[0] if rhythm else matrix_of_adjacent_intervals(r_orig)[0]
-        m_trans = matrix_of_adjacent_rhythmic_bigrams(r_trans)[0] if rhythm else matrix_of_adjacent_intervals(r_trans)[0]
-        distances = get_matrix_comparisons(m_orig, m_trans, orig_style_mx_norm, trans_style_mx_norm)
+    for s1, s2 in [(orig, dest), (dest, orig)]:
+        sub_df = df[df["Style"] == s1]
+        for title, r_orig, r_trans in zip(sub_df["Title"], sub_df['roll'], sub_df["NewRoll"]):
+            m_orig = matrix_of_adjacent_rhythmic_bigrams(r_orig)[0] if rhythm else matrix_of_adjacent_intervals(r_orig)[0]
+            m_trans = matrix_of_adjacent_rhythmic_bigrams(r_trans)[0] if rhythm else matrix_of_adjacent_intervals(r_trans)[0]
+            distances = get_matrix_comparisons(m_orig, m_trans, orig_style_mx_norm, trans_style_mx_norm)
 
-        table["Style"].append(style)
-        table["Title"].append(title)
-        table["roll"].append(r_orig)
-        table["NewRoll"].append(r_trans)
-        table["target"].append(dest)
-        table["m"].append(m_orig)
-        table["m'"].append(m_trans)
-        table["ms"].append(distances["ms"])
-        table["ms'"].append(distances["ms'"])
-        table["m's"].append(distances["m's"])
-        table["m's'"].append(distances["m's'"])
-        table["log(m's/ms)"].append(np.log(distances["m's"] / distances["ms"]))
-        table["log(m's'/ms')"].append(np.log(distances["m's'"] / distances["ms'"]))
+            table["Style"].append(s1)
+            table["Title"].append(title)
+            table["roll"].append(r_orig)
+            table["NewRoll"].append(r_trans)
+            table["target"].append(s2)
+            table["m"].append(m_orig)
+            table["m'"].append(m_trans)
+            table["ms"].append(distances["ms"])
+            table["ms'"].append(distances["ms'"])
+            table["m's"].append(distances["m's"])
+            table["m's'"].append(distances["m's'"])
+            table["log(m's/ms)"].append(np.log(distances["m's"] / distances["ms"]))
+            table["log(m's'/ms')"].append(np.log(distances["m's'"] / distances["ms'"]))
 
     return pd.DataFrame(table)

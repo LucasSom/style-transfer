@@ -29,13 +29,16 @@ def generate_audios(df, path=f"{data_path}audios/", suffix=None, verbose=0) -> T
         print("============= Generating audios =============")
 
     original_rolls = df["roll"]
-    original_midis = [r.midi for r in original_rolls]
+    original_midis = []
+    for r in original_rolls:
+        original_midis.append(r.midi) if r.midi is not None else original_midis.append(r._roll_to_midi(path, verbose=verbose))
 
     new_rolls = df["NewRoll"]
     new_midis = [r.midi for r in new_rolls]
     new_titles = (df['Title'] if suffix is None
                   else df['Title'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
-    return save_audios(df['Title'], original_midis, path=path, verbose=verbose), save_audios(new_titles, new_midis, path=path, verbose=verbose)
+    return save_audios(df['Title'], original_midis, path=path, verbose=verbose), \
+        save_audios(new_titles, new_midis, path=path, verbose=verbose)
 
 
 def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verbose=0) -> List[str]:
@@ -48,13 +51,8 @@ def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verb
     :param verbose: 0 = no verbose; 1 = only project actions; 2 = all processes.
     :return: list of names (inside path) of the mp3 files saved.
     """
-    files = []
     titles = [root_file_name(t) for t in titles]
-
-    for i, (name, pm) in enumerate(zip(titles, midis)):
-        files.append(save_audio(name, pm, path, verbose))
-
-    return files
+    return [save_audio(name, pm, path, verbose) for name, pm in zip(titles, midis) if pm is not None]
 
 
 def save_audio(name: str, pm: Union[str, pretty_midi.PrettyMIDI], path: str, verbose=0):
