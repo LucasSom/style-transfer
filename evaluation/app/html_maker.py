@@ -22,6 +22,7 @@ def make_table(target: str, songs: List[dict]) -> str:
     :param target: name of the style to which the subdataset was converted.
     :param songs: list of dictionary with keys:
         * title: title of the song
+        * selection_criteria: reason of selection (plagiarism, musicality, etc.)
         * path_orig: path of the original roll
         * path_rec: path of the roll reconstructed (ie, after encode and decode the original matrix)
         * path_transformed: path of the roll after being applied the transformation
@@ -31,20 +32,21 @@ def make_table(target: str, songs: List[dict]) -> str:
 
       <figure><table>
         <thead>
-        <tr><th>Nombre de canción</th><th>Original</th><th>A {target}</th><th>Opinión</th></tr>
+        <tr><th>Nombre de canción</th><th>Criterio de selección</th><th>Original</th><th>A {target}</th><th>Opinión</th></tr>
         </thead>
         <tbody>
         """
     for s in songs:
         table += "<tr>\n"
 
-        table += f"""    <td>{s['title']}</td>"""
+        table += f"""    <td>{s['title']}</td>\n"""
+        table += f"""    <td>{s['selection_criteria']}</td>\n"""
 
         for path in s['path_orig'], s['path_transformed']:
             table += f"""    <td><audio controls>
                     <source src="{path}" type="audio/mpeg">
                     Your browser does not support the audio element.
-                    </audio></td>"""
+                    </audio></td>\n"""
 
         table += """<td><input type="text"></td>
             </tr>\n"""
@@ -75,9 +77,10 @@ def make_body(original_style: str, songs: dict) -> str:
 
 def make_html(df_transferred, orig, targets, app_dir):
     songs = {
-        t: [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0],
-             'path_orig': os.path.join('../../', os.path.relpath(r["Original audio files"], project_path)),
-             'path_transformed': os.path.join('../../', os.path.relpath(r["New audio files"], project_path))
+        t: [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[0],
+             'selection_criteria': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[1],
+             'path_orig': os.path.join('../audios/', os.path.basename(r["Original audio files"])),
+             'path_transformed': os.path.join('../audios/', os.path.basename(r["New audio files"]))
              }
             for i, (_, r) in enumerate(df_transferred.iterrows())
             ]

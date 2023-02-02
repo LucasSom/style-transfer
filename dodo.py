@@ -325,7 +325,7 @@ def task_evaluation():
             'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
                         f"{eval_dir}/successful_rolls-{s2}_to_{s1}.pkl"],
             'verbosity': 2,
-            # 'uptodate': [False]
+            'uptodate': [False]
         }
 
 

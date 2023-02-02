@@ -195,7 +195,7 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
                                                          metrics["original_style"],
                                                          metrics["target_style"],
                                                          eval_path, "Rhythmic bigrams", context)
-    r_sorted_df["Rhythmic style rank"] = range(r_sorted_df.shape[0])
+    r_sorted_df["RhythmicStyle rank"] = range(r_sorted_df.shape[0])
     print(r_table)
 
     print("===== Evaluating interval distributions =====")
@@ -203,7 +203,7 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
                                                          metrics["original_style"],
                                                          metrics["target_style"],
                                                          eval_path, "Interval", context)
-    i_sorted_df["Interval style rank"] = range(i_sorted_df.shape[0])
+    i_sorted_df["IntervalStyle rank"] = range(i_sorted_df.shape[0])
     print(i_table)
 
     plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
@@ -230,17 +230,17 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
                                     on=["Style", "Title", "roll", "NewRoll"])
 
     successful_rolls = successful_rolls[["Style", "Title", "roll", "NewRoll", "target",
-                                         "Interval style rank", "Rhythmic style rank", "IR rank", "Plagiarism rank"]]
+                                         "IntervalStyle rank", "RhythmicStyle rank", "IR rank", "Plagiarism rank"]]
 
-    successful_rolls["Merged rank"] = sum([successful_rolls["Interval style rank"],
-                                           successful_rolls["Rhythmic style rank"],
+    successful_rolls["Merged rank"] = sum([successful_rolls["IntervalStyle rank"],
+                                           successful_rolls["RhythmicStyle rank"],
                                            successful_rolls["IR rank"],
                                            successful_rolls["Plagiarism rank"]])
     successful_rolls.sort_values(by=["Merged rank"], inplace=True)
 
     return {"Merged": successful_rolls,
-            "Interval style": i_sorted_df,
-            "Rhythmic style": r_sorted_df,
+            "IntervalStyle": i_sorted_df,
+            "RhythmicStyle": r_sorted_df,
             "IR": ir_sorted_df,
             "Plagiarism": p_sorted_df}, \
         {"interval": i_table,
