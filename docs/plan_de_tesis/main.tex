@@ -6,6 +6,7 @@
 \usepackage{url}
 \usepackage{xcolor}
 \usepackage{todonotes}
+\usepackage[hidelinks]{hyperref}
 \usepackage[normalem]{ulem}
 
 \newcommand{\suggestM}[2]{{\color{orange} #1}{ \color{red}\sout{#2}}}
@@ -25,7 +26,13 @@
 }
 
 
-\title{{\normalsize Propuesta de tesis} \\ \textbf{Título}\todo[inline]{Definir}} 
+\title{{\normalsize Propuesta de tesis} \\ \textbf{
+Transferencia de estilos musicales/en música con VAE: ¿cómo sonaría un ragtime
+si lo hubiera escrito Bach? \\ 
+o \\
+Transferencia de estilos en música: propuesta de modelo con VAEs y metodología de
+evaluación.
+}\todo[inline]{Definir}} 
 \author{
   \centering
   \begin{tabular}{c c c}
@@ -78,29 +85,33 @@ estilo de la composición, como MuseNet \cite{payne2019musenet} o DeepJ
 Este trabajo se enfoca en la tarea de \emph{transferencia de
 estilo}, donde se busca reinterpretar un fragmento musical dado en un estilo
 particular. Este problema fue abordado en el ámbito de imágenes, donde es
-posible modificar fotos para darles el estilo artístico de una artista en
-particular \cite{gatys2015style} o para modificar atributos particulares (por
-ejemplo, agregarle anteojos a la foto de una cara) \cite{upchurch2016feature}.
-\todo{¿Esto no es justamente lo que nos criticó Diego que no es transferencia 
-de estilos? Estuve buscando y encontré esta referencia que podría ser realmente
-transferencia de estilo en imágenes: https://openaccess.thecvf.com/content_cvpr_2017/html/Luan_Deep_Photo_Style_CVPR_2017_paper.html}
+posible generar una imagen que tenga el contenido de una imagen original y el
+estilo de una imagen de referencia. Esto se ha realizado, por ejemplo, con
+pinturas \cite{gatys2015style} y con fotos \cite{luan2017photo}. Otra tarea
+asociada es la modificación de un estímulo para que adquiera características
+particulares. Por ejemplo, en imágenes es posible agregarle anteojos o bello
+facial a la foto de una cara, así como envejecerla \cite{upchurch2016feature}.
 Este tipo de transformaciones se han llevado a cabo mediante manipulaciones del
 espacio latente generado por redes neuronales que aprenden a codificar
-instancias del dominio de trabajo en espacios de baja dimensionalidad, como son
-las arquitecturas autoencoders \cite{hou2016feature}. Esta técnica también se
-ha utilizado para manipular fragmentos musicales. Por ejemplo, MusicVAE
-\cite{roberts2019musicvae} permite generar nuevos fragmentos musicales como la
-interpolación entre otros dos fragmentos. En el trabajo de Guo et al.
-\cite{guo2020variational}, esta técnica se utiliza para modificar atributos
-musicales específicos, como el nivel de tensión tonal. En el presente trabajo
-proponemos basarnos en estas técnicas para proponer y evaluar un modelo que
-permita hacer transferencia de estilo para fragmentos musicales.
+instancias del dominio de trabajo en espacios de baja dimensionalidad. Las
+arquitecturas comunmente utilizadas para este propósito son los autoencoders
+\cite{hou2016feature}.  
+
+Esta técnica también se ha utilizado para manipular
+fragmentos musicales. Por ejemplo, MusicVAE \cite{roberts2019musicvae} permite
+generar nuevos fragmentos musicales como la interpolación entre otros dos
+fragmentos. Otro ejemplo es el trabajo de Guo et al. \cite{guo2020variational},
+donde esta técnica se utiliza para modificar atributos musicales específicos,
+como el nivel de tensión tonal. En el presente trabajo proponemos basarnos en
+estas técnicas para proponer y evaluar un modelo que permita hacer
+transferencia de estilo para fragmentos musicales.
 
 Las tareas de generación automática de estímulos musicales no pueden ser
 evaluadas de forma supervisada como otras tareas de inteligencia artificial
 debido a que se están generando ejemplos nuevos. Es por eso que la evaluación
 suele consistir de comparaciones entre modelos \cite{Berardinis}, evaluaciones
-donde personas deben juzgar las nuevas producciones \cite{hadjeres2017bach} o
+donde personas deben juzgar las nuevas producciones \cite{hadjeres2017bach,
+gatys2015style, luan2017photo} o
 métricas que implementan juicios humanos para evaluar correctitud para la
 tarea \cite{benetatos2020bachduet}. Debido a que en la revisión bibliográfica 
 realizada no encontramos trabajos que aborden la tarea de transferencia de
@@ -122,7 +133,7 @@ se presenta más detalle respecto de las mismas.
 \item Preparación del pipeline de preprocesamiento del dataset para la arquitectura propuesta \cite{Cuthbert2010Music21AT}.
 \item Entrenamiento de modelos en base a la arquitectura y diferentes datasets o preprocesamientos.
 \item Desarrollo de propuestas de evaluación de las producciones realizadas.
-\item Implementación de las evaluaciones.
+\item Implementación y ejecución de las evaluaciones.
 \item Escritura de la tesis.
 \end{itemize}
 
@@ -145,13 +156,14 @@ En el dominio de la música, MusicVAE \cite{roberts2019musicvae} es un ejemplo
 de un modelo basado en autoencoders utilizado para composición automática. En
 este caso, el mismo fue utilizado para modificar atributos musicales de un
 fragmento musical (por ejemplo la densidad de notas o el nivel de 
-\textcolor{red}{síncoma}), así como realizar interpolaciones entre dos fragmentos 
+síncopa), así como realizar interpolaciones entre dos fragmentos 
 musicales. Otro ejemplo de uso de autoencoders en música es el de Guo et al. 
-\cite{guo2020variational}, donde la manipulación del espacio latente generado por un autoencoder es utilizado para modificar el nivel de tensión de un fragmento musical. 
-En este trabajo proponemos basarnos en este último modelo, entrenarlo sobre un 
-conjunto de datos de fragementos musicales de distintos estilos y realizar
-modificaciones del espacio latente generado para reinterpretar los fragementos
-en un estilo distinto al original.
+\cite{guo2020variational}, donde la manipulación del espacio latente generado
+por un autoencoder es utilizada para modificar el nivel de tensión de un
+fragmento musical. En este trabajo proponemos basarnos en este último modelo,
+entrenarlo sobre un conjunto de datos de fragmentos musicales de distintos
+estilos y realizar modificaciones del espacio latente generado para
+reinterpretar los fragementos en un estilo distinto al original.
 
 \subsection*{Datasets}
 Como parte del proyecto se debe buscar un conjunto de datos que permitan
@@ -159,14 +171,17 @@ entrenar y evaluar el modelo para la tarea. El conjunto de datos debe cumplir
 con dos características: representación simbólica de los ejemplos musicales y
 contener ejemplos diferenciados en varias categorías. La representación
 simbólica refiere a la definición de qué notas suenan y cuando. Esto es en
-contraste con datasets de audio, donde se representa el sonido final.
-La diferenciación en categorías se debe a que buscamos conocer cómo se
-representa cada categoría en el espacio latente y poder realizar la
-reinterpretación de un fragmento de una categoría en otra.
-Entre posibles fuentes de datos se encuentran: MAESTRO, Lakh MIDI,
-Kunstderfuge, 8notes, MWD, Classical Archive, Nottingham y KernScores.
+contraste con datasets de audio, donde se representa el sonido final. El
+requisito de un conjunto de datos de piezas musicales en representación
+simbólica se debe a que la mayoría de los modelos computacionales de
+composición automática trabajan con esta representación.  La necesidad de tener
+los fragmentos diferenciados en categorías se debe a que buscamos conocer cómo
+se representa cada categoría en el espacio latente y poder realizar la
+reinterpretación de un fragmento de una categoría en otra.  Entre posibles
+fuentes de datos se encuentran: MAESTRO, Lakh MIDI, Kunstderfuge, 8notes, MWD,
+Classical Archive, Nottingham y KernScores.
 
-Por otra parte, la arquitectura elegida (Guo et al. \cite{guo2020variational})
+Por otra parte, la arquitectura elegida (\cite{guo2020variational})
 necesitará un formato particular de los datos. En particular, se necesitan como
 entrada fragmentos de largo fijo con exactamente 2 pistas (voces o
 instrumentos) cada uno. Esto significa que, en caso de que el fragmento musical
@@ -193,14 +208,16 @@ convertido en un nuevo estilo, querremos evaluar:
     está relacionado con $m$? Dicho de otra manera, ¿$m’$ es parecido a $m$?
 \end{itemize}
 
-Para la musicalidad proponemos el uso del Information Rate \cite{lattner2018},
+Para evaluar la musicalidad de un nuevo fragmento musical proponemos el uso del
+la métrica Information Rate \cite{lattner2018},
 métrica basada en la Teoría de la Información \cite{shannon1948} que ha sido
-usada para este fin en distintos trabajos \cite{lattner2018, WangDubnov2015}.
-Para evaluar el estilo del fragmento original y el convertido, proponemos
-utilizar la caracterización de estilo musical dada en \cite{zivic2013}.
-Finalmente, para evaluar si el fragmento convertido se asemeja al fragmento
-original, buscaremos compararlos entre si con métricas de distancia en el
-espacio de representación simbólico.
+usada para este fin en distintos anteriores \cite{lattner2018, WangDubnov2015}.
+Para comparar el estilo del fragmento original y el convertido, proponemos
+utilizar la caracterización de estilo musical presentada en \cite{zivic2013},
+donde se analiza la similitud estílistica de composiciones musicales en formato
+simbólico. Finalmente, para evaluar si el fragmento convertido se asemeja al
+fragmento original, buscaremos compararlos entre si con métricas de distancia
+en el espacio de representación simbólico.
 
 \section*{Plazos y factibilidad}
 
@@ -211,21 +228,22 @@ directores como mentor e investigador responsable.
 Durante el plazo de la misma, el estudiante llevó a cabo varias de las tareas
 definidas en este plan. En particular, el estudiante se interiorizó en la
 temática mediante las lecturas de los libros y papers de referencia, investigó
-posibles datasets a utilizar y se definió el conjunto de datos, investigó
+posibles datasets a utilizar y se eligió un conjunto de datos, investigó
 posibles implementaciones de modelos para elegir uno específico y escribió el
-código que permite el proceso de entrenamiento y evaluación del modelo. En
-particular, se definieron métricas preliminales para la evaluación de la tarea.
+código que permite el proceso de entrenamiento y evaluación del modelo. Además
+se definieron métricas preliminales para la evaluación de la tarea.
 
 Como resultado del trabajo de la pasantía, se presenta este plan que busca
 extender el trabajo realizado en una tesis de la carrera. Considerando los
 avances del estudiante tanto en la comprensión del tema como en la
 implementación de los modelos y la métrica de evaluación, se considera que la
-misma puede ser finalizada en los plazos estipulados por el reglamento. En
-particular, el trabajo restante incluye la implementación final de las métricas
-de evaluación, la recopilación y análisis de los resultados de evaluación del
-modelo propuesto y la presentación del trabajo realizado en formato de tesis.
+misma puede ser finalizada en los plazos estipulados por el reglamento. El
+trabajo restante incluye la implementación final de las métricas de evaluación,
+la recopilación y análisis de los resultados de evaluación del modelo propuesto
+y la presentación del trabajo realizado en formato de tesis. Se espera que el
+mismo pueda ser presentado para defender a mediados del año 2023.
 
-\tripleSignature{Alumno (Lucas Somacal)}{Director (Martín Miguel)}{Director (Diego Fernández Slezak)}
+%\tripleSignature{Alumno (Lucas Somacal)}{Director (Martín Miguel)}{Director (Diego Fernández Slezak)}
 
 % \section{Bibliografía}
 
