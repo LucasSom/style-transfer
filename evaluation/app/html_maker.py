@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from utils.files_utils import data_path, project_path, root_file_name, make_dirs_if_not_exists
+from utils.files_utils import root_file_name, make_dirs_if_not_exists
 
 
 def make_head(title: str) -> str:

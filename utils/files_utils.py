@@ -118,7 +118,7 @@ def get_eval_dir(transferred_path: str):
 
 def get_audios_path(model_name=None, reconstruction=False, e_orig=None, e_dest=None):
     if model_name is None:  # ie, original
-        return os.path.join(data_path, "original/audios")
+        return os.path.join(data_path, "original/audios/")
         # return original_audios_path
     path = os.path.join(data_path, model_name, "audios/")
 
@@ -126,7 +126,7 @@ def get_audios_path(model_name=None, reconstruction=False, e_orig=None, e_dest=N
         return os.path.join(path, f"{e_orig}_to_{e_dest}/")
 
     if reconstruction:
-        return os.path.join(path, "reconstruction/audios")
+        return os.path.join(path, "reconstruction/audios/")
     return path
 
 
