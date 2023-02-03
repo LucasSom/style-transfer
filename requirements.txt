@@ -7,8 +7,8 @@ pandas~=1.4.2
 datetime~=4.4
 typing~=3.7.4.3
 music21~=7.1.0
-matplotlib
-scikit-learn
+matplotlib~=3.2.1
+scikit-learn~=0.22.2.post1
 seaborn~=0.11.2
 pytest~=6.2.5
 IPython>=7.31.1
@@ -18,5 +18,6 @@ verbosity
 p_tqdm
 
 keras==2.9.0
-scikit-learn~=0.22.2.post1
-scipy
+scipy~=1.4.1
+sklearn~=0.0
+POT=0.8.2

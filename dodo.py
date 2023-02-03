@@ -6,7 +6,8 @@ from keras.saving.save import load_model
 
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
-from evaluation.metrics.metrics import obtain_metrics, styles_bigrams_entropy
+from evaluation.metrics.metrics import obtain_metrics
+from data_analysis.statistics import styles_bigrams_entropy
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
@@ -16,7 +17,8 @@ from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
-    plot_characteristics_distributions, plot_styles_bigrams_entropy, plot_styles_heatmaps
+    plot_characteristics_distributions
+from data_analysis.plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences
 from utils.utils import show_sheets, sample_uniformly
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -92,10 +94,12 @@ def data_analysis(df_path, eval_dir, b):
     init(b)
     df = load_pickle(df_path)
 
-    entropies = styles_bigrams_entropy(df)
-    plot_styles_bigrams_entropy(entropies, eval_dir)
+    # entropies = styles_bigrams_entropy(df)
+    # plot_styles_bigrams_entropy(entropies, eval_dir)
 
-    plot_styles_heatmaps(df, eval_dir)
+    histograms = plot_styles_heatmaps(df, eval_dir)
+
+    plot_heatmap_differences(df, histograms, eval_dir)
 
 
 def task_analyze_data():

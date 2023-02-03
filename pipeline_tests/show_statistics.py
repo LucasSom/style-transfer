@@ -2,7 +2,7 @@ import os
 import sys
 from typing import List
 
-from data_statistics import SongStatistics
+from data_analysis.SongStatistics import SongStatistics
 
 
 # noinspection PyShadowingNames

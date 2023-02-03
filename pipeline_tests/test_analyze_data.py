@@ -3,6 +3,11 @@ import pytest
 from dodo import data_analysis, preprocessed_data
 from utils.files_utils import data_path
 
+
+def test_plot_styles_bigrams_entropy():
+    ...
+
+
 def test_task():
     b=4
     df_path = preprocessed_data(b)

@@ -8,14 +8,11 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 from matplotlib.ticker import PercentFormatter
-from scipy.stats import entropy
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
-from evaluation.metrics.intervals import matrix_of_adjacent_intervals, get_style_intervals_bigrams_avg, \
-    get_style_intervals_bigrams_sum
-from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams, get_style_rhythmic_bigrams_avg, \
-    get_style_rhythmic_bigrams_sum
+from evaluation.metrics.intervals import matrix_of_adjacent_intervals
+from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
 from model.embeddings.style import Style
 from utils.files_utils import data_path
 
@@ -33,30 +30,6 @@ def save_plot(plot_dir, plot_name, title=None):
 
 def plot_area(area, color):
     plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)
-
-
-
-def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexity"):
-    sns.scatterplot(data=entropies, x="Melodic entropy", y="Rhythmic entropy", hue="Style")
-    save_plot(plot_dir, plot_name, "Styles entropy for melody and rhythm")
-
-
-def plot_styles_heatmaps(df, plot_dir):
-    for style in set(df["Style"]):
-        melodic_hist, m_xedges, m_yedges = get_style_intervals_bigrams_sum(np.zeros((24,24)), df[df['Style'] == style])
-        rhythmic_hist, rx, ry = get_style_rhythmic_bigrams_sum(np.zeros((16,16)), df[df['Style'] == style])
-
-        plt.imshow(melodic_hist, interpolation='nearest', origin='lower',
-                   extent=[m_xedges[0], m_xedges[-1], m_yedges[0], m_yedges[-1]])
-        save_plot(plot_dir + "/melodic", f"{style}-melodic", f"Melodic distribution of {style}")
-
-        plt.imshow(rhythmic_hist, interpolation='nearest', origin='lower',
-                   extent=[rx[0], rx[-1], ry[0], ry[-1]])
-        save_plot(plot_dir + "/rhythmic", f"{style}-rhythmic", f"Rhythmic distribution of {style}")
-
-
-def plot_heatmap_differences():
-    ...
 
 
 def plot_metric(callbacks, final_epoch, metric: str, figsize=(20, 10)):
