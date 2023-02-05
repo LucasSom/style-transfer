@@ -18,7 +18,8 @@ from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
     plot_characteristics_distributions
-from data_analysis.plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences
+from data_analysis.plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences, \
+    heatmap_differences_table
 from utils.utils import show_sheets, sample_uniformly
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -99,7 +100,9 @@ def data_analysis(df_path, eval_dir, b):
 
     histograms = plot_styles_heatmaps(df, eval_dir)
 
+    heatmap_differences_table(df, histograms, eval_dir)
     plot_heatmap_differences(df, histograms, eval_dir)
+
 
 
 def task_analyze_data():
@@ -112,7 +115,7 @@ def task_analyze_data():
             'file_dep': [preprocessed_data(b)],
             'actions': [(data_analysis, [preprocessed_data(b), eval_dir, b])],
             'targets': [eval_dir + '/plots/styles_complexity.png'],
-            'uptodate': [True]
+            'uptodate': [False]
         }
 
 

@@ -9,8 +9,10 @@ from utils.utils import normalize, get_matrix_comparisons
 
 def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):
     intervals: List[int] = roll_or_song.get_adjacent_intervals(voice)
-
-    return np.histogram2d(intervals[:-1], intervals[1:], bins=(range(-12, 13), range(-12, 13)))
+    support = np.zeros((25, 25))
+    for r, c in zip(intervals[:-1], intervals[1:]):
+        support[r+12,c+12] += 1
+    return support, range(-12, 13), range(-12, 13)
 
 
 def plot_matrix_of_adjacent_intervals(song, voice='melody'):
