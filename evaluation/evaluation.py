@@ -219,26 +219,26 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
     print(ir_table)
 
-    print("===== Selecting audios of successful rolls =====")
-    successful_rolls = pd.merge(p_sorted_df, i_sorted_df, how="inner",
-                                on=["Style", "Title", "roll", "NewRoll", "target"])
-    if successful_rolls.shape[0] != 0:
-        successful_rolls = pd.merge(successful_rolls, r_sorted_df, how="inner",
-                                    on=["Style", "Title", "roll", "NewRoll", "target"])
-    if successful_rolls.shape[0] != 0:
-        successful_rolls = pd.merge(successful_rolls, ir_sorted_df, how="inner",
-                                    on=["Style", "Title", "roll", "NewRoll"])
+    # print("===== Selecting audios of successful rolls =====")
+    # successful_rolls = pd.merge(p_sorted_df, i_sorted_df, how="inner",
+    #                             on=["Style", "Title", "roll", "NewRoll", "target"])
+    # if successful_rolls.shape[0] != 0:
+    #     successful_rolls = pd.merge(successful_rolls, r_sorted_df, how="inner",
+    #                                 on=["Style", "Title", "roll", "NewRoll", "target"])
+    # if successful_rolls.shape[0] != 0:
+    #     successful_rolls = pd.merge(successful_rolls, ir_sorted_df, how="inner",
+    #                                 on=["Style", "Title", "roll", "NewRoll"])
+    #
+    # successful_rolls = successful_rolls[["Style", "Title", "roll", "NewRoll", "target",
+    #                                      "IntervalStyle rank", "RhythmicStyle rank", "IR rank", "Plagiarism rank"]]
+    #
+    # successful_rolls["Merged rank"] = sum([successful_rolls["IntervalStyle rank"],
+    #                                        successful_rolls["RhythmicStyle rank"],
+    #                                        successful_rolls["IR rank"],
+    #                                        successful_rolls["Plagiarism rank"]])
+    # successful_rolls.sort_values(by=["Merged rank"], inplace=True)
 
-    successful_rolls = successful_rolls[["Style", "Title", "roll", "NewRoll", "target",
-                                         "IntervalStyle rank", "RhythmicStyle rank", "IR rank", "Plagiarism rank"]]
-
-    successful_rolls["Merged rank"] = sum([successful_rolls["IntervalStyle rank"],
-                                           successful_rolls["RhythmicStyle rank"],
-                                           successful_rolls["IR rank"],
-                                           successful_rolls["Plagiarism rank"]])
-    successful_rolls.sort_values(by=["Merged rank"], inplace=True)
-
-    return {"Merged": successful_rolls,
+    return {#"Merged": successful_rolls,
             "IntervalStyle": i_sorted_df,
             "RhythmicStyle": r_sorted_df,
             "IR": ir_sorted_df,

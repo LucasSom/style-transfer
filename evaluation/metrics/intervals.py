@@ -11,7 +11,8 @@ def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):
     intervals: List[int] = roll_or_song.get_adjacent_intervals(voice)
     support = np.zeros((25, 25))
     for r, c in zip(intervals[:-1], intervals[1:]):
-        support[r+12,c+12] += 1
+        if type(r) is not str and type(c) is not str:
+            support[r+12,c+12] += 1
     return support, range(-12, 13), range(-12, 13)
 
 
@@ -34,9 +35,9 @@ def get_style_intervals_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
     :param df: df with columns 'Style' and 'roll'
     :param style: it must be one of the Style column
 
-    :return: matrix of 24x24 with the average distribution of bigrams of musical intervals for the style
+    :return: matrix of 25x25 with the average distribution of bigrams of musical intervals for the style
     """
-    acc = np.zeros((24, 24))
+    acc = np.zeros((25, 25))
     df_style = df[df['Style'] == style]
 
     acc, _, _ = get_style_intervals_bigrams_sum(acc, df_style)

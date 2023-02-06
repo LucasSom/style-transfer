@@ -32,7 +32,7 @@ def make_table(target: str, songs: List[dict]) -> str:
 
       <figure><table>
         <thead>
-        <tr><th>Nombre de canción</th><th>Criterio de selección</th><th>Original</th><th>A {target}</th><th>Opinión</th></tr>
+        <tr><th>Nombre de canción</th><th>Criterio de selección</th><th>Original</th><th>A {target}</th><th>Opinión March</th><th>Opinión Lucas</th></tr>
         </thead>
         <tbody>
         """
@@ -48,8 +48,8 @@ def make_table(target: str, songs: List[dict]) -> str:
                     Your browser does not support the audio element.
                     </audio></td>\n"""
 
-        table += """<td><input type="text"></td>
-            </tr>\n"""
+        table += 2 * """<td><input type="text"></td>
+                        </tr>\n"""
 
     return table + """  
         </tbody>
@@ -75,22 +75,21 @@ def make_body(original_style: str, songs: dict) -> str:
     return file + "</body>"
 
 
-def make_html(df_transferred, orig, targets, app_dir):
-    songs = {
-        t: [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[0],
+def make_html(df_transferred, orig, target, app_dir):
+    songs = {target:
+            [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[0],
              'selection_criteria': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[1],
              'path_orig': os.path.join('../audios/', os.path.basename(r["Original audio files"])),
              'path_transformed': os.path.join('../audios/', os.path.basename(r["New audio files"]))
              }
             for i, (_, r) in enumerate(df_transferred.iterrows())
             ]
-        for t in targets
     }
     file = make_head(orig) + make_body(orig, songs)
     file += """\n<a href="./index.html" class="button">Volver al menú</a>"""
 
-    make_dirs_if_not_exists(app_dir)
-    file_name = f"{app_dir}/audio_{orig}.html"
+    file_name = f"{app_dir}/audio_{orig}_to_{target}.html"
+    make_dirs_if_not_exists(file_name)
 
     with open(file_name, 'w') as f:
         f.write(file)

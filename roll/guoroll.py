@@ -104,15 +104,16 @@ class GuoRoll:
             for i, c in enumerate(changes[1:], start=1):
                 if c:
                     new_note = np.argmax(voice_part[i])
-                    if new_note == 73:  # it is a rest
-                        intervals.append('rest')
-                    else:
+                    if new_note != 73:
                         interval = new_note - prev_note
                         while abs(interval) > 12:  # if the interval is compound, transform it to simple
                             interval -= 12 if interval > 0 else -12
                         intervals.append(interval)
                         if intervals[-1] != 'rest':
                             prev_note = new_note
+                    else:  # it is a rest
+                        # intervals.append('rest')
+                        pass
             return intervals
 
         if voice == 'melody':
