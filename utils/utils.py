@@ -63,6 +63,6 @@ def sample_uniformly(df, column, n=5):
     n = min(n, df.shape[0])
     df = df.sort_values(by=[column]).reset_index()
     df_sampled = pd.DataFrame(columns=df.columns)
-    for i in range(0, df.shape[0], int(df.shape[0] / n)):
+    for i in range(0, df.shape[0]-1, int(df.shape[0] / n)):
         df_sampled.loc[df_sampled.shape[0]] = df.loc[i]
     return df_sampled
