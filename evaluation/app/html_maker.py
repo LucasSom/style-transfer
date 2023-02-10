@@ -76,9 +76,19 @@ def make_body(original_style: str, songs: dict) -> str:
 
 
 def make_html(df_transferred, orig, target, app_dir):
+    def get_selection_criterion(r):
+        try:
+            if orig == "Mozart":
+                return os.path.basename(root_file_name(r["New audio files"])).split('-')[1].split('_')[1]
+            return os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[1]
+        except:
+            if orig == "Mozart":
+                return os.path.basename(root_file_name(r["New audio files"])).split('-')[2].split('_')[1]
+            return os.path.basename(root_file_name(r["New audio files"])).split('-')[1].split('_')[1]
+
     songs = {target:
             [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[0],
-             'selection_criteria': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[1],
+             'selection_criteria': get_selection_criterion(r),
              'path_orig': os.path.join('../audios/', os.path.basename(r["Original audio files"])),
              'path_transformed': os.path.join('../audios/', os.path.basename(r["New audio files"]))
              }

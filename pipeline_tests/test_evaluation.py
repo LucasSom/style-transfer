@@ -278,8 +278,8 @@ def test_evaluation_task():
 
 
 def test_audio_generation():
-    model_name = "4-br"
-    s1 = "Bach"
+    model_name = "brmf_4b"
+    s1 = "Mozart"
     s2 = "ragtime"
     suffix = f'{s1}_to_{s2}'
 
