@@ -7,7 +7,7 @@ from scipy.stats import entropy
 
 def information_rate(m):
     """
-    :param m: matrix of
+    :param m: Guo matrix of a fragment
     """
 
     stats = np.zeros([74, 74])
@@ -17,6 +17,7 @@ def information_rate(m):
         try:
             stats[np.where(m[t - 1, :])[0][0], np.where(m[t, :])[0][0]] += 1
             ir.append(entropy(stats.sum(axis=0)) - entropy(stats[np.where(m[t - 1, :])[0][0], :]))
+            # TODO: chequear si axis no es 1; da gráficos parecidos
         except:
             if len(list(np.where(m[t, :])[0])) == 0:
                 warnings.warn(f"Skipping IR calculation of index {t} because it was empty.")

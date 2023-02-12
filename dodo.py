@@ -330,7 +330,7 @@ def task_evaluation():
                 'actions': [(do_evaluation, [transferred_path, styles_path, eval_dir, s1, s2, b])],
                 'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl"],
                 'verbosity': 2,
-                # 'uptodate': [False]
+                'uptodate': [False]
             }
 
 
@@ -345,7 +345,7 @@ def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
         successful_dfs = load_pickle(f"{succ_rolls_prefix}{suffix}")
         df_html = pd.DataFrame()
         for k, df in successful_dfs.items():
-            df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=4)
+            df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=3)
             original_files, new_files = generate_audios(df, audios_path, f"{k}-{suffix}", 1)
             df["Original audio files"] = original_files
             df["New audio files"] = new_files
@@ -396,7 +396,7 @@ def task_sample_audios():
                              dict(suffix=suffix, orig=s1, dest=s2)
                              )],
                 'verbosity': 2,
-                # 'uptodate': [False]
+                'uptodate': [False]
             }
 
 

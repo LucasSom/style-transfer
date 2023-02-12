@@ -241,7 +241,7 @@ def plagiarism_plot(df, s1, s2, by_distance, eval_dir, context):
         title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
         save_plot(eval_dir, plot_name, title)
 
-def plot_IR_distributions(df: pd.DataFrame, plot_dir):
+def plot_IR_distributions(df: pd.DataFrame, orig, dest, plot_dir):
     for style in set(df["Style"]):
         df_style = df[df["Style"] == style]
 
@@ -260,7 +260,8 @@ def plot_IR_distributions(df: pd.DataFrame, plot_dir):
         df_to_plot = pd.concat([df_style[["Style", "type", "IR"]], df_permutations])
 
         sns.displot(df_to_plot[["type", "IR"]].reset_index(), x="IR", kind='kde', hue='type', rug=True)
+        sns.displot(df_to_plot[["type", "IR"]].reset_index(), x="IR", kind='hist', hue='type', rug=False, stat="probability")
         # sns.displot(df_to_plot[["type", "IR"]], kind="kde", hue='type', rug=True)
 
 
-        save_plot(plot_dir, f"IR-{style}", f"IR distribution of {style} style")
+        save_plot(plot_dir, f"IR-{style}-{orig}_to_{dest}", f"IR distribution of {style} ({orig} to {dest}) style")

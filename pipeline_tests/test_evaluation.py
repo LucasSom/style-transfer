@@ -266,7 +266,7 @@ def test_evaluate_model():
 def test_evaluation_task():
     init(4)
     # model_name = "4-small_br"
-    model_name = "4-br"
+    model_name = "brmf_4b"
 
     styles_path = get_characteristics_path(model_name)
 

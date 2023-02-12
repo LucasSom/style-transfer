@@ -7,11 +7,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from scipy.special import rel_entr
 
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.files_utils import data_path
-from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_fragments_distributions, plot_IR_distributions
+from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_fragments_distributions, plot_IR_distributions, \
+    save_plot
 
 
 def calculate_resume_table(df, thold=1):
@@ -138,7 +140,7 @@ def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_
     return table_results, sorted_df
 
 
-def evaluate_musicality(df, plot_dir, permutations=10, alpha=0.1):
+def evaluate_musicality(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
     def roll_IRs_permutations(roll, n) -> List[int]:
         melody_changes = np.argwhere(roll.get_melody_changes() == 1)
         bass_changes = np.argwhere(roll.get_bass_changes() == 1)
@@ -161,7 +163,7 @@ def evaluate_musicality(df, plot_dir, permutations=10, alpha=0.1):
                                          abs(row["IR trans"] - row["IRs mean"]) - abs(row["IR trans"] - row["IR orig"]),
                                          axis=1)
 
-    plot_IR_distributions(df[["Style", "IR orig", "IR trans", "IRs perm"]], plot_dir)
+    plot_IR_distributions(df[["Style", "IR orig", "IR trans", "IRs perm"]], orig, dest, plot_dir)
 
     def hypothesis_test(df, alpha) -> pd.DataFrame:
         df["Hypothesis Test"] = df.apply(lambda row: row["IR orig"] < row["IRs mean"] - row["IRs std"]
@@ -180,6 +182,72 @@ def evaluate_musicality(df, plot_dir, permutations=10, alpha=0.1):
     return table_results, sorted_df
 
 
+
+def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances, styles, orig, dest, eval_path, context='talk'):
+    """
+    Calculate for each transformed roll to which style it sames to belong by comparing its distance with the
+    characteristic entropy matrix of rhythmic and melodic bigrams. Distance can be linear ditance or Kullback-Leibler
+    divergence.
+    """
+    def rhythmic_closer_style(new_roll_matrix, styles, kl=False):
+        if kl:
+            min_style_idx = np.argmin(
+                [sum(sum(rel_entr(style.rhythmic_bigrams_distribution, new_roll_matrix)))
+                 for style in styles.values()]
+            )
+        else:
+            min_style_idx = np.argmin(
+                [sum(sum(abs(style.rhythmic_bigrams_distribution - new_roll_matrix)))
+                 for style in styles.values()]
+            )
+        return list(styles.items())[min_style_idx][0]
+
+    def melodic_closer_style(new_roll_matrix, styles, kl=False):
+        if kl:
+            min_style_idx = np.argmin(
+                [sum(sum(rel_entr(style.intervals_distribution, new_roll_matrix)))
+                 for style in styles.values()]
+            )
+        else:
+            min_style_idx = np.argmin(
+                [sum(sum(abs(style.intervals_distribution - new_roll_matrix)))
+                 for style in styles.values()]
+            )
+        return list(styles.items())[min_style_idx][0]
+
+    def plot_closeness():
+        fig = plt.figure(figsize=(12, 12))
+        sns.set_theme()
+        sns.set_context(context)
+
+        ax1 = fig.add_subplot(2, 2, 1)
+        plt.hist(rhythmic_bigram_distances["Rhythmic closest style (linear)"])
+        ax1.title.set_text("Rhythmic closest style (linear)")
+
+        ax1 = fig.add_subplot(2, 2, 2)
+        plt.hist(rhythmic_bigram_distances["Rhythmic closest style (kl)"])
+        ax1.title.set_text("Rhythmic closest style (kl)")
+
+        ax1 = fig.add_subplot(2, 2, 3)
+        plt.hist(melodic_bigram_distances["Melodic closest style (linear)"])
+        ax1.title.set_text("Melodic closest style (linear)")
+
+        ax1 = fig.add_subplot(2, 2, 4)
+        plt.hist(melodic_bigram_distances["Melodic closest style (kl)"])
+        ax1.title.set_text("Melodic closest style (kl)")
+
+        save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", f"Closest style ({orig} to {dest})")
+        plt.close()
+
+
+    rhythmic_bigram_distances["Rhythmic closest style (linear)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closer_style(row["m'"], styles), axis=1)
+    rhythmic_bigram_distances["Rhythmic closest style (kl)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closer_style(row["m'"], styles, kl=True), axis=1)
+    melodic_bigram_distances["Melodic closest style (linear)"] = melodic_bigram_distances.apply(lambda row: melodic_closer_style(row["m'"], styles), axis=1)
+    melodic_bigram_distances["Melodic closest style (kl)"] = melodic_bigram_distances.apply(lambda row: melodic_closer_style(row["m'"], styles, kl=True), axis=1)
+
+    plot_closeness()
+
+
 def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
     for k, v in kwargs.items():
@@ -190,34 +258,44 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
         elif k == "thold":
             thold = v
 
-    print("===== Evaluating rhythmic bigrams distributions =====")
-    r_table, r_sorted_df = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
-                                                         metrics["original_style"],
-                                                         metrics["target_style"],
-                                                         eval_path, "Rhythmic bigrams", context)
-    r_sorted_df["RhythmicStyle rank"] = range(r_sorted_df.shape[0])
-    print(r_table)
+    print("===== Evaluating Style belonging =====")
+    evaluate_style_belonging(metrics["rhythmic_bigrams"],
+                             metrics["intervals"],
+                             styles_char,
+                             metrics["original_style"],
+                             metrics["target_style"],
+                             eval_path, context)
 
-    print("===== Evaluating interval distributions =====")
-    i_table, i_sorted_df = evaluate_bigrams_distribution(metrics["intervals"],
-                                                         metrics["original_style"],
-                                                         metrics["target_style"],
-                                                         eval_path, "Interval", context)
-    i_sorted_df["IntervalStyle rank"] = range(i_sorted_df.shape[0])
-    print(i_table)
 
-    plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
+    # print("===== Evaluating rhythmic bigrams distributions =====")
+    # r_table, r_sorted_df = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+    #                                                      metrics["original_style"],
+    #                                                      metrics["target_style"],
+    #                                                      eval_path, "Rhythmic bigrams", context)
+    # r_sorted_df["RhythmicStyle rank"] = range(r_sorted_df.shape[0])
+    # print(r_table)
+    #
+    # print("===== Evaluating interval distributions =====")
+    # i_table, i_sorted_df = evaluate_bigrams_distribution(metrics["intervals"],
+    #                                                      metrics["original_style"],
+    #                                                      metrics["target_style"],
+    #                                                      eval_path, "Interval", context)
+    # i_sorted_df["IntervalStyle rank"] = range(i_sorted_df.shape[0])
+    # print(i_table)
+    #
+    # plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
 
-    print("===== Evaluating plagiarism =====")
-    p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
-                                               metrics["target_style"], eval_path, by_distance, context, thold)
-    p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
-    print(p_table)
+    # print("===== Evaluating plagiarism =====")
+    # p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
+    #                                            metrics["target_style"], eval_path, by_distance, context, thold)
+    # p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
+    # print(p_table)
 
-    print("===== Evaluating musicality =====")
-    ir_table, ir_sorted_df = evaluate_musicality(metrics["musicality"], eval_path)
-    ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
-    print(ir_table)
+    # print("===== Evaluating musicality =====")
+    # ir_table, ir_sorted_df = evaluate_musicality(metrics["musicality"], metrics["original_style"],
+    #                                                          metrics["target_style"], eval_path)
+    # ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
+    # print(ir_table)
 
     # print("===== Selecting audios of successful rolls =====")
     # successful_rolls = pd.merge(p_sorted_df, i_sorted_df, how="inner",
@@ -238,12 +316,13 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     #                                        successful_rolls["Plagiarism rank"]])
     # successful_rolls.sort_values(by=["Merged rank"], inplace=True)
 
-    return {#"Merged": successful_rolls,
-            "IntervalStyle": i_sorted_df,
-            "RhythmicStyle": r_sorted_df,
-            "IR": ir_sorted_df,
-            "Plagiarism": p_sorted_df}, \
-        {"interval": i_table,
-         "rhythmic": r_table,
-         "IR": ir_table,
-         "plagiarism": p_table}
+    # return {#"Merged": successful_rolls,
+    #         "IntervalStyle": i_sorted_df,
+    #         "RhythmicStyle": r_sorted_df,
+    #         "IR": ir_sorted_df,
+    #         "Plagiarism": p_sorted_df}, \
+    #     {"interval": i_table,
+    #      "rhythmic": r_table,
+    #      "IR": ir_table,
+    #      "plagiarism": p_table}
+    return  {}, {}
