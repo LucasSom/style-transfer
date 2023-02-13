@@ -21,12 +21,9 @@ def exp_disponibles(df):
             and 'midi' not in c]
 
 
-def normalize(m):
+def normalize(m, eps=0.00001):
     m_sum = np.sum(m + eps)
     return m + eps / m_sum
-
-
-eps = 0.0001
 
 
 def show_sheets(df_transferred, column, sheets_path, suffix):
