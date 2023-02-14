@@ -7,14 +7,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from scipy.special import rel_entr
 
+from data_analysis.statistics import rhythmic_closest_style, melodic_closest_style
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.files_utils import data_path
-from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_fragments_distributions, plot_IR_distributions, \
-    save_plot
-from utils.utils import normalize
+from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_IR_distributions
+from data_analysis.plots import plot_closeness
 
 
 def calculate_resume_table(df, thold=1):
@@ -187,78 +186,16 @@ def evaluate_musicality(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
 def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances, styles, orig, dest, eval_path, context='talk'):
     """
     Calculate for each transformed roll to which style it sames to belong by comparing its distance with the
-    characteristic entropy matrix of rhythmic and melodic bigrams. Distance can be linear ditance or Kullback-Leibler
+    characteristic entropy matrix of rhythmic and melodic bigrams. Distance can be linear distance or Kullback-Leibler
     divergence.
     """
-    def rhythmic_closest_style(new_roll_matrix, styles, kl=False):
-        if kl:
-            min_style_idx = np.argmin(
-                [sum(sum(rel_entr(
-                    normalize(style.rhythmic_bigrams_distribution),
-                    normalize(new_roll_matrix)
-                )))
-                 for style in styles.values()]
-            )
-        else:
-            min_style_idx = np.argmin(
-                [sum(sum(abs(
-                    normalize(style.rhythmic_bigrams_distribution) -
-                    normalize(new_roll_matrix)
-                )))
-                 for style in styles.values()]
-            )
-        return list(styles.items())[min_style_idx][0]
-
-    def melodic_closest_style(new_roll_matrix, styles, kl=False):
-        if kl:
-            min_style_idx = np.argmin(
-                [sum(sum(rel_entr(
-                    normalize(style.intervals_distribution),
-                    normalize(new_roll_matrix)
-                )))
-                 for style in styles.values()]
-            )
-        else:
-            min_style_idx = np.argmin(
-                [sum(sum(abs(
-                    normalize(style.intervals_distribution) -
-                    normalize(new_roll_matrix)
-                )))
-                 for style in styles.values()]
-            )
-        return list(styles.items())[min_style_idx][0]
-
-    def plot_closeness():
-        fig = plt.figure(figsize=(12, 12))
-        sns.set_theme()
-        sns.set_context(context)
-
-        ax1 = fig.add_subplot(2, 2, 1)
-        plt.hist(rhythmic_bigram_distances["Rhythmic closest style (linear)"])
-        ax1.title.set_text("Rhythmic closest style (linear)")
-
-        ax1 = fig.add_subplot(2, 2, 2)
-        plt.hist(rhythmic_bigram_distances["Rhythmic closest style (kl)"])
-        ax1.title.set_text("Rhythmic closest style (kl)")
-
-        ax1 = fig.add_subplot(2, 2, 3)
-        plt.hist(melodic_bigram_distances["Melodic closest style (linear)"])
-        ax1.title.set_text("Melodic closest style (linear)")
-
-        ax1 = fig.add_subplot(2, 2, 4)
-        plt.hist(melodic_bigram_distances["Melodic closest style (kl)"])
-        ax1.title.set_text("Melodic closest style (kl)")
-
-        save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", f"Closest style ({orig} to {dest})")
-        plt.close()
-
 
     rhythmic_bigram_distances["Rhythmic closest style (linear)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closest_style(row["m'"], styles), axis=1)
     rhythmic_bigram_distances["Rhythmic closest style (kl)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closest_style(row["m'"], styles, kl=True), axis=1)
     melodic_bigram_distances["Melodic closest style (linear)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles), axis=1)
     melodic_bigram_distances["Melodic closest style (kl)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles, kl=True), axis=1)
 
-    plot_closeness()
+    plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context)
 
 
 def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):

@@ -7,7 +7,7 @@ from keras.saving.save import load_model
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
-from data_analysis.statistics import styles_bigrams_entropy
+from data_analysis.statistics import styles_bigrams_entropy, validate_style_belonging
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
@@ -97,6 +97,8 @@ def data_analysis(df_path, eval_dir, b):
 
     # entropies = styles_bigrams_entropy(df)
     # plot_styles_bigrams_entropy(entropies, eval_dir)
+
+    validate_style_belonging(df, eval_dir)
 
     histograms = plot_styles_heatmaps(df, eval_dir)
 

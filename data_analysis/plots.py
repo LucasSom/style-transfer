@@ -83,3 +83,28 @@ def heatmap_differences_table(df, histograms, plot_dir):
     diff_table.to_csv(os.path.join(plot_dir, f"melodic_diff.csv"))
     sns.heatmap(diff_table.pivot(values='d', index='s1', columns='s2'), annot=True)
     save_plot(plot_dir, 'melodic_diff')
+
+
+def plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context='talk'):
+    fig = plt.figure(figsize=(12, 12))
+    sns.set_theme()
+    sns.set_context(context)
+
+    ax1 = fig.add_subplot(2, 2, 1)
+    plt.hist(rhythmic_bigram_distances["Rhythmic closest style (linear)"])
+    ax1.title.set_text("Rhythmic closest style (linear)")
+
+    ax2 = fig.add_subplot(2, 2, 2)
+    plt.hist(rhythmic_bigram_distances["Rhythmic closest style (kl)"])
+    ax2.title.set_text("Rhythmic closest style (kl)")
+
+    ax3 = fig.add_subplot(2, 2, 3)
+    plt.hist(melodic_bigram_distances["Melodic closest style (linear)"])
+    ax3.title.set_text("Melodic closest style (linear)")
+
+    ax4 = fig.add_subplot(2, 2, 4)
+    plt.hist(melodic_bigram_distances["Melodic closest style (kl)"])
+    ax4.title.set_text("Melodic closest style (kl)")
+
+    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", f"Closest style ({orig} to {dest})")
+    plt.close()
