@@ -15,7 +15,7 @@ from utils.plots_utils import save_plot
 
 def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexity"):
     sns.scatterplot(data=entropies, x="Melodic entropy", y="Rhythmic entropy", hue="Style")
-    save_plot(plot_dir, plot_name, "Styles entropy for melody and rhythm")
+    save_plot(plot_dir, plot_name + '-test', "Styles entropy for melody and rhythm")
 
 
 def plot_styles_heatmaps(df, plot_dir):

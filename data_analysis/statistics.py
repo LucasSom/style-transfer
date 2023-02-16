@@ -15,7 +15,9 @@ from utils.utils import normalize
 def styles_bigrams_entropy(df) -> DataFrame:
     def calculate_entropy(df_style, style, interval):
         probabilities = get_style_intervals_bigrams_avg(df_style, style) if interval else get_style_rhythmic_bigrams_avg(df_style, style)
-        return entropy(probabilities, axis=0)
+        # return entropy(probabilities, axis=0)
+        return entropy(np.hstack(probabilities))
+        # TODO: Consultar a March. Lo que quiero es la entropía de la entropía o la entropía de stackear las probabilidades?
 
     d = {"Style": [], "Melodic entropy": [], "Rhythmic entropy": []}
     for style in set(df["Style"]):

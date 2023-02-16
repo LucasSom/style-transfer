@@ -95,8 +95,8 @@ def data_analysis(df_path, eval_dir, b):
     init(b)
     df = load_pickle(df_path)
 
-    # entropies = styles_bigrams_entropy(df)
-    # plot_styles_bigrams_entropy(entropies, eval_dir)
+    entropies = styles_bigrams_entropy(df)
+    plot_styles_bigrams_entropy(entropies, eval_dir)
 
     validate_style_belonging(df, eval_dir)
 
