@@ -98,12 +98,20 @@ def data_analysis(df_path, eval_dir, b):
     entropies = styles_bigrams_entropy(df)
     plot_styles_bigrams_entropy(entropies, eval_dir)
 
-    validate_style_belonging(df, eval_dir)
+    df_train, df_test = validate_style_belonging(df, eval_dir)
+    # df_train / df
+    # Bach: 406 / 508
+    # ragtime: 1098 / 1372
+    # Frescobaldi: 529 / 661
+    # Mozart: 1047 / 1309
 
     histograms = plot_styles_heatmaps(df, eval_dir)
+    histograms_train = plot_styles_heatmaps(df_train, eval_dir + '/80-percent')
 
     heatmap_differences_table(df, histograms, eval_dir)
+    heatmap_differences_table(df_train, histograms_train, eval_dir + '/80-percent')
     plot_heatmap_differences(df, histograms, eval_dir)
+    plot_heatmap_differences(df_train, histograms_train, eval_dir + '/80-percent')
 
 
 

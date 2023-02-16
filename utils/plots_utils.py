@@ -26,6 +26,7 @@ def save_plot(plot_dir, plot_name, title=None):
         os.makedirs(plot_dir + "/plots/")
     print(f"Saving plot as {plot_dir}/plots/{plot_name}.png")
     plt.savefig(f"{plot_dir}/plots/{plot_name}.png")
+    plt.close()
 
 
 def plot_area(area, color):

@@ -5,7 +5,7 @@ from scipy.special import rel_entr
 from scipy.stats import entropy
 from sklearn.model_selection import StratifiedShuffleSplit
 
-from data_analysis.plots import plot_closeness
+from data_analysis.plots import plot_closeness, plot_styles_bigrams_entropy
 from evaluation.metrics.intervals import get_style_intervals_bigrams_avg, matrix_of_adjacent_intervals
 from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_avg, matrix_of_adjacent_rhythmic_bigrams
 from model.embeddings.style import Style
@@ -68,6 +68,7 @@ def validate_style_belonging(df, eval_path, context='talk'):
         plot_closeness(strat_test_df[strat_test_df["Style"] == orig], strat_test_df[strat_test_df["Style"] == orig],
                        orig, "nothing", eval_path + "/styles", context)
 
+    return strat_train_df, strat_test_df
 
 def kl(P, Q):
     return sum(sum(rel_entr(normalize(P), Q)))
