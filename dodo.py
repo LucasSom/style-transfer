@@ -100,10 +100,10 @@ def data_analysis(df_path, eval_dir, b):
 
     validate_style_belonging(df, eval_dir)
 
-    # histograms = plot_styles_heatmaps(df, eval_dir)
-    #
-    # heatmap_differences_table(df, histograms, eval_dir)
-    # plot_heatmap_differences(df, histograms, eval_dir)
+    histograms = plot_styles_heatmaps(df, eval_dir)
+
+    heatmap_differences_table(df, histograms, eval_dir)
+    plot_heatmap_differences(df, histograms, eval_dir)
 
 
 

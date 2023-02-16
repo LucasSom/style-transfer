@@ -86,32 +86,47 @@ def heatmap_differences_table(df, histograms, plot_dir):
 
 
 def plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context='talk'):
-    fig = plt.figure(figsize=(18, 12))
+    fig = plt.figure(figsize=(18, 18))
     sns.set_theme()
     sns.set_context(context)
+    title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
+    fig.suptitle(title)
 
-    ax1 = fig.add_subplot(2, 3, 1)
+    ax1 = fig.add_subplot(3, 3, 1)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (linear)"])
     ax1.title.set_text("Rhythmic closest style (linear)")
 
-    ax2 = fig.add_subplot(2, 3, 2)
+    ax2 = fig.add_subplot(3, 3, 2)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (kl)"])
     ax2.title.set_text("Rhythmic closest style (kl)")
 
-    ax3 = fig.add_subplot(2, 3, 3)
+    ax3 = fig.add_subplot(3, 3, 3)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (probability)"])
     ax3.title.set_text("Rhythmic closest style (probability)")
 
-    ax4 = fig.add_subplot(2, 3, 4)
+    ax4 = fig.add_subplot(3, 3, 4)
     plt.hist(melodic_bigram_distances["Melodic closest style (linear)"])
     ax4.title.set_text("Melodic closest style (linear)")
 
-    ax5 = fig.add_subplot(2, 3, 5)
+    ax5 = fig.add_subplot(3, 3, 5)
     plt.hist(melodic_bigram_distances["Melodic closest style (kl)"])
     ax5.title.set_text("Melodic closest style (kl)")
 
-    fig.add_subplot(2, 3, 6)
+    ax6 = fig.add_subplot(3, 3, 6)
     plt.hist(rhythmic_bigram_distances["Melodic closest style (probability)"])
+    ax6.title.set_text("Melodic closest style (probability)")
 
-    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Melodic closest style (probability)")
+    ax7 = fig.add_subplot(3, 3, 7)
+    plt.hist(melodic_bigram_distances["Joined closest style (linear)"])
+    ax7.title.set_text("Joined closest style (linear)")
+
+    ax8 = fig.add_subplot(3, 3, 8)
+    plt.hist(melodic_bigram_distances["Joined closest style (kl)"])
+    ax8.title.set_text("Joined closest style (kl)")
+
+    ax9 = fig.add_subplot(3, 3, 9)
+    plt.hist(rhythmic_bigram_distances["Joined closest style (probability)"])
+    ax9.title.set_text("Joined closest style (probability)")
+
+    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Joined closest style (probability)")
     plt.close()

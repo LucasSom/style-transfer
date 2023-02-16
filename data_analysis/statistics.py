@@ -54,6 +54,14 @@ def validate_style_belonging(df, eval_path, context='talk'):
     strat_test_df["Melodic closest style (probability)"] = strat_test_df.apply(
         lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='probability'), axis=1)
 
+    strat_test_df["Joined closest style (linear)"] = strat_test_df.apply(
+        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train), axis=1)
+    strat_test_df["Joined closest style (kl)"] = strat_test_df.apply(
+        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train, method='kl'), axis=1)
+    strat_test_df["Joined closest style (probability)"] = strat_test_df.apply(
+        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train, method='probability'), axis=1)
+
+
     for orig in styles_names:
         plot_closeness(strat_test_df[strat_test_df["Style"] == orig], strat_test_df[strat_test_df["Style"] == orig],
                        orig, "nothing", eval_path + "/styles", context)
@@ -98,6 +106,30 @@ def melodic_closest_style(bigram_matrix, styles, method='linear'):
     elif method == 'probability':
         min_style_idx = np.argmin(
             [belonging_probability(style.intervals_distribution, bigram_matrix) for style in styles.values()]
+        )
+    else:
+        raise ValueError(f"{method} is not a valid method.")
+    return list(styles.items())[min_style_idx][0]
+
+
+def joined_closest_style(interval_matrix, rhythmic_matrix, styles, method='linear'):
+    if method == 'kl':
+        min_style_idx = np.argmin(
+            [kl(style.intervals_distribution, interval_matrix)
+             + kl(style.rhythmic_bigrams_distribution, rhythmic_matrix)
+             for style in styles.values()]
+        )
+    elif method == 'linear':
+        min_style_idx = np.argmin(
+            [linear_distance(style.intervals_distribution, interval_matrix)
+             + linear_distance(style.rhythmic_bigrams_distribution, rhythmic_matrix)
+             for style in styles.values()]
+        )
+    elif method == 'probability':
+        min_style_idx = np.argmin(
+            [belonging_probability(style.intervals_distribution, interval_matrix)
+             + belonging_probability(style.rhythmic_bigrams_distribution, rhythmic_matrix)
+             for style in styles.values()]
         )
     else:
         raise ValueError(f"{method} is not a valid method.")
