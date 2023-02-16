@@ -86,25 +86,32 @@ def heatmap_differences_table(df, histograms, plot_dir):
 
 
 def plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context='talk'):
-    fig = plt.figure(figsize=(12, 12))
+    fig = plt.figure(figsize=(18, 12))
     sns.set_theme()
     sns.set_context(context)
 
-    ax1 = fig.add_subplot(2, 2, 1)
+    ax1 = fig.add_subplot(2, 3, 1)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (linear)"])
     ax1.title.set_text("Rhythmic closest style (linear)")
 
-    ax2 = fig.add_subplot(2, 2, 2)
+    ax2 = fig.add_subplot(2, 3, 2)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (kl)"])
     ax2.title.set_text("Rhythmic closest style (kl)")
 
-    ax3 = fig.add_subplot(2, 2, 3)
+    ax3 = fig.add_subplot(2, 3, 3)
+    plt.hist(rhythmic_bigram_distances["Rhythmic closest style (probability)"])
+    ax3.title.set_text("Rhythmic closest style (probability)")
+
+    ax4 = fig.add_subplot(2, 3, 4)
     plt.hist(melodic_bigram_distances["Melodic closest style (linear)"])
-    ax3.title.set_text("Melodic closest style (linear)")
+    ax4.title.set_text("Melodic closest style (linear)")
 
-    ax4 = fig.add_subplot(2, 2, 4)
+    ax5 = fig.add_subplot(2, 3, 5)
     plt.hist(melodic_bigram_distances["Melodic closest style (kl)"])
-    ax4.title.set_text("Melodic closest style (kl)")
+    ax5.title.set_text("Melodic closest style (kl)")
 
-    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", f"Closest style ({orig} to {dest})")
+    fig.add_subplot(2, 3, 6)
+    plt.hist(rhythmic_bigram_distances["Melodic closest style (probability)"])
+
+    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Melodic closest style (probability)")
     plt.close()

@@ -191,9 +191,11 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
     """
 
     rhythmic_bigram_distances["Rhythmic closest style (linear)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closest_style(row["m'"], styles), axis=1)
-    rhythmic_bigram_distances["Rhythmic closest style (kl)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closest_style(row["m'"], styles, kl=True), axis=1)
+    rhythmic_bigram_distances["Rhythmic closest style (kl)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closest_style(row["m'"], styles, method='kl'), axis=1)
+    rhythmic_bigram_distances["Rhythmic closest style (probability)"] = rhythmic_bigram_distances.apply(lambda row: rhythmic_closest_style(row["m'"], styles, method='probability'), axis=1)
     melodic_bigram_distances["Melodic closest style (linear)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles), axis=1)
-    melodic_bigram_distances["Melodic closest style (kl)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles, kl=True), axis=1)
+    melodic_bigram_distances["Melodic closest style (kl)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles, method='kl'), axis=1)
+    melodic_bigram_distances["Melodic closest style (probability)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles, method='probability'), axis=1)
 
     plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context)
 

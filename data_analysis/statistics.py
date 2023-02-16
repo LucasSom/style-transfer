@@ -43,52 +43,62 @@ def validate_style_belonging(df, eval_path, context='talk'):
     strat_test_df["Rhythmic closest style (linear)"] = strat_test_df.apply(
         lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train), axis=1)
     strat_test_df["Rhythmic closest style (kl)"] = strat_test_df.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, kl=True), axis=1)
+        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='kl'), axis=1)
+    strat_test_df["Rhythmic closest style (probability)"] = strat_test_df.apply(
+        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='probability'), axis=1)
+
     strat_test_df["Melodic closest style (linear)"] = strat_test_df.apply(
         lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train), axis=1)
     strat_test_df["Melodic closest style (kl)"] = strat_test_df.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, kl=True), axis=1)
+        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='kl'), axis=1)
+    strat_test_df["Melodic closest style (probability)"] = strat_test_df.apply(
+        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='probability'), axis=1)
 
     for orig in styles_names:
         plot_closeness(strat_test_df[strat_test_df["Style"] == orig], strat_test_df[strat_test_df["Style"] == orig],
-                       orig, "nothing", eval_path, context)
+                       orig, "nothing", eval_path + "/styles", context)
 
 
-def rhythmic_closest_style(bigram_matrix, styles, kl=False):
-    if kl:
+def kl(P, Q):
+    return sum(sum(rel_entr(normalize(P), Q)))
+
+def linear_distance(P, Q):
+    return sum(sum(abs(normalize(P) - Q)))
+
+def belonging_probability(M, x):
+    return sum(sum(np.log(M) * x))
+
+def rhythmic_closest_style(bigram_matrix, styles, method='linear'):
+    if method == 'kl':
         min_style_idx = np.argmin(
-            [sum(sum(rel_entr(
-                normalize(style.rhythmic_bigrams_distribution),
-                normalize(bigram_matrix)
-            )))
-             for style in styles.values()]
+            [kl(style.rhythmic_bigrams_distribution, bigram_matrix) for style in styles.values()]
+        )
+    elif method == 'linear':
+        min_style_idx = np.argmin(
+            [linear_distance(style.rhythmic_bigrams_distribution, bigram_matrix) for style in styles.values()]
+        )
+    elif method == 'probability':
+        min_style_idx = np.argmin(
+            [belonging_probability(style.rhythmic_bigrams_distribution, bigram_matrix) for style in styles.values()]
         )
     else:
-        min_style_idx = np.argmin(
-            [sum(sum(abs(
-                normalize(style.rhythmic_bigrams_distribution) -
-                normalize(bigram_matrix)
-            )))
-             for style in styles.values()]
-        )
+        raise ValueError(f"{method} is not a valid method.")
     return list(styles.items())[min_style_idx][0]
 
 
-def melodic_closest_style(bigram_matrix, styles, kl=False):
-    if kl:
+def melodic_closest_style(bigram_matrix, styles, method='linear'):
+    if method == 'kl':
         min_style_idx = np.argmin(
-            [sum(sum(rel_entr(
-                normalize(style.intervals_distribution),
-                normalize(bigram_matrix)
-            )))
-             for style in styles.values()]
+            [kl(style.intervals_distribution, bigram_matrix) for style in styles.values()]
+        )
+    elif method == 'linear':
+        min_style_idx = np.argmin(
+            [linear_distance(style.intervals_distribution, bigram_matrix) for style in styles.values()]
+        )
+    elif method == 'probability':
+        min_style_idx = np.argmin(
+            [belonging_probability(style.intervals_distribution, bigram_matrix) for style in styles.values()]
         )
     else:
-        min_style_idx = np.argmin(
-            [sum(sum(abs(
-                normalize(style.intervals_distribution) -
-                normalize(bigram_matrix)
-            )))
-             for style in styles.values()]
-        )
+        raise ValueError(f"{method} is not a valid method.")
     return list(styles.items())[min_style_idx][0]
