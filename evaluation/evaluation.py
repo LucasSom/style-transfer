@@ -262,13 +262,13 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     #                                        successful_rolls["Plagiarism rank"]])
     # successful_rolls.sort_values(by=["Merged rank"], inplace=True)
 
-    # return {#"Merged": successful_rolls,
-    #         "IntervalStyle": i_sorted_df,
-    #         "RhythmicStyle": r_sorted_df,
-    #         "IR": ir_sorted_df,
-    #         "Plagiarism": p_sorted_df}, \
-    #     {"interval": i_table,
-    #      "rhythmic": r_table,
-    #      "IR": ir_table,
-    #      "plagiarism": p_table}
-    return  {}, {}
+    return {#"Merged": successful_rolls,
+            "IntervalStyle": i_sorted_df,
+            "RhythmicStyle": r_sorted_df,
+            "IR": ir_sorted_df,
+            "Plagiarism": p_sorted_df}, \
+        {"interval": i_table,
+         "rhythmic": r_table,
+         "IR": ir_table,
+         "plagiarism": p_table}
+    # return  {}, {}
