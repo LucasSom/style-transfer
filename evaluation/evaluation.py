@@ -12,7 +12,7 @@ from data_analysis.statistics import rhythmic_closest_style, melodic_closest_sty
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.files_utils import data_path
-from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_IR_distributions
+from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_IR_distributions, plot_fragments_distributions
 from data_analysis.plots import plot_closeness
 
 
@@ -210,44 +210,38 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
         elif k == "thold":
             thold = v
 
+    orig, target = metrics["original_style"], metrics["target_style"]
+
     print("===== Evaluating Style belonging =====")
     evaluate_style_belonging(metrics["rhythmic_bigrams"],
                              metrics["intervals"],
                              styles_char,
-                             metrics["original_style"],
-                             metrics["target_style"],
-                             eval_path, context)
+                             orig, target, eval_path, context)
 
 
-    # print("===== Evaluating rhythmic bigrams distributions =====")
-    # r_table, r_sorted_df = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
-    #                                                      metrics["original_style"],
-    #                                                      metrics["target_style"],
-    #                                                      eval_path, "Rhythmic bigrams", context)
-    # r_sorted_df["RhythmicStyle rank"] = range(r_sorted_df.shape[0])
-    # print(r_table)
-    #
-    # print("===== Evaluating interval distributions =====")
-    # i_table, i_sorted_df = evaluate_bigrams_distribution(metrics["intervals"],
-    #                                                      metrics["original_style"],
-    #                                                      metrics["target_style"],
-    #                                                      eval_path, "Interval", context)
-    # i_sorted_df["IntervalStyle rank"] = range(i_sorted_df.shape[0])
-    # print(i_table)
-    #
-    # plot_fragments_distributions(df, styles_char, eval_path, "Transformation_distribution")
+    print("===== Evaluating rhythmic bigrams distributions =====")
+    r_table, r_sorted_df = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
+                                                         orig, target, eval_path + '/rhythmic', f"Rhythmic bigrams {orig} to {target}", context)
+    r_sorted_df["RhythmicStyle rank"] = range(r_sorted_df.shape[0])
+    print(r_table)
 
-    # print("===== Evaluating plagiarism =====")
-    # p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], metrics["original_style"],
-    #                                            metrics["target_style"], eval_path, by_distance, context, thold)
-    # p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
-    # print(p_table)
+    print("===== Evaluating interval distributions =====")
+    i_table, i_sorted_df = evaluate_bigrams_distribution(metrics["intervals"],
+                                                         orig, target, eval_path + '/melodic', f"Interval {orig} to {target}", context)
+    i_sorted_df["IntervalStyle rank"] = range(i_sorted_df.shape[0])
+    print(i_table)
 
-    # print("===== Evaluating musicality =====")
-    # ir_table, ir_sorted_df = evaluate_musicality(metrics["musicality"], metrics["original_style"],
-    #                                                          metrics["target_style"], eval_path)
-    # ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
-    # print(ir_table)
+    plot_fragments_distributions(df, styles_char, eval_path, f"Transformation_distribution_{orig}_to_{target}")
+
+    print("===== Evaluating plagiarism =====")
+    p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], orig, target, eval_path, by_distance, context, thold)
+    p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
+    print(p_table)
+
+    print("===== Evaluating musicality =====")
+    ir_table, ir_sorted_df = evaluate_musicality(metrics["musicality"], orig, target, eval_path)
+    ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
+    print(ir_table)
 
     # print("===== Selecting audios of successful rolls =====")
     # successful_rolls = pd.merge(p_sorted_df, i_sorted_df, how="inner",
