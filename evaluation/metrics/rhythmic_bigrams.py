@@ -6,6 +6,7 @@ from typing import Union
 
 from roll.guoroll import GuoRoll
 from roll.song import Song
+from utils.utils import normalize
 
 possible_patterns = 2 ** 4
 
@@ -46,7 +47,7 @@ def get_style_rhythmic_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
     avg = get_style_rhythmic_bigrams_sum(avg, df_style)[0]
 
     assert df_style.shape[0] != 0
-    return avg / df_style.shape[0]
+    return normalize(avg / df_style.shape[0])
 
 
 def get_style_rhythmic_bigrams_sum(acc, df_style):

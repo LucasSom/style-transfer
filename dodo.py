@@ -7,7 +7,7 @@ from keras.saving.save import load_model
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
-from data_analysis.statistics import styles_bigrams_entropy, validate_style_belonging
+from data_analysis.statistics import styles_bigrams_entropy, validate_style_belonging, styles_ot_table, closest_ot_style
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
@@ -19,7 +19,7 @@ from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
     plot_characteristics_distributions
 from data_analysis.plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences, \
-    heatmap_differences_table
+    heatmap_style_differences, plot_closest_ot_style
 from utils.utils import show_sheets, sample_uniformly
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -95,23 +95,29 @@ def data_analysis(df_path, eval_dir, b):
     init(b)
     df = load_pickle(df_path)
 
-    entropies = styles_bigrams_entropy(df)
-    plot_styles_bigrams_entropy(entropies, eval_dir)
+    # entropies = styles_bigrams_entropy(df)
+    # plot_styles_bigrams_entropy(entropies, eval_dir)
 
-    df_train, df_test = validate_style_belonging(df, eval_dir)
-    # df_train / df
+    df_80, df_test = validate_style_belonging(df, eval_dir)
+    # df_train (3080) / df (3850)
     # Bach: 406 / 508
     # ragtime: 1098 / 1372
     # Frescobaldi: 529 / 661
     # Mozart: 1047 / 1309
 
-    histograms = plot_styles_heatmaps(df, eval_dir)
-    histograms_train = plot_styles_heatmaps(df_train, eval_dir + '/80-percent')
+    # histograms = plot_styles_heatmaps(df, eval_dir)
+    histograms_80 = plot_styles_heatmaps(df_80, eval_dir + '/80-percent')
 
-    heatmap_differences_table(df, histograms, eval_dir)
-    heatmap_differences_table(df_train, histograms_train, eval_dir + '/80-percent')
-    plot_heatmap_differences(df, histograms, eval_dir)
-    plot_heatmap_differences(df_train, histograms_train, eval_dir + '/80-percent')
+    # diff_table_80 = styles_ot_table(df_80, histograms_80)
+    # diff_table = styles_ot_table(df, histograms)
+
+    rolls_diff_df = closest_ot_style(df_test, histograms_80)
+    plot_closest_ot_style(rolls_diff_df, eval_dir)
+
+    # heatmap_style_differences(diff_table, eval_dir)
+    # heatmap_style_differences(diff_table_80, eval_dir + '/80-percent')
+    # plot_heatmap_differences(df, histograms, eval_dir)
+    # plot_heatmap_differences(df_train, histograms_80, eval_dir + '/80-percent')
 
 
 

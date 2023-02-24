@@ -1,11 +1,12 @@
 import numpy as np
+import ot
 import pandas as pd
 from pandas import DataFrame
 from scipy.special import rel_entr
 from scipy.stats import entropy
 from sklearn.model_selection import StratifiedShuffleSplit
 
-from data_analysis.plots import plot_closeness, plot_styles_bigrams_entropy
+from data_analysis.plots import plot_closeness, histograms_and_distance
 from evaluation.metrics.intervals import get_style_intervals_bigrams_avg, matrix_of_adjacent_intervals
 from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_avg, matrix_of_adjacent_rhythmic_bigrams
 from model.embeddings.style import Style
@@ -137,3 +138,44 @@ def joined_closest_style(interval_matrix, rhythmic_matrix, styles, method='linea
     else:
         raise ValueError(f"{method} is not a valid method.")
     return list(styles.items())[min_style_idx][0]
+
+
+def style_ot_diff(s1, s2, histograms, melodic=True):
+    if s1 != s2:
+        h1 = histograms[s1]["melodic_hist" if melodic else "rhythmic_hist"]
+        h2 = histograms[s2]["melodic_hist" if melodic else "rhythmic_hist"]
+
+        return optimal_transport(h1, h2, melodic)
+    return 0
+
+
+def optimal_transport(h1, h2, melodic):
+    a, b, D = histograms_and_distance(h1, h2, melodic)
+    return ot.emd2(a, b, D)
+
+
+def styles_ot_table(df, histograms):
+    diff_table = pd.DataFrame(
+        {
+            's1': s1,
+            's2': s2,
+            'd': style_ot_diff(s1, s2, histograms)
+        }
+        for s1 in set(df['Style'])
+        for s2 in set(df['Style'])
+    )
+    return diff_table
+
+
+def closest_ot_style(df, histograms, melodic=True):
+    d = {}
+    for i, s in enumerate(set(df['Style'])):
+        style_hist = histograms[s]["melodic_hist" if melodic else "rhythmic_hist"]
+        df[f'ot to {s}'] = df.apply(lambda row: optimal_transport(
+            row["Melodic bigram matrix" if melodic else "Rhythmic bigram matrix"],
+            style_hist, melodic), axis=1)
+        d[i] = f'ot to {s}'
+
+    df["Closest style (ot)"] = df[[f'ot to {s}' for s in set(df['Style'])]].apply(np.argmin, axis=1)
+    df["Closest style (ot)"] = df.apply(lambda row: d[row["Closest style (ot)"]], axis=1)
+    return df
