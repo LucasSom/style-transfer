@@ -36,12 +36,11 @@ def plot_styles_heatmaps(df, plot_dir):
 
 
 def histograms_and_distance(h1, h2, melodic=True):
-    # TODO: No está chequeado para ritmos
-    x = np.arange(-12, 13) if melodic else np.arange(possible_patterns + 1)
-    y = np.arange(-12, 13) if melodic else np.arange(possible_patterns + 1)
+    x = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
+    y = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
     x_mesh, y_mesh = np.meshgrid(x, y)
     M = np.dstack((x_mesh, y_mesh))
-    M = M.reshape(25 * 25, 2) if melodic else M.reshape(possible_patterns + 1, 2)
+    M = M.reshape(25 * 25, 2) if melodic else M.reshape(possible_patterns * possible_patterns, 2)
     D = ot.dist(M)
 
     a, b = np.hstack(h1) / np.sum(h1), np.hstack(h2) / np.sum(h2)
@@ -129,5 +128,16 @@ def plot_closest_ot_style(df, eval_path, context='talk'):
         sns.set_theme()
         sns.set_context(context)
 
-        plt.hist(df[df["Style"] == s]['Closest style (ot)'])
-        save_plot(eval_path, title, title)
+        ax1 = fig.add_subplot(1, 3, 1)
+        plt.hist(df[df["Style"] == s]['Melodic closest style (ot)'])
+        ax1.title.set_text("Melodic closest style (ot)")
+
+        ax2 = fig.add_subplot(1, 3, 2)
+        plt.hist(df[df["Style"] == s]['Rhythmic closest style (ot)'])
+        ax2.title.set_text("Rhythmic closest style (ot)")
+
+        ax3 = fig.add_subplot(1, 3, 3)
+        plt.hist(df[df["Style"] == s]['Joined closest style (ot)'])
+        ax3.title.set_text("Joined closest style (ot)")
+
+        save_plot(eval_path, f"closest_styles_ot-{s}", 'Joined closest style (ot)')

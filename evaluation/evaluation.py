@@ -13,7 +13,7 @@ from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.files_utils import data_path
 from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_IR_distributions, plot_fragments_distributions
-from data_analysis.plots import plot_closeness
+from data_analysis.dataset_plots import plot_closeness
 
 
 def calculate_resume_table(df, thold=1):

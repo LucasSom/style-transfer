@@ -18,7 +18,7 @@ from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
     plot_characteristics_distributions
-from data_analysis.plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences, \
+from data_analysis.dataset_plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences, \
     heatmap_style_differences, plot_closest_ot_style
 from utils.utils import show_sheets, sample_uniformly
 

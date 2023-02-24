@@ -6,7 +6,7 @@ from scipy.special import rel_entr
 from scipy.stats import entropy
 from sklearn.model_selection import StratifiedShuffleSplit
 
-from data_analysis.plots import plot_closeness, histograms_and_distance
+from data_analysis.dataset_plots import plot_closeness, histograms_and_distance
 from evaluation.metrics.intervals import get_style_intervals_bigrams_avg, matrix_of_adjacent_intervals
 from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_avg, matrix_of_adjacent_rhythmic_bigrams
 from model.embeddings.style import Style
@@ -170,12 +170,23 @@ def styles_ot_table(df, histograms):
 def closest_ot_style(df, histograms, melodic=True):
     d = {}
     for i, s in enumerate(set(df['Style'])):
-        style_hist = histograms[s]["melodic_hist" if melodic else "rhythmic_hist"]
-        df[f'ot to {s}'] = df.apply(lambda row: optimal_transport(
-            row["Melodic bigram matrix" if melodic else "Rhythmic bigram matrix"],
-            style_hist, melodic), axis=1)
-        d[i] = f'ot to {s}'
+        style_melodic_hist = histograms[s]["melodic_hist"]
+        style_rhythmic_hist = histograms[s]["rhythmic_hist"]
 
-    df["Closest style (ot)"] = df[[f'ot to {s}' for s in set(df['Style'])]].apply(np.argmin, axis=1)
-    df["Closest style (ot)"] = df.apply(lambda row: d[row["Closest style (ot)"]], axis=1)
+        df[f'Melodic ot to {s}'] = df.apply(lambda row: optimal_transport(
+            row["Melodic bigram matrix"],
+            style_melodic_hist, melodic=True), axis=1)
+
+        df[f'Rhythmic ot to {s}'] = df.apply(lambda row: optimal_transport(
+            row["Rhythmic bigram matrix"],
+            style_rhythmic_hist, melodic=False), axis=1)
+
+        df[f'Joined ot to {s}'] = df.apply(lambda row: row[f'Melodic ot to {s}'] + row[f'Rhythmic ot to {s}'], axis=1)
+
+        d[i] = s
+
+    for kind in ["Melodic", "Rhythmic", "Joined"]:
+        df[f"{kind} closest style (ot)"] = df[[f'{kind} ot to {s}' for s in set(df['Style'])]].apply(np.argmin, axis=1)
+        df[f"{kind} closest style (ot)"] = df.apply(lambda row: d[row[f"{kind} closest style (ot)"]], axis=1)
+
     return df
