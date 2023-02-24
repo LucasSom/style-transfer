@@ -19,7 +19,7 @@ from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
     plot_characteristics_distributions
 from data_analysis.dataset_plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences, \
-    heatmap_style_differences, plot_closest_ot_style
+    heatmap_style_differences, plot_closest_ot_style, plot_distances_distribution
 from utils.utils import show_sheets, sample_uniformly
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -112,7 +112,8 @@ def data_analysis(df_path, eval_dir, b):
     # diff_table = styles_ot_table(df, histograms)
 
     rolls_diff_df = closest_ot_style(df_test, histograms_80)
-    plot_closest_ot_style(rolls_diff_df, eval_dir)
+    plot_distances_distribution(rolls_diff_df, eval_dir)
+    # plot_closest_ot_style(rolls_diff_df, eval_dir)
 
     # heatmap_style_differences(diff_table, eval_dir)
     # heatmap_style_differences(diff_table_80, eval_dir + '/80-percent')

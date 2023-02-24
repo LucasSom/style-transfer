@@ -119,8 +119,6 @@ def plot_closest_ot_style(df, eval_path, context='talk'):
     """
     :param df: DataFrame with column 'Closest style (ot)'
     """
-
-
     for s in set(df["Style"]):
         fig = plt.figure(figsize=(18, 18))
         title = f"Closest styles of test {s} rolls"
@@ -141,3 +139,23 @@ def plot_closest_ot_style(df, eval_path, context='talk'):
         ax3.title.set_text("Joined closest style (ot)")
 
         save_plot(eval_path, f"closest_styles_ot-{s}", 'Joined closest style (ot)')
+
+
+def plot_distances_distribution(df, eval_path, context='talk'):
+    for orig in set(df["Style"]):
+        fig = plt.figure(figsize=(40, 10))
+        title = f"Closest styles of test {orig} rolls"
+        fig.suptitle(title)
+        sns.set_theme()
+        sns.set_context(context)
+
+        for i, s2 in enumerate(set(df["Style"])):
+            ax = fig.add_subplot(1, 4, i+1)
+            sns.kdeplot(df[df["Style"] == orig][f'Melodic ot to {s2}'])
+            sns.kdeplot(df[df["Style"] == orig][f'Rhythmic ot to {s2}'])
+            sns.kdeplot(df[df["Style"] == orig][f'Joined ot to {s2}'])
+
+            plt.legend(labels=[f"Melodic ot to {s2}", f"Rhythmic ot to {s2}", f'Joined ot to {s2}'])
+            ax.title.set_text(f"Distribution of distances to {s2}")
+
+        save_plot(eval_path, f"ot_distances-{orig}", f'Distribution of distances of {orig} rolls to {s2}')
