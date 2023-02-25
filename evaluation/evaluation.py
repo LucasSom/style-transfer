@@ -197,7 +197,8 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
     melodic_bigram_distances["Melodic closest style (kl)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles, method='kl'), axis=1)
     melodic_bigram_distances["Melodic closest style (probability)"] = melodic_bigram_distances.apply(lambda row: melodic_closest_style(row["m'"], styles, method='probability'), axis=1)
 
-    plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context)
+    # plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context)
+    plot_closeness(rhythmic_bigram_distances, orig, dest, eval_path, context)
 
 
 def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):

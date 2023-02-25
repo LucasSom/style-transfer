@@ -136,8 +136,7 @@ def data_analysis(df_80_path, df_test_path, eval_dir, b):
     # plot_styles_bigrams_entropy(entropies, eval_dir)
 
     for orig in styles:
-        plot_closeness(df_test[df_test["Style"] == orig], df_test[df_test["Style"] == orig],
-                       orig, "nothing", eval_dir + "/styles")
+        plot_closeness(df_test[df_test["Style"] == orig], orig, "nothing", eval_dir + "/styles")
 
     # # histograms = plot_styles_heatmaps(df, eval_dir)
     # histograms_80 = plot_styles_heatmaps(df_80, eval_dir + '/80-percent')

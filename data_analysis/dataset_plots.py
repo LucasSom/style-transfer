@@ -69,7 +69,7 @@ def heatmap_style_differences(diff_table, plot_dir):
     save_plot(plot_dir, 'melodic_diff')
 
 
-def plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context='talk'):
+def plot_closeness(df, orig, dest, eval_path, context='talk'):
     fig = plt.figure(figsize=(24, 18))
     sns.set_theme()
     sns.set_context(context)
@@ -80,7 +80,7 @@ def plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, de
     for type in ['Rythmic', 'Melodic', 'Joined']:
         for method in ['linear', 'kl', 'probability', 'ot']:
             ax = fig.add_subplot(3, 4, i)
-            plt.hist(rhythmic_bigram_distances[f"{type} closest style ({method})"])
+            plt.hist(df[f"{type} closest style ({method})"])
             ax.title.set_text(f"{type} closest style ({method})")
             i += 1
 
