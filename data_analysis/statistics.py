@@ -1,16 +1,12 @@
 import numpy as np
-import ot
 import pandas as pd
 from pandas import DataFrame
-from scipy.special import rel_entr
 from scipy.stats import entropy
 from sklearn.model_selection import StratifiedShuffleSplit
 
-from data_analysis.dataset_plots import plot_closeness, histograms_and_distance
-from evaluation.metrics.intervals import get_style_intervals_bigrams_avg, matrix_of_adjacent_intervals
-from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_avg, matrix_of_adjacent_rhythmic_bigrams
-from model.embeddings.style import Style
-from utils.utils import normalize
+from data_analysis.assemble_data import optimal_transport
+from evaluation.metrics.intervals import get_style_intervals_bigrams_avg
+from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_avg
 
 
 def styles_bigrams_entropy(df) -> DataFrame:
@@ -29,115 +25,13 @@ def styles_bigrams_entropy(df) -> DataFrame:
     return pd.DataFrame(d)
 
 
-def validate_style_belonging(df, eval_path, context='talk'):
+def stratified_split(df):
     strat_split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
     for train_index, test_index in strat_split.split(df, df["Style"]):
         strat_train_df = df.loc[train_index]
         strat_test_df = df.loc[test_index]
 
-    styles_names = set(strat_train_df["Style"])
-    styles_train = {name: Style(name, None, strat_train_df) for name in styles_names}
-
-    strat_test_df["Melodic bigram matrix"] = strat_test_df.apply(
-        lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
-    strat_test_df["Rhythmic bigram matrix"] = strat_test_df.apply(
-        lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
-
-    strat_test_df["Rhythmic closest style (linear)"] = strat_test_df.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train), axis=1)
-    strat_test_df["Rhythmic closest style (kl)"] = strat_test_df.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='kl'), axis=1)
-    strat_test_df["Rhythmic closest style (probability)"] = strat_test_df.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='probability'), axis=1)
-
-    strat_test_df["Melodic closest style (linear)"] = strat_test_df.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train), axis=1)
-    strat_test_df["Melodic closest style (kl)"] = strat_test_df.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='kl'), axis=1)
-    strat_test_df["Melodic closest style (probability)"] = strat_test_df.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='probability'), axis=1)
-
-    strat_test_df["Joined closest style (linear)"] = strat_test_df.apply(
-        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train), axis=1)
-    strat_test_df["Joined closest style (kl)"] = strat_test_df.apply(
-        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train, method='kl'), axis=1)
-    strat_test_df["Joined closest style (probability)"] = strat_test_df.apply(
-        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train, method='probability'), axis=1)
-
-
-    for orig in styles_names:
-        plot_closeness(strat_test_df[strat_test_df["Style"] == orig], strat_test_df[strat_test_df["Style"] == orig],
-                       orig, "nothing", eval_path + "/styles", context)
-
     return strat_train_df, strat_test_df
-
-def kl(P, Q):
-    return sum(sum(rel_entr(normalize(P), Q)))
-
-def linear_distance(P, Q):
-    return sum(sum(abs(normalize(P) - Q)))
-
-def belonging_probability(M, x):
-    return sum(sum(np.log(M) * x))
-
-def rhythmic_closest_style(bigram_matrix, styles, method='linear'):
-    if method == 'kl':
-        min_style_idx = np.argmin(
-            [kl(style.rhythmic_bigrams_distribution, bigram_matrix) for style in styles.values()]
-        )
-    elif method == 'linear':
-        min_style_idx = np.argmin(
-            [linear_distance(style.rhythmic_bigrams_distribution, bigram_matrix) for style in styles.values()]
-        )
-    elif method == 'probability':
-        min_style_idx = np.argmin(
-            [belonging_probability(style.rhythmic_bigrams_distribution, bigram_matrix) for style in styles.values()]
-        )
-    else:
-        raise ValueError(f"{method} is not a valid method.")
-    return list(styles.items())[min_style_idx][0]
-
-
-def melodic_closest_style(bigram_matrix, styles, method='linear'):
-    if method == 'kl':
-        min_style_idx = np.argmin(
-            [kl(style.intervals_distribution, bigram_matrix) for style in styles.values()]
-        )
-    elif method == 'linear':
-        min_style_idx = np.argmin(
-            [linear_distance(style.intervals_distribution, bigram_matrix) for style in styles.values()]
-        )
-    elif method == 'probability':
-        min_style_idx = np.argmin(
-            [belonging_probability(style.intervals_distribution, bigram_matrix) for style in styles.values()]
-        )
-    else:
-        raise ValueError(f"{method} is not a valid method.")
-    return list(styles.items())[min_style_idx][0]
-
-
-def joined_closest_style(interval_matrix, rhythmic_matrix, styles, method='linear'):
-    if method == 'kl':
-        min_style_idx = np.argmin(
-            [kl(style.intervals_distribution, interval_matrix)
-             + kl(style.rhythmic_bigrams_distribution, rhythmic_matrix)
-             for style in styles.values()]
-        )
-    elif method == 'linear':
-        min_style_idx = np.argmin(
-            [linear_distance(style.intervals_distribution, interval_matrix)
-             + linear_distance(style.rhythmic_bigrams_distribution, rhythmic_matrix)
-             for style in styles.values()]
-        )
-    elif method == 'probability':
-        min_style_idx = np.argmin(
-            [belonging_probability(style.intervals_distribution, interval_matrix)
-             + belonging_probability(style.rhythmic_bigrams_distribution, rhythmic_matrix)
-             for style in styles.values()]
-        )
-    else:
-        raise ValueError(f"{method} is not a valid method.")
-    return list(styles.items())[min_style_idx][0]
 
 
 def style_ot_diff(s1, s2, histograms, melodic=True):
@@ -147,11 +41,6 @@ def style_ot_diff(s1, s2, histograms, melodic=True):
 
         return optimal_transport(h1, h2, melodic)
     return 0
-
-
-def optimal_transport(h1, h2, melodic):
-    a, b, D = histograms_and_distance(h1, h2, melodic)
-    return ot.emd2(a, b, D)
 
 
 def styles_ot_table(df, histograms):
@@ -167,7 +56,7 @@ def styles_ot_table(df, histograms):
     return diff_table
 
 
-def closest_ot_style(df, histograms, melodic=True):
+def closest_ot_style(df, histograms):
     d = {}
     for i, s in enumerate(set(df['Style'])):
         style_melodic_hist = histograms[s]["melodic_hist"]

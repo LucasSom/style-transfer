@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from data_analysis.statistics import rhythmic_closest_style, melodic_closest_style
+from data_analysis.assemble_data import rhythmic_closest_style, melodic_closest_style
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
 from utils.files_utils import data_path

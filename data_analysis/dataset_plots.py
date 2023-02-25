@@ -1,5 +1,6 @@
 import os
 
+import dfply as dfp
 import numpy as np
 import ot
 import ot.plot
@@ -69,49 +70,61 @@ def heatmap_style_differences(diff_table, plot_dir):
 
 
 def plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context='talk'):
-    fig = plt.figure(figsize=(18, 18))
+    fig = plt.figure(figsize=(24, 18))
     sns.set_theme()
     sns.set_context(context)
     title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
     fig.suptitle(title)
 
-    ax1 = fig.add_subplot(3, 3, 1)
+    ax1 = fig.add_subplot(3, 4, 1)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (linear)"])
     ax1.title.set_text("Rhythmic closest style (linear)")
 
-    ax2 = fig.add_subplot(3, 3, 2)
+    ax2 = fig.add_subplot(3, 4, 2)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (kl)"])
     ax2.title.set_text("Rhythmic closest style (kl)")
 
-    ax3 = fig.add_subplot(3, 3, 3)
+    ax3 = fig.add_subplot(3, 4, 3)
     plt.hist(rhythmic_bigram_distances["Rhythmic closest style (probability)"])
     ax3.title.set_text("Rhythmic closest style (probability)")
 
-    ax4 = fig.add_subplot(3, 3, 4)
+    ax3 = fig.add_subplot(3, 4, 4)
+    plt.hist(rhythmic_bigram_distances["Rhythmic closest style (ot)"])
+    ax3.title.set_text("Rhythmic closest style (ot)")
+
+    ax4 = fig.add_subplot(3, 4, 5)
     plt.hist(melodic_bigram_distances["Melodic closest style (linear)"])
     ax4.title.set_text("Melodic closest style (linear)")
 
-    ax5 = fig.add_subplot(3, 3, 5)
+    ax5 = fig.add_subplot(3, 4, 6)
     plt.hist(melodic_bigram_distances["Melodic closest style (kl)"])
     ax5.title.set_text("Melodic closest style (kl)")
 
-    ax6 = fig.add_subplot(3, 3, 6)
+    ax6 = fig.add_subplot(3, 4, 7)
     plt.hist(rhythmic_bigram_distances["Melodic closest style (probability)"])
     ax6.title.set_text("Melodic closest style (probability)")
 
-    ax7 = fig.add_subplot(3, 3, 7)
+    ax6 = fig.add_subplot(3, 4, 8)
+    plt.hist(rhythmic_bigram_distances["Melodic closest style (ot)"])
+    ax6.title.set_text("Melodic closest style (ot)")
+
+    ax7 = fig.add_subplot(3, 4, 9)
     plt.hist(melodic_bigram_distances["Joined closest style (linear)"])
     ax7.title.set_text("Joined closest style (linear)")
 
-    ax8 = fig.add_subplot(3, 3, 8)
+    ax8 = fig.add_subplot(3, 4, 10)
     plt.hist(melodic_bigram_distances["Joined closest style (kl)"])
     ax8.title.set_text("Joined closest style (kl)")
 
-    ax9 = fig.add_subplot(3, 3, 9)
+    ax9 = fig.add_subplot(3, 4, 11)
     plt.hist(rhythmic_bigram_distances["Joined closest style (probability)"])
     ax9.title.set_text("Joined closest style (probability)")
 
-    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Joined closest style (probability)")
+    ax9 = fig.add_subplot(3, 4, 12)
+    plt.hist(rhythmic_bigram_distances["Joined closest style (ot)"])
+    ax9.title.set_text("Joined closest style (ot)")
+
+    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Joined closest style (ot)")
     plt.close()
 
 
@@ -141,21 +154,46 @@ def plot_closest_ot_style(df, eval_path, context='talk'):
         save_plot(eval_path, f"closest_styles_ot-{s}", 'Joined closest style (ot)')
 
 
-def plot_distances_distribution(df, eval_path, context='talk'):
-    for orig in set(df["Style"]):
-        fig = plt.figure(figsize=(40, 10))
-        title = f"Closest styles of test {orig} rolls"
-        fig.suptitle(title)
-        sns.set_theme()
-        sns.set_context(context)
+def plot_distances_distribution(df, eval_path, context='talk', by_style=True, single_plot=False):
+    if single_plot:
+        rolls_long_ot_df = (df
+                >> dfp.gather('distance_type', 'distance', dfp.contains('to'))
+                >> dfp.mutate(
+            target=dfp.X.distance_type.apply(lambda x: x.split(' ')[3]),
+            distance_metric=dfp.X.distance_type.apply(lambda x: x.split(' ')[1]),
+            distance_type2=dfp.X.distance_type.apply(lambda x: x.split(' ')[0])
+            )
+        )
+        sns.displot(data=rolls_long_ot_df, x='distance', hue='target', col='distance_type2',
+                    row='Style', kind='kde')
+        save_plot(eval_path, "OT distrbution")
+    else:
+        for orig in set(df["Style"]):
+            fig = plt.figure(figsize=(40, 10))
+            title = f"Closest styles of test {orig} rolls"
+            fig.suptitle(title)
+            sns.set_theme()
+            sns.set_context(context)
 
-        for i, s2 in enumerate(set(df["Style"])):
-            ax = fig.add_subplot(1, 4, i+1)
-            sns.kdeplot(df[df["Style"] == orig][f'Melodic ot to {s2}'])
-            sns.kdeplot(df[df["Style"] == orig][f'Rhythmic ot to {s2}'])
-            sns.kdeplot(df[df["Style"] == orig][f'Joined ot to {s2}'])
+            if by_style:
+                for i, s2 in enumerate(set(df["Style"])):
+                    ax = fig.add_subplot(1, 4, i + 1)
+                    sns.kdeplot(df[df["Style"] == orig][f'Melodic ot to {s2}'])
+                    sns.kdeplot(df[df["Style"] == orig][f'Rhythmic ot to {s2}'])
+                    sns.kdeplot(df[df["Style"] == orig][f'Joined ot to {s2}'])
 
-            plt.legend(labels=[f"Melodic ot to {s2}", f"Rhythmic ot to {s2}", f'Joined ot to {s2}'])
-            ax.title.set_text(f"Distribution of distances to {s2}")
+                    plt.legend(labels=[f"Melodic ot to {s2}", f"Rhythmic ot to {s2}", f'Joined ot to {s2}'])
+                    ax.title.set_text(f"Distribution of distances to {s2}")
 
-        save_plot(eval_path, f"ot_distances-{orig}", f'Distribution of distances of {orig} rolls to {s2}')
+                save_plot(eval_path, f"ot_distances_style-{orig}", f'Distribution of distances of {orig} rolls to {s2}')
+            else:
+                for i, kind in enumerate(["Melodic", "Rhythmic", "Joined"]):
+                    ax = fig.add_subplot(1, 3, i + 1)
+                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to Bach'])
+                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to ragtime'])
+                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to Mozart'])
+                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to Frescobaldi'])
+
+                    plt.legend(labels=[f'{kind} ot to Bach', f'{kind} ot to ragtime', f'{kind} ot to Mozart', f'{kind} ot to Frescobaldi'])
+                    ax.title.set_text(f"Distribution of {kind} distances")
+                save_plot(eval_path, f"ot_distances_kind-{orig}", f"Distribution of {kind} distances")

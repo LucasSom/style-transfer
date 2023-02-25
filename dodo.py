@@ -3,23 +3,26 @@ from copy import copy
 
 from doit.api import run
 from keras.saving.save import load_model
+import seaborn as sns
+import dfply as dfp
 
+from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
 from evaluation.metrics.metrics import obtain_metrics
-from data_analysis.statistics import styles_bigrams_entropy, validate_style_belonging, styles_ot_table, closest_ot_style
+from data_analysis.statistics import stratified_split, closest_ot_style
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
+from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing import preprocess_data
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
-    plot_characteristics_distributions
-from data_analysis.dataset_plots import plot_styles_bigrams_entropy, plot_styles_heatmaps, plot_heatmap_differences, \
-    heatmap_style_differences, plot_closest_ot_style, plot_distances_distribution
+    plot_characteristics_distributions, save_plot
+from data_analysis.dataset_plots import plot_styles_heatmaps, plot_distances_distribution, plot_closeness
 from utils.utils import show_sheets, sample_uniformly
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
@@ -90,29 +93,65 @@ def task_preprocess():
         'uptodate': [os.path.isfile(preprocessed_data(4, True))]
     }
 
-
-def data_analysis(df_path, eval_dir, b):
+def prepare_data(df_path, eval_dir, b):
     init(b)
     df = load_pickle(df_path)
 
+    df_80, df_test = stratified_split(df)
+
+    styles = set(df["Style"])
+    styles_train = {name: Style(name, None, df_80) for name in styles}
+
+    df_test = calculate_closest_styles(df_test, styles_train)
+    rolls_long_df_test = calculate_long_df(df, df_test, styles_train)
+
+    rolls_long_df_test.drop(columns=["roll"], inplace=True)
+
+    rolls_long_df_test.to_csv(eval_dir + '/rolls_long_df_test.csv')
+    save_pickle(rolls_long_df_test, eval_dir + '/rolls_long_df_test')
+    save_pickle(df_80, eval_dir + '/df_80.pkl')
+    save_pickle(styles_train, eval_dir + '/80-percent/styles')
+
+def task_assemble_data_to_analyze():
+    """Prepare the data for analysis"""
+    for b in bars:
+        eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+
+        yield {
+            'name': f"{b}bars",
+            'file_dep': [preprocessed_data(b)],
+            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b])],
+            'targets': [eval_dir + '/df_80.pkl',
+                        eval_dir + '/rolls_long_df_test.csv',
+                        eval_dir + '/rolls_long_df_test.pkl',
+                        eval_dir + '/80-percent/styles.pkl'],
+        }
+
+def data_analysis(df_80_path, df_test_path, eval_dir, b):
+    init(b)
+    df_test = load_pickle(df_test_path)
+    df_80 = load_pickle(df_80_path)
+    styles = load_pickle(eval_dir + '/80-percent/styles')
     # entropies = styles_bigrams_entropy(df)
     # plot_styles_bigrams_entropy(entropies, eval_dir)
 
-    df_80, df_test = validate_style_belonging(df, eval_dir)
-    # df_train (3080) / df (3850)
-    # Bach: 406 / 508
-    # ragtime: 1098 / 1372
-    # Frescobaldi: 529 / 661
-    # Mozart: 1047 / 1309
+    for orig in styles:
+        plot_closeness(df_test[df_test["Style"] == orig], df_test[df_test["Style"] == orig],
+                       orig, "nothing", eval_dir + "/styles")
 
-    # histograms = plot_styles_heatmaps(df, eval_dir)
-    histograms_80 = plot_styles_heatmaps(df_80, eval_dir + '/80-percent')
+    # # histograms = plot_styles_heatmaps(df, eval_dir)
+    # histograms_80 = plot_styles_heatmaps(df_80, eval_dir + '/80-percent')
+    #
+    # # diff_table_80 = styles_ot_table(df_80, histograms_80)
+    # # diff_table = styles_ot_table(df, histograms)
+    #
+    # rolls_diff_df = closest_ot_style(df_test, histograms_80)
+    #
+    # plot_distances_distribution(rolls_diff_df, eval_dir, by_style=False)
+    # plot_distances_distribution(rolls_diff_df, eval_dir, single_plot=True)
 
-    # diff_table_80 = styles_ot_table(df_80, histograms_80)
-    # diff_table = styles_ot_table(df, histograms)
 
-    rolls_diff_df = closest_ot_style(df_test, histograms_80)
-    plot_distances_distribution(rolls_diff_df, eval_dir)
+    # plot_distances_distribution(rolls_diff_df, eval_dir)
     # plot_closest_ot_style(rolls_diff_df, eval_dir)
 
     # heatmap_style_differences(diff_table, eval_dir)
@@ -126,11 +165,12 @@ def task_analyze_data():
     """Get an analysis of the dataset"""
     for b in bars:
         eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
-
+        df_80_path = eval_dir + '/df_80.pkl'
+        df_test_path = eval_dir + '/rolls_long_df_test.pkl'
         yield {
             'name': f"{b}bars",
-            'file_dep': [preprocessed_data(b)],
-            'actions': [(data_analysis, [preprocessed_data(b), eval_dir, b])],
+            'file_dep': [df_80_path, df_test_path, eval_dir + '/80-percent/styles.pkl'],
+            'actions': [(data_analysis, [df_80_path, df_test_path, eval_dir, b])],
             'targets': [eval_dir + '/plots/styles_complexity.png'],
             'uptodate': [False]
         }

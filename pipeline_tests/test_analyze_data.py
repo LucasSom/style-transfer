@@ -10,7 +10,8 @@ def test_plot_styles_bigrams_entropy():
 
 def test_task():
     b=4
-    df_path = preprocessed_data(b)
     eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+    df_80_path = eval_dir + '/df_80.pkl'
+    df_test_path = eval_dir + '/rolls_long_df_test.pkl'
 
-    data_analysis(df_path, eval_dir, b)
+    data_analysis(df_80_path, df_test_path, eval_dir, b)
