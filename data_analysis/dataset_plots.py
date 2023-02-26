@@ -157,3 +157,18 @@ def plot_distances_distribution(df, eval_path, context='talk', by_style=True, si
                     plt.legend(labels=[f'{kind} ot to Bach', f'{kind} ot to ragtime', f'{kind} ot to Mozart', f'{kind} ot to Frescobaldi'])
                     ax.title.set_text(f"Distribution of {kind} distances")
                 save_plot(eval_path, f"ot_distances_kind-{orig}", f"Distribution of {kind} distances")
+
+
+def plot_accuracy(df, eval_path):
+    df = df[df["method"] == 'optimal_transport']
+    df = df[df["part"] == 'Joined']
+    df = df[df["Style"] == df["target"]]
+
+    d = {}
+    for s in set(df["Style"]):
+        sub_df = df[df["Style"] == s]
+        acc = sub_df[sub_df['Joined closest style (ot)'] == s].shape[0] / sub_df.shape[0]
+        d[s] = acc
+
+    plt.bar(d.keys(), d.values())
+    save_plot(eval_path, 'styles_accuracy', 'Proportion of rolls that are classified on its own style')
