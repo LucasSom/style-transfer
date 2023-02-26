@@ -1,17 +1,22 @@
 import pytest
 
-from dodo import data_analysis, preprocessed_data
+from dodo import data_analysis, preprocessed_data, prepare_data
 from utils.files_utils import data_path
 
 
-def test_plot_styles_bigrams_entropy():
-    ...
-
-
-def test_task():
-    b=4
+def test_prepare_data():
+    b = 4
     eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
-    df_80_path = eval_dir + '/df_80.pkl'
-    df_test_path = eval_dir + '/rolls_long_df_test.pkl'
+    df_path = preprocessed_data(b)
 
-    data_analysis(df_80_path, df_test_path, eval_dir, b)
+    prepare_data(df_path, eval_dir, b)
+
+
+def test_analyze_data():
+    b = 4
+    eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
+    df_80_indexes_path = eval_dir + '/df_80_indexes_'
+    df_test_path = eval_dir + '/rolls_long_df_test_'
+    styles_path = eval_dir + '/80-percent/styles_'
+
+    data_analysis(preprocessed_data(b), df_80_indexes_path, df_test_path, styles_path, eval_dir, b)

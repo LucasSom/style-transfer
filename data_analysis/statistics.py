@@ -25,13 +25,13 @@ def styles_bigrams_entropy(df) -> DataFrame:
     return pd.DataFrame(d)
 
 
-def stratified_split(df):
-    strat_split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-    for train_index, test_index in strat_split.split(df, df["Style"]):
-        strat_train_df = df.loc[train_index]
-        strat_test_df = df.loc[test_index]
+def stratified_split(df, n_splits=1):
+    strat_split = StratifiedShuffleSplit(n_splits=n_splits, test_size=0.2, random_state=42)
 
-    return strat_train_df, strat_test_df
+    train_dfs = [df.loc[train_index] for train_index, _ in strat_split.split(df, df["Style"])]
+    test_dfs = [df.loc[test_index] for _, test_index in strat_split.split(df, df["Style"])]
+
+    return train_dfs, test_dfs
 
 
 def style_ot_diff(s1, s2, histograms, melodic=True):

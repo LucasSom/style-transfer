@@ -77,11 +77,11 @@ def plot_closeness(df, orig, dest, eval_path, context='talk'):
     fig.suptitle(title)
 
     i = 1
-    for type in ['Rythmic', 'Melodic', 'Joined']:
+    for kind in ['Rhythmic', 'Melodic', 'Joined']:
         for method in ['linear', 'kl', 'probability', 'ot']:
             ax = fig.add_subplot(3, 4, i)
-            plt.hist(df[f"{type} closest style ({method})"])
-            ax.title.set_text(f"{type} closest style ({method})")
+            plt.hist(df[f"{kind} closest style ({method})"])
+            ax.title.set_text(f"{kind} closest style ({method})")
             i += 1
 
     save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Joined closest style (ot)")
