@@ -1,5 +1,5 @@
-from evaluation.metrics.intervals import get_style_intervals_bigrams_avg
-from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_avg
+from evaluation.metrics.intervals import get_intervals_distribution
+from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 
 
 class Style:
@@ -7,5 +7,5 @@ class Style:
         self.name = name
         if df_char is not None:
             self.embedding = df_char['Embedding'].values[0]
-        self.intervals_distribution = get_style_intervals_bigrams_avg(df, name)
-        self.rhythmic_bigrams_distribution = get_style_rhythmic_bigrams_avg(df, name)
+        self.intervals_distribution = get_intervals_distribution(df[df['Style'] == name])
+        self.rhythmic_bigrams_distribution = get_rhythmic_distribution(df[df['Style'] == name])

@@ -33,21 +33,19 @@ def plot_matrix_of_adjacent_rhythmic_bigrams(song: Song, voice='melody'):
     return sns.heatmap(patterns, cmap='Oranges', annot=True, fmt='d')
 
 
-def get_style_rhythmic_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
+def get_rhythmic_distribution(df: pd.DataFrame) -> np.array:
     """
     Compute the average distribution of the rhythmic bigrams of the rolls of the style
-    :param df: df with columns 'Style' and 'roll'
-    :param style: it must be one of the Style column
+    :param df: sub df with rolls of the style to which calculate de distribution.
 
     :return: matrix of 16x16 with the average distribution of bigrams of rhythmic patterns for the style
     """
-    avg = np.ones((16, 16))
-    df_style = df[df['Style'] == style]
+    acc = np.ones((16, 16))
 
-    avg = get_style_rhythmic_bigrams_sum(avg, df_style)[0]
+    acc = get_style_rhythmic_bigrams_sum(acc, df)[0]
 
-    assert df_style.shape[0] != 0
-    return normalize(avg / df_style.shape[0])
+    assert df.shape[0] != 0
+    return normalize(acc / df.shape[0])
 
 
 def get_style_rhythmic_bigrams_sum(acc, df_style):

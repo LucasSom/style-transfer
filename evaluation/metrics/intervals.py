@@ -29,21 +29,19 @@ def get_interval_distribution_params(intervals: List[int]):
     return intervals.mean(), intervals.std()
 
 
-def get_style_intervals_bigrams_avg(df: pd.DataFrame, style: str) -> np.array:
+def get_intervals_distribution(df: pd.DataFrame) -> np.array:
     """
     Compute the average distribution of the interval bigrams of the rolls of the style
-    :param df: df with columns 'Style' and 'roll'
-    :param style: it must be one of the Style column
+    :param df: sub df with rolls of the style to which calculate de distribution.
 
     :return: matrix of 25x25 with the average distribution of bigrams of musical intervals for the style
     """
     acc = np.zeros((25, 25))
-    df_style = df[df['Style'] == style]
 
-    acc, _, _ = get_style_intervals_bigrams_sum(acc, df_style)
+    acc, _, _ = get_style_intervals_bigrams_sum(acc, df)
 
-    assert df_style.shape[0] != 0
-    return normalize(acc / df_style.shape[0])
+    assert df.shape[0] != 0
+    return normalize(acc / df.shape[0])
 
 
 def get_style_intervals_bigrams_sum(acc, df_style):

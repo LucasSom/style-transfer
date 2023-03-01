@@ -11,7 +11,9 @@ from data_analysis.dataset_plots import plot_styles_heatmaps, plot_distances_dis
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model
+from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
+from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
@@ -110,6 +112,14 @@ def prepare_data(df_path, eval_dir, b):
         save_pickle(rolls_long_df_test, f'{eval_dir}/rolls_long_df_test_{i}')
         save_pickle(df_80.index, f'{eval_dir}/df_80_indexes_{i}.pkl')
         rolls_long_df_test.to_csv(f'{eval_dir}/rolls_long_df_test_{i}.csv')
+        
+        # Musicality
+        print("Calculating musicality distributions")
+        melodic_distribution = get_intervals_distribution(df_80)
+        rhythmic_distribution = get_rhythmic_distribution(df_80)
+
+        save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution_{i}')
+        save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
 
 def task_assemble_data_to_analyze():
     """Prepare the data for analysis"""
@@ -122,7 +132,9 @@ def task_assemble_data_to_analyze():
             'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b])],
             'targets': [eval_dir + '/df_80_indexes_0.pkl',
                         eval_dir + '/rolls_long_df_test_0.csv',
-                        eval_dir + '/rolls_long_df_test_0.pkl'],
+                        eval_dir + '/rolls_long_df_test_0.pkl',
+                        eval_dir + '/melodic_distribution_0.pkl',
+                        eval_dir + '/rhythmic_distribution_0.pkl'],
         }
 
 def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analysis, cv):
@@ -155,6 +167,9 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                     # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
 
                     plot_closest_ot_style(rolls_diff_df, f'{eval_dir}/{i}')
+            
+            elif analysis == 'musicality':
+                ...
 
         else:
             if analysis == 'style_closeness':
@@ -187,7 +202,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 def task_analyze_data():
     """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'entropies' and 'style_differences')"""
     for b in bars:
-        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences']:
+        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality']:
             for cv in [True, False]:
                 eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
                 df_80_indexes_path = eval_dir + '/df_80_indexes_'
@@ -195,7 +210,10 @@ def task_analyze_data():
                 yield {
                     'name': f"{b}bars-{analysis}{'-cv' if cv else ''}",
                     'file_dep': [eval_dir + '/df_80_indexes_0.pkl',
-                                 eval_dir + '/rolls_long_df_test_0.pkl'],
+                                 eval_dir + '/rolls_long_df_test_0.pkl',
+                                 eval_dir + '/melodic_distribution_0.pkl',
+                                 eval_dir + '/rhythmic_distribution_0.pkl'
+                                 ],
                     'actions': [(data_analysis, [preprocessed_data(b),
                                                  df_80_indexes_path,
                                                  df_test_path,

@@ -5,13 +5,13 @@ from scipy.stats import entropy
 from sklearn.model_selection import StratifiedShuffleSplit
 
 from data_analysis.assemble_data import optimal_transport
-from evaluation.metrics.intervals import get_style_intervals_bigrams_avg
-from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_avg
+from evaluation.metrics.intervals import get_intervals_distribution
+from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 
 
 def styles_bigrams_entropy(df) -> DataFrame:
-    def calculate_entropy(df_style, style, interval):
-        probabilities = get_style_intervals_bigrams_avg(df_style, style) if interval else get_style_rhythmic_bigrams_avg(df_style, style)
+    def calculate_entropy(df_style, interval):
+        probabilities = get_intervals_distribution(df_style) if interval else get_rhythmic_distribution(df_style)
         # return entropy(probabilities, axis=0)
         return entropy(np.hstack(probabilities))
         # TODO: Consultar a March. Lo que quiero es la entropía de la entropía o la entropía de stackear las probabilidades?
@@ -19,8 +19,8 @@ def styles_bigrams_entropy(df) -> DataFrame:
     d = {"Style": [], "Melodic entropy": [], "Rhythmic entropy": []}
     for style in set(df["Style"]):
         d["Style"].append(style)
-        d["Melodic entropy"].append(calculate_entropy(df[df["Style"] == style], style, True))
-        d["Rhythmic entropy"].append(calculate_entropy(df[df["Style"] == style], style, False))
+        d["Melodic entropy"].append(calculate_entropy(df[df["Style"] == style], True))
+        d["Rhythmic entropy"].append(calculate_entropy(df[df["Style"] == style], False))
 
     return pd.DataFrame(d)
 
