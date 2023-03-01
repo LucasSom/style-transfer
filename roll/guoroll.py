@@ -4,6 +4,7 @@ import random
 from typing import List
 
 import music21 as m21
+import numpy
 import numpy as np
 from IPython.core.display import display, Image
 
@@ -200,13 +201,12 @@ def pattern_to_str(pattern):
     return s
 
 
-'''
-class GuoRollSmall(GuoRoll):
+def roll_permutations(roll: GuoRoll, n: int) -> List[GuoRoll]:
+    melody_changes = np.argwhere(roll.get_melody_changes() == 1)
+    bass_changes = np.argwhere(roll.get_bass_changes() == 1)
 
-    def __init__(self, roll: GuoRoll):
-        self.matrix = roll.matrix
-        self.score = roll.score
-        self.song = None
-        self.midi = roll.midi
-        self.name = roll.name
-'''
+    melody_changes = melody_changes.reshape(melody_changes.shape[0])
+    bass_changes = bass_changes.reshape(bass_changes.shape[0])
+
+    ps = [roll.permute(melody_changes, bass_changes) for _ in range(n)]
+    return ps

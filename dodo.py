@@ -10,7 +10,7 @@ from data_analysis.dataset_plots import plot_styles_heatmaps, plot_distances_dis
     plot_accuracy
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
 from evaluation.app.html_maker import make_html
-from evaluation.evaluation import evaluate_model
+from evaluation.evaluation import evaluate_model, evaluate_musicality
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
@@ -169,7 +169,10 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                     plot_closest_ot_style(rolls_diff_df, f'{eval_dir}/{i}')
             
             elif analysis == 'musicality':
-                ...
+                melodic_distribution = load_pickle(f'{eval_dir}/melodic_distribution_{i}')
+                rhythmic_distribution = load_pickle(f'{eval_dir}/rhythmic_distribution_{i}')
+
+                evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir}/{i}')
 
         else:
             if analysis == 'style_closeness':

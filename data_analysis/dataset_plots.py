@@ -147,16 +147,16 @@ def plot_distances_distribution(df, eval_path, context='talk', by_style=True, si
 
                 save_plot(eval_path, f"ot_distances_style-{orig}", f'Distribution of distances of {orig} rolls to {s2}')
             else:
-                for i, kind in enumerate(["Melodic", "Rhythmic", "Joined"]):
+                for i, part in enumerate(["Melodic", "Rhythmic", "Joined"]):
                     ax = fig.add_subplot(1, 3, i + 1)
-                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to Bach'])
-                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to ragtime'])
-                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to Mozart'])
-                    sns.kdeplot(df[df["Style"] == orig][f'{kind} ot to Frescobaldi'])
+                    sns.kdeplot(df[df["Style"] == orig][f'{part} ot to Bach'])
+                    sns.kdeplot(df[df["Style"] == orig][f'{part} ot to ragtime'])
+                    sns.kdeplot(df[df["Style"] == orig][f'{part} ot to Mozart'])
+                    sns.kdeplot(df[df["Style"] == orig][f'{part} ot to Frescobaldi'])
 
-                    plt.legend(labels=[f'{kind} ot to Bach', f'{kind} ot to ragtime', f'{kind} ot to Mozart', f'{kind} ot to Frescobaldi'])
-                    ax.title.set_text(f"Distribution of {kind} distances")
-                save_plot(eval_path, f"ot_distances_kind-{orig}", f"Distribution of {kind} distances")
+                    plt.legend(labels=[f'{part} ot to Bach', f'{part} ot to ragtime', f'{part} ot to Mozart', f'{part} ot to Frescobaldi'])
+                    ax.title.set_text(f"Distribution of {part} distances")
+                save_plot(eval_path, f"ot_distances_kind-{orig}", f"Distribution of {part} distances")
 
 
 def plot_accuracy(df, eval_path):
@@ -172,3 +172,17 @@ def plot_accuracy(df, eval_path):
 
     plt.bar(d.keys(), d.values())
     save_plot(eval_path, 'styles_accuracy', 'Proportion of rolls that are classified on its own style')
+
+
+def plot_musicality_distribution(dfs: dict, eval_path, context='talk'):
+    for i, part in enumerate(["Melodic", "Rhythmic", "Joined"]):
+        sns.set_context(context)
+        plt.figure(figsize=(40, 10))
+        title = f"{part} musicality"
+        sns.set_theme()
+
+        for df in dfs.values():
+            sns.kdeplot(df[f'{part} musicality difference'])
+
+        plt.legend(labels=dfs.keys())
+        save_plot(eval_path, f'{part}_musicality', title)

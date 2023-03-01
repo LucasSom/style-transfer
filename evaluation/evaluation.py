@@ -8,12 +8,15 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from data_analysis.assemble_data import rhythmic_closest_style, melodic_closest_style
+from data_analysis.assemble_data import rhythmic_closest_style, melodic_closest_style, optimal_transport
+from evaluation.metrics.intervals import matrix_of_adjacent_intervals
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
+from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
+from roll.guoroll import roll_permutations
 from utils.files_utils import data_path
 from utils.plots_utils import bigrams_plot, plagiarism_plot, plot_IR_distributions, plot_fragments_distributions
-from data_analysis.dataset_plots import plot_closeness
+from data_analysis.dataset_plots import plot_closeness, plot_musicality_distribution
 
 
 def calculate_resume_table(df, thold=1):
@@ -140,15 +143,9 @@ def evaluate_bigrams_distribution(bigram_distances, orig, dest, eval_path, plot_
     return table_results, sorted_df
 
 
-def evaluate_musicality(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
+def evaluate_IR(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
     def roll_IRs_permutations(roll, n) -> List[int]:
-        melody_changes = np.argwhere(roll.get_melody_changes() == 1)
-        bass_changes = np.argwhere(roll.get_bass_changes() == 1)
-
-        melody_changes = melody_changes.reshape(melody_changes.shape[0])
-        bass_changes = bass_changes.reshape(bass_changes.shape[0])
-
-        ps = [roll.permute(melody_changes, bass_changes) for _ in range(n)]
+        ps = roll_permutations(roll, n)
         return list(map(information_rate, ps))
 
     def distribution(irs: List[int]):
@@ -181,6 +178,20 @@ def evaluate_musicality(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
 
     return table_results, sorted_df
 
+
+def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir):
+    # ps = roll_permutations(roll, n)
+
+    for df in [df_train, df_test]:
+        if not "Melodic bigram matrix" in df.columns:
+            df["Melodic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
+            df["Rhythmic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
+
+        df['Melodic musicality difference'] = df.apply(lambda row: optimal_transport(melodic_distribution, row["Melodic bigram matrix"], True), axis=1)
+        df['Rhythmic musicality difference'] = df.apply(lambda row: optimal_transport(rhythmic_distribution, row["Rhythmic bigram matrix"], False), axis=1)
+        df['Joined musicality difference'] = df.apply(lambda row: row['Melodic musicality difference'] + row['Rhythmic musicality difference'], axis=1)
+
+    plot_musicality_distribution({'train': df_train, 'test': df_test}, eval_dir)
 
 
 def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances, styles, orig, dest, eval_path, context='talk'):
@@ -240,7 +251,7 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     print(p_table)
 
     print("===== Evaluating musicality =====")
-    ir_table, ir_sorted_df = evaluate_musicality(metrics["musicality"], orig, target, eval_path)
+    ir_table, ir_sorted_df = evaluate_IR(metrics["musicality"], orig, target, eval_path)
     ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
     print(ir_table)
 
