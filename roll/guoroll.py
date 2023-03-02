@@ -28,7 +28,7 @@ class GuoRoll:
 
     """
 
-    def __init__(self, matrix, name, audio_path=data_path, song=None, verbose=False):
+    def __init__(self, matrix, name='', audio_path=data_path, song=None, verbose=False):
         """
         :param matrix: matrix of `16*n x 89` with n=number of bars
         :param name: name of roll (used on the name of midi and sheet files)
@@ -99,36 +99,13 @@ class GuoRoll:
         return self.matrix[:, -1]
 
     def get_adjacent_intervals(self, voice='melody') -> List[int]:
-        def get_intervals(voice_part, changes):
-            intervals = []
-            prev_note = np.argmax(voice_part[0])
-            for i, c in enumerate(changes[1:], start=1):
-                if c:
-                    new_note = np.argmax(voice_part[i])
-                    if new_note != 73:
-                        interval = new_note - prev_note
-                        while abs(interval) > 12:  # if the interval is compound, transform it to simple
-                            interval -= 12 if interval > 0 else -12
-                        intervals.append(interval)
-                        if intervals[-1] != 'rest':
-                            prev_note = new_note
-                    else:  # it is a rest
-                        # intervals.append('rest')
-                        pass
-            return intervals
-
         if voice == 'melody':
             return get_intervals(self.get_melody(), self.get_melody_changes())
         if voice == 'bass':
             return get_intervals(self.get_bass(), self.get_bass_changes())
-        # if voice == 'both':
-        #     return get_intervals(self.get_melody(), self.get_melody_changes()), \
-        #            get_intervals(self.get_bass(), self.get_bass_changes())
+
 
     def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
-        def get_rp(changes) -> List[str]:
-            return [pattern_to_str(changes[i: i + 4]) for i in range(0, changes.size, 4)]
-
         if voice == 'melody':
             return get_rp(self.get_melody_changes())
         if voice == 'bass':
@@ -150,7 +127,7 @@ class GuoRoll:
         return lily
 
 
-    def _get_permutation(self, changes, permutation, voice):
+    def _get_permutation(self, changes, permutation, voice, idx_change):
         durations = []
         for i, c in enumerate(changes):
             if i == changes.shape[0] - 1:
@@ -164,6 +141,7 @@ class GuoRoll:
         for start, duration in durations:
             for j in range(i, i+duration):
                 permutation[j] += voice[start]
+            permutation[i][idx_change] = 1
             i += duration
 
         return permutation
@@ -175,15 +153,38 @@ class GuoRoll:
                                 np.zeros((self.matrix.shape[0],                     # matrix of 64 x 15 (in 4 bars)
                                           self.matrix.shape[1] - self.get_melody().shape[1]))),
                                axis=1)                                              # result: matrix of 64 x 89
-        permutation = self._get_permutation(melody_changes, permutation, voice)
+        permutation = self._get_permutation(melody_changes, permutation, voice, params.config.melody_dim)
 
         voice = np.concatenate((np.zeros((self.get_melody().shape[0], self.get_melody().shape[1] + 1)),
                                 self.get_bass(),
                                 np.zeros((self.get_bass().shape[0], 1))
                                 ), axis=1)
-        permutation = self._get_permutation(bass_changes, permutation, voice)
+        permutation = self._get_permutation(bass_changes, permutation, voice, -1)
 
         return permutation
+
+
+def get_rp(changes) -> List[str]:
+    return [pattern_to_str(changes[i: i + 4]) for i in range(0, changes.size, 4)]
+
+
+def get_intervals(voice_part, changes):
+    intervals = []
+    prev_note = np.argmax(voice_part[0])
+    for i, c in enumerate(changes[1:], start=1):
+        if c:
+            new_note = np.argmax(voice_part[i])
+            if new_note != 73:
+                interval = new_note - prev_note
+                while abs(interval) > 12:  # if the interval is compound, transform it to simple
+                    interval -= 12 if interval > 0 else -12
+                intervals.append(interval)
+                if intervals[-1] != 'rest':
+                    prev_note = new_note
+            else:  # it is a rest
+                # intervals.append('rest')
+                pass
+    return intervals
 
 
 def rolls_to_midis(rolls):
@@ -201,7 +202,7 @@ def pattern_to_str(pattern):
     return s
 
 
-def roll_permutations(roll: GuoRoll, n: int) -> List[GuoRoll]:
+def roll_permutations(roll: GuoRoll, n: int) -> List[np.ndarray]:
     melody_changes = np.argwhere(roll.get_melody_changes() == 1)
     bass_changes = np.argwhere(roll.get_bass_changes() == 1)
 

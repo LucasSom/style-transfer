@@ -180,18 +180,26 @@ def evaluate_IR(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
 
 
 def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir):
-    # ps = roll_permutations(roll, n)
 
-    for df in [df_train, df_test]:
-        if not "Melodic bigram matrix" in df.columns:
-            df["Melodic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
-            df["Rhythmic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
+    df_train["Melodic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
+    df_train["Rhythmic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
 
+    df_permutations = {'roll': [], "Melodic bigram matrix": [], "Rhythmic bigram matrix": []}
+    for _, row in df_train.iterrows():
+        ps = roll_permutations(row['roll'], n=5)
+        df_permutations['roll'] += ps
+        df_permutations['Melodic bigram matrix'] += [matrix_of_adjacent_intervals(p)[0] for p in ps]
+        df_permutations['Rhythmic bigram matrix'] += [matrix_of_adjacent_rhythmic_bigrams(p)[0] for p in ps]
+    df_permutations = pd.DataFrame(df_permutations)
+
+    for df in [df_train, df_test, df_permutations]:
+    # for df in [df_permutations]: #### For debug purpuses
         df['Melodic musicality difference'] = df.apply(lambda row: optimal_transport(melodic_distribution, row["Melodic bigram matrix"], True), axis=1)
         df['Rhythmic musicality difference'] = df.apply(lambda row: optimal_transport(rhythmic_distribution, row["Rhythmic bigram matrix"], False), axis=1)
         df['Joined musicality difference'] = df.apply(lambda row: row['Melodic musicality difference'] + row['Rhythmic musicality difference'], axis=1)
 
-    plot_musicality_distribution({'train': df_train, 'test': df_test}, eval_dir)
+    plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir)
+    # plot_musicality_distribution({'permutations': df_permutations}, eval_dir) #### For debug purpuses
 
 
 def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances, styles, orig, dest, eval_path, context='talk'):

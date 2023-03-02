@@ -177,7 +177,7 @@ def plot_accuracy(df, eval_path):
 def plot_musicality_distribution(dfs: dict, eval_path, context='talk'):
     for i, part in enumerate(["Melodic", "Rhythmic", "Joined"]):
         sns.set_context(context)
-        plt.figure(figsize=(40, 10))
+        plt.figure(figsize=(10, 6))
         title = f"{part} musicality"
         sns.set_theme()
 

@@ -4,11 +4,17 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from model.colab_tension_vae import params
+from roll.guoroll import get_intervals
 from utils.utils import normalize, get_matrix_comparisons
 
 
-def matrix_of_adjacent_intervals(roll_or_song, voice='melody'):
-    intervals: List[int] = roll_or_song.get_adjacent_intervals(voice)
+def matrix_of_adjacent_intervals(roll_or_matrix, voice='melody'):
+    if type(roll_or_matrix) is np.ndarray:
+        intervals: List[int] = get_intervals(roll_or_matrix[:, :params.config.melody_dim], roll_or_matrix[:, params.config.melody_dim])
+    else:
+        intervals: List[int] = roll_or_matrix.get_adjacent_intervals(voice)
+
     support = np.zeros((25, 25))
     for r, c in zip(intervals[:-1], intervals[1:]):
         if type(r) is not str and type(c) is not str:

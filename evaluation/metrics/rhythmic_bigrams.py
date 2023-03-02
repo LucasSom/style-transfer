@@ -4,7 +4,8 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from typing import Union
 
-from roll.guoroll import GuoRoll
+from model.colab_tension_vae import params
+from roll.guoroll import GuoRoll, get_rp
 from roll.song import Song
 from utils.utils import normalize
 
@@ -15,8 +16,11 @@ def pattern_to_int(pattern):
     return int(pattern[0])*2**3 + int(pattern[1])*2**2 + int(pattern[2])*2**1 + int(pattern[3])*2**0
 
 
-def matrix_of_adjacent_rhythmic_bigrams(roll_or_song: Union[GuoRoll, Song], voice='melody'):
-    rps = list(map(pattern_to_int, roll_or_song.get_adjacent_rhythmic_patterns(voice)))
+def matrix_of_adjacent_rhythmic_bigrams(roll_or_matrix: Union[GuoRoll, np.ndarray, Song], voice='melody'):
+    if type(roll_or_matrix) is np.ndarray:
+        rps = list(map(pattern_to_int, get_rp(roll_or_matrix[:, params.config.melody_dim])))
+    else:
+        rps = list(map(pattern_to_int, roll_or_matrix.get_adjacent_rhythmic_patterns(voice)))
 
     # patterns = [np.zeros(possible_patterns, dtype=int) for _ in range(possible_patterns)]
     # for prev, nxt in zip(rps[:-1], rps[1:]):
