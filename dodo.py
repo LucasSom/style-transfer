@@ -180,6 +180,8 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                     plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
                 plot_accuracy(df, eval_dir)
 
+                plot_accuracy_distribution(dfs_test_path, eval_dir)
+
             elif analysis in ['distances_distribution', 'style_differences']:
                 histograms = plot_styles_heatmaps(df, eval_dir)
 

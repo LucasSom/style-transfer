@@ -20,4 +20,4 @@ p_tqdm
 keras==2.9.0
 scipy~=1.4.1
 sklearn~=0.0
-POT=0.8.2
+POT==0.8.2

@@ -1,5 +1,6 @@
 import os
 
+import pandas as pd
 import dfply as dfp
 import numpy as np
 import ot
@@ -186,3 +187,44 @@ def plot_musicality_distribution(dfs: dict, eval_path, context='talk'):
 
         plt.legend(labels=dfs.keys())
         save_plot(eval_path, f'{part}_musicality', title)
+
+
+def plot_accuracy_distribution(dfs_test_path, eval_dir):
+    cat_long = pd.concat([
+        pd.read_pickle(f'{dfs_test_path}{i}.pkl')
+        >> dfp.mutate(fold=i)
+        for i in range(5)
+    ])
+
+    @dfp.make_symbolic
+    def find_closest(targets_distances):
+        return targets_distances.sort_values('distance').iloc[0]['target']
+
+    print((cat_long >> dfp.drop(dfp.contains('matrix'))).columns)
+
+    closest_df = (
+        cat_long
+        >> dfp.drop(dfp.contains('matrix'))
+        >> dfp.group_by('method', 'part', 'roll_id', 'Title', 'fold')
+        >> dfp.summarize(
+            closest=find_closest(dfp.X),
+            style=dfp.X.Style.iloc[0]
+        )
+    )
+
+    @dfp.make_symbolic
+    def matches(df):
+        return df['style'] == df['closest']
+
+    accuracy_df = (
+        closest_df
+        >> dfp.mutate(matches=matches(dfp.X))
+        >> dfp.group_by('fold', 'method', 'part', 'style')
+        >> dfp.summarize(accuracy=dfp.X.matches.mean())
+    )
+
+    sns.catplot(data=accuracy, x='style', y='accuracy', row='method',
+                col='part', kind='box')
+    save_plot(f'{eval_path}', 'style_accuracy_dist.pdf')
+
+    return cat_long, closest_df, accuracy_df
