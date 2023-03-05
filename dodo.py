@@ -7,7 +7,7 @@ from keras.saving.save import load_model
 from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles
 from data_analysis.dataset_plots import plot_styles_heatmaps, plot_distances_distribution, plot_closeness, \
     plot_closest_ot_style, plot_styles_bigrams_entropy, heatmap_style_differences, plot_heatmap_differences, \
-    plot_accuracy
+    plot_accuracy, plot_accuracy_distribution
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model, evaluate_musicality
@@ -151,6 +151,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                 for orig in styles:
                     plot_closeness(df_test[df_test["Style"] == orig], orig, str(i), eval_dir + "/styles")
                 plot_accuracy(df_test, f'{eval_dir}/{i}')
+                plot_accuracy_distribution(dfs_test_path, eval_dir)
 
             elif analysis in ['distances_distribution', 'style_differences']:
                 histograms_80 = plot_styles_heatmaps(df_80, f'{eval_dir}/{i}/80-percent')
@@ -180,8 +181,6 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                     plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
                 plot_accuracy(df, eval_dir)
 
-                plot_accuracy_distribution(dfs_test_path, eval_dir)
-
             elif analysis in ['distances_distribution', 'style_differences']:
                 histograms = plot_styles_heatmaps(df, eval_dir)
 
@@ -205,7 +204,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'entropies' and 'style_differences')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies' and 'style_differences')"""
     for b in bars:
         for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality']:
             for cv in [True, False]:

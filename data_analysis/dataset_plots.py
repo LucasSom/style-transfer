@@ -200,7 +200,7 @@ def plot_accuracy_distribution(dfs_test_path, eval_dir):
     def find_closest(targets_distances):
         return targets_distances.sort_values('distance').iloc[0]['target']
 
-    print((cat_long >> dfp.drop(dfp.contains('matrix'))).columns)
+    cat_long >> dfp.drop(dfp.contains('matrix'))
 
     closest_df = (
         cat_long
@@ -223,8 +223,8 @@ def plot_accuracy_distribution(dfs_test_path, eval_dir):
         >> dfp.summarize(accuracy=dfp.X.matches.mean())
     )
 
-    sns.catplot(data=accuracy, x='style', y='accuracy', row='method',
+    sns.catplot(data=accuracy_df, x='style', y='accuracy', row='method',
                 col='part', kind='box')
-    save_plot(f'{eval_path}', 'style_accuracy_dist.pdf')
+    save_plot(eval_dir, 'style_closeness_accuracy', 'Styles closeness accuracy')
 
     return cat_long, closest_df, accuracy_df
