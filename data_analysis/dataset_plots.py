@@ -176,20 +176,24 @@ def plot_accuracy(df, eval_path):
 
 
 def plot_musicality_distribution(dfs: dict, eval_path, context='talk'):
-    for i, part in enumerate(["Melodic", "Rhythmic", "Joined"]):
-        sns.set_context(context)
-        plt.figure(figsize=(10, 6))
-        title = f"{part} musicality"
-        sns.set_theme()
+    for method in ['linear', 'kl', 'ot', 'probability']:
+        for i, part in enumerate(["Melodic", "Rhythmic", "Joined"]):
+            sns.set_context(context)
+            plt.figure(figsize=(10, 6))
+            title = f"{part} musicality ({method})"
+            sns.set_theme()
 
-        for df in dfs.values():
-            sns.kdeplot(df[f'{part} musicality difference'])
+            for df in dfs.values():
+                sns.kdeplot(df[f'{part} musicality difference ({method})'])
 
-        plt.legend(labels=dfs.keys())
-        save_plot(eval_path, f'{part}_musicality', title)
+            plt.legend(labels=dfs.keys())
+            save_plot(eval_path, f'{part}_musicality_{method}', title)
 
 
 def plot_accuracy_distribution(dfs_test_path, eval_dir):
+    """
+    For each method and part, it plots a Box plot of the accuracies of belonging to the correct style
+    """
     cat_long = pd.concat([
         pd.read_pickle(f'{dfs_test_path}{i}.pkl')
         >> dfp.mutate(fold=i)

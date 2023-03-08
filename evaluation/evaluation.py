@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from data_analysis.assemble_data import rhythmic_closest_style, melodic_closest_style, optimal_transport
+from data_analysis.assemble_data import rhythmic_closest_style, melodic_closest_style, optimal_transport, \
+    linear_distance, kl, belonging_probability
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
@@ -180,6 +181,7 @@ def evaluate_IR(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
 
 
 def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir):
+    methods = [('linear', linear_distance), ('kl', kl), ('ot', optimal_transport), ('probability', belonging_probability)]
 
     df_train["Melodic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
     df_train["Rhythmic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
@@ -194,9 +196,19 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
 
     for df in [df_train, df_test, df_permutations]:
     # for df in [df_permutations]: #### For debug purpuses
-        df['Melodic musicality difference'] = df.apply(lambda row: optimal_transport(melodic_distribution, row["Melodic bigram matrix"], True), axis=1)
-        df['Rhythmic musicality difference'] = df.apply(lambda row: optimal_transport(rhythmic_distribution, row["Rhythmic bigram matrix"], False), axis=1)
-        df['Joined musicality difference'] = df.apply(lambda row: row['Melodic musicality difference'] + row['Rhythmic musicality difference'], axis=1)
+        if 'Title' in df.columns and not 'roll_id' in df.columns:
+            df = df.drop_duplicates(subset=['Title'])
+
+        for method_name, func in methods:
+            df[f'Melodic musicality difference ({method_name})'] = \
+                df.apply(lambda row: func(melodic_distribution, row["Melodic bigram matrix"], True), axis=1)
+            df[f'Rhythmic musicality difference ({method_name})'] = \
+                df.apply(lambda row: func(rhythmic_distribution, row["Rhythmic bigram matrix"], False), axis=1)
+
+            df[f'Joined musicality difference ({method_name})'] = \
+                df.apply(lambda row:
+                         row[f'Melodic musicality difference ({method_name})']
+                         + row[f'Rhythmic musicality difference ({method_name})'], axis=1)
 
     plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir)
     # plot_musicality_distribution({'permutations': df_permutations}, eval_dir) #### For debug purpuses
