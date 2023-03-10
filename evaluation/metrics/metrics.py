@@ -44,12 +44,12 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: d
              "target": [],
              "m": [],
              "m'": [],
-             "ms": [],
-             "ms'": [],
-             "m's": [],
-             "m's'": [],
-             "log(m's/ms)": [],
-             "log(m's'/ms')": []
+             # "ms": [],
+             # "ms'": [],
+             # "m's": [],
+             # "m's'": [],
+             # "log(m's/ms)": [],
+             # "log(m's'/ms')": []
              }
 
     for s1, s2 in [(orig, dest), (dest, orig)]:
@@ -57,7 +57,7 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: d
         for title, r_orig, r_trans in zip(sub_df["Title"], sub_df['roll'], sub_df["NewRoll"]):
             m_orig = matrix_of_adjacent_rhythmic_bigrams(r_orig)[0] if rhythm else matrix_of_adjacent_intervals(r_orig)[0]
             m_trans = matrix_of_adjacent_rhythmic_bigrams(r_trans)[0] if rhythm else matrix_of_adjacent_intervals(r_trans)[0]
-            distances = get_matrix_comparisons(m_orig, m_trans, orig_style_mx_norm, trans_style_mx_norm)
+            # distances = get_matrix_comparisons(m_orig, m_trans, orig_style_mx_norm, trans_style_mx_norm)
 
             table["Style"].append(s1)
             table["Title"].append(title)
@@ -66,11 +66,11 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, styles: d
             table["target"].append(s2)
             table["m"].append(m_orig)
             table["m'"].append(m_trans)
-            table["ms"].append(distances["ms"])
-            table["ms'"].append(distances["ms'"])
-            table["m's"].append(distances["m's"])
-            table["m's'"].append(distances["m's'"])
-            table["log(m's/ms)"].append(np.log(distances["m's"] / distances["ms"]))
-            table["log(m's'/ms')"].append(np.log(distances["m's'"] / distances["ms'"]))
+            # table["ms"].append(distances["ms"])
+            # table["ms'"].append(distances["ms'"])
+            # table["m's"].append(distances["m's"])
+            # table["m's'"].append(distances["m's'"])
+            # table["log(m's/ms)"].append(np.log(distances["m's"] / distances["ms"]))
+            # table["log(m's'/ms')"].append(np.log(distances["m's'"] / distances["ms'"]))
 
     return pd.DataFrame(table)

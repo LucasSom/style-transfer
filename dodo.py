@@ -5,7 +5,7 @@ from doit.api import run
 from keras.saving.save import load_model
 
 from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles
-from data_analysis.dataset_plots import plot_styles_heatmaps, plot_distances_distribution, plot_closeness, \
+from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms, plot_distances_distribution, plot_closeness, \
     plot_closest_ot_style, plot_styles_bigrams_entropy, heatmap_style_differences, plot_heatmap_differences, \
     plot_accuracy, plot_accuracy_distribution
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
@@ -141,6 +141,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
     init(b)
     df = load_pickle(df_path)
     styles = set(df["Style"])
+    eval_dir_cv = eval_dir + '/cross_val'
 
     if cv:
         for i in range(cross_val):
@@ -149,74 +150,75 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
             if analysis == 'style_closeness':
                 for orig in styles:
-                    plot_closeness(df_test[df_test["Style"] == orig], orig, str(i), eval_dir + "/styles")
-                plot_accuracy(df_test, f'{eval_dir}/{i}')
-                plot_accuracy_distribution(dfs_test_path, eval_dir)
+                    plot_closeness(df_test[df_test["Style"] == orig], orig, str(i), eval_dir_cv + "/styles")
+                plot_accuracy(df_test, f'{eval_dir_cv}/{i}')
+                plot_accuracy_distribution(dfs_test_path, eval_dir_cv)
 
-            elif analysis in ['distances_distribution', 'style_differences']:
-                histograms_80 = plot_styles_heatmaps(df_80, f'{eval_dir}/{i}/80-percent')
+            elif analysis in ['distances_distribution', 'style_differences', 'style_histograms']:
+                histograms_80 = plot_styles_heatmaps_and_get_histograms(df_80, f'{eval_dir_cv}/{i}/80-percent')
 
                 if analysis == 'style_differences':
                     diff_table_80 = styles_ot_table(df_80, histograms_80)
-                    heatmap_style_differences(diff_table_80, f'{eval_dir}/{i}/80-percent')
-                    plot_heatmap_differences(df_80, histograms_80, f'{eval_dir}/{i}/80-percent')
+                    heatmap_style_differences(diff_table_80, f'{eval_dir_cv}/{i}/80-percent')
+                    plot_heatmap_differences(df_80, histograms_80, f'{eval_dir_cv}/{i}/80-percent')
 
-                else:
+                elif analysis == 'distances_distribution':
                     rolls_diff_df = closest_ot_style(df_test, histograms_80)
 
-                    plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', by_style=False)
+                    plot_distances_distribution(rolls_diff_df, f'{eval_dir_cv}/{i}', by_style=False)
                     # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
 
-                    plot_closest_ot_style(rolls_diff_df, f'{eval_dir}/{i}')
+                    plot_closest_ot_style(rolls_diff_df, f'{eval_dir_cv}/{i}')
             
             elif analysis == 'musicality':
-                melodic_distribution = load_pickle(f'{eval_dir}/melodic_distribution_{i}')
-                rhythmic_distribution = load_pickle(f'{eval_dir}/rhythmic_distribution_{i}')
+                melodic_distribution = load_pickle(f'{eval_dir_cv}/melodic_distribution_{i}')
+                rhythmic_distribution = load_pickle(f'{eval_dir_cv}/rhythmic_distribution_{i}')
 
-                evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir}/{i}')
+                evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir_cv}/{i}')
 
-        else:
-            if analysis == 'style_closeness':
-                for orig in styles:
-                    plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
-                plot_accuracy(df, eval_dir)
+    else:
+        if analysis == 'style_closeness':
+            for orig in styles:
+                plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
+            plot_accuracy(df, eval_dir)
 
-            elif analysis in ['distances_distribution', 'style_differences']:
-                histograms = plot_styles_heatmaps(df, eval_dir)
+        elif analysis in ['distances_distribution', 'style_differences', 'style_histograms']:
+            histograms = plot_styles_heatmaps_and_get_histograms(df, eval_dir)
+            save_pickle(histograms, eval_dir + '/style_histograms', verbose=True)
 
-                if analysis == 'style_differences':
-                    diff_table = styles_ot_table(df, histograms)
-                    heatmap_style_differences(diff_table, eval_dir)
-                    plot_heatmap_differences(df, histograms, eval_dir)
+            if analysis == 'style_differences':
+                diff_table = styles_ot_table(df, histograms)
+                heatmap_style_differences(diff_table, eval_dir)
+                plot_heatmap_differences(df, histograms, eval_dir)
 
-                else:
-                    rolls_diff_df = closest_ot_style(df, histograms)
+            elif analysis == 'distances_distribution':
+                rolls_diff_df = closest_ot_style(df, histograms)
 
-                    plot_distances_distribution(rolls_diff_df, eval_dir, by_style=False)
-                    # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
+                plot_distances_distribution(rolls_diff_df, eval_dir, by_style=False)
+                # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
 
-                    plot_closest_ot_style(rolls_diff_df, eval_dir)
+                plot_closest_ot_style(rolls_diff_df, eval_dir)
 
-            elif analysis == 'entropies':
-                entropies = styles_bigrams_entropy(df)
-                plot_styles_bigrams_entropy(entropies, eval_dir)
+        elif analysis == 'entropies':
+            entropies = styles_bigrams_entropy(df)
+            plot_styles_bigrams_entropy(entropies, eval_dir)
 
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies' and 'style_differences')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms' and 'style_differences')"""
     for b in bars:
-        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality']:
+        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality', 'style_histograms']:
             for cv in [True, False]:
-                eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
-                df_80_indexes_path = eval_dir + '/df_80_indexes_'
-                df_test_path = eval_dir + '/rolls_long_df_test_'
+                eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+                df_80_indexes_path = eval_dir + '/cross_val/df_80_indexes_'
+                df_test_path = eval_dir + '/cross_val/rolls_long_df_test_'
                 yield {
                     'name': f"{b}bars-{analysis}{'-cv' if cv else ''}",
-                    'file_dep': [eval_dir + '/df_80_indexes_0.pkl',
-                                 eval_dir + '/rolls_long_df_test_0.pkl',
-                                 eval_dir + '/melodic_distribution_0.pkl',
-                                 eval_dir + '/rhythmic_distribution_0.pkl'
+                    'file_dep': [eval_dir + '/cross_val/df_80_indexes_0.pkl',
+                                 eval_dir + '/cross_val/rolls_long_df_test_0.pkl',
+                                 eval_dir + '/cross_val/melodic_distribution_0.pkl',
+                                 eval_dir + '/cross_val/rhythmic_distribution_0.pkl'
                                  ],
                     'actions': [(data_analysis, [preprocessed_data(b),
                                                  df_80_indexes_path,
@@ -225,7 +227,9 @@ def task_analyze_data():
                                                  b,
                                                  analysis,
                                                  cv])],
-                    'targets': [],
+                    'targets': [eval_dir + '/style_histograms.pkl'
+                                if analysis == 'style_differences' and not cv
+                                else f'{analysis}{cv}'],
                     'uptodate': [False]
                 }
 

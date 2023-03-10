@@ -19,7 +19,15 @@ def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexit
     save_plot(plot_dir, plot_name, "Styles entropies for melody and rhythm")
 
 
-def plot_styles_heatmaps(df, plot_dir):
+def plot_styles_heatmaps_and_get_histograms(df, plot_dir):
+    """
+    For each style, plots the characteristic heatmap and calculates the melodic and rhythmic characteristic matrix
+
+    :param df: DataFrame with columns 'Style' and 'roll'.
+    :param plot_dir: directory where save the plots.
+    :return: A dictionary that maps style names to another dictionary with maps 'melodic_hist' and 'rhythmic_hist' with
+    its corresponding histograms.
+    """
     histograms = {}
     for style in set(df["Style"]):
         melodic_hist, m_xedges, m_yedges = get_style_intervals_bigrams_sum(np.zeros((25,25)), df[df['Style'] == style])
@@ -70,20 +78,24 @@ def heatmap_style_differences(diff_table, plot_dir):
     save_plot(plot_dir, 'melodic_diff')
 
 
-def plot_closeness(df, orig, dest, eval_path, context='talk'):
+def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=False):
     fig = plt.figure(figsize=(24, 18))
     sns.set_theme()
     sns.set_context(context)
     title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
     fig.suptitle(title)
 
-    i = 1
-    for kind in ['Rhythmic', 'Melodic', 'Joined']:
-        for method in ['linear', 'kl', 'probability', 'ot']:
-            ax = fig.add_subplot(3, 4, i)
-            plt.hist(df[f"{kind} closest style ({method})"])
-            ax.title.set_text(f"{kind} closest style ({method})")
-            i += 1
+    if only_joined_ot:
+        df = df[df['target'] == dest]
+        plt.hist(df["Joined closest style (ot)"])
+    else:
+        i = 1
+        for kind in ['Rhythmic', 'Melodic', 'Joined']:
+            for method in ['linear', 'kl', 'probability', 'ot']:
+                ax = fig.add_subplot(3, 4, i)
+                plt.hist(df[f"{kind} closest style ({method})"])
+                ax.title.set_text(f"{kind} closest style ({method})")
+                i += 1
 
     save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Joined closest style (ot)")
     plt.close()

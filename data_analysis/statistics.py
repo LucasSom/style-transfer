@@ -57,6 +57,21 @@ def styles_ot_table(df, histograms):
 
 
 def closest_ot_style(df, histograms):
+    """
+    For each roll it calculates the optimal transport distance to each style
+
+    :param df: Dataframe with columns 'Style' 'Melodic bigram matrix' and 'Rhythmic bigram matrix'
+    :param histograms: dictionary of melodic and rhythmic histograms of styles
+    :return: Dataframe with new columns: for each style, s 'Melodic ot to {s}' and for each kind (Melodic, Rhythmic and
+    Joined), '{kind} closest style (ot)'
+
+    -------------
+    Example:
+
+    >> histograms = plot_styles_heatmaps_and_get_histograms(df, eval_dir)
+    >> closest_ot_style(df, histograms)
+
+    """
     d = {}
     for i, s in enumerate(set(df['Style'])):
         style_melodic_hist = histograms[s]["melodic_hist"]
