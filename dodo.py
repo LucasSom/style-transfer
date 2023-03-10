@@ -96,40 +96,56 @@ def task_preprocess():
         'uptodate': [os.path.isfile(preprocessed_data(4, True))]
     }
 
-def prepare_data(df_path, eval_dir, b):
+def prepare_data(df_path, eval_dir, b, cv):
     init(b)
     df = load_pickle(df_path)
 
     dfs_80, dfs_test = stratified_split(df, n_splits=cross_val)
 
     styles = set(df["Style"])
-    for i, (df_80, df_test) in enumerate(zip(dfs_80, dfs_test)):
-        styles_train = {name: Style(name, None, df_80) for name in styles}
+    if cv:
+        for i, (df_80, df_test) in enumerate(zip(dfs_80, dfs_test)):
+            styles_train = {name: Style(name, None, df_80) for name in styles}
 
-        rolls_long_df_test = calculate_long_df(df, calculate_closest_styles(df_test, styles_train), styles_train)
-        rolls_long_df_test.drop(columns=["roll"], inplace=True)
+            rolls_long_df_test = calculate_long_df(df, calculate_closest_styles(df_test, styles_train), styles_train)
+            rolls_long_df_test.drop(columns=["roll"], inplace=True)
 
-        save_pickle(rolls_long_df_test, f'{eval_dir}/rolls_long_df_test_{i}')
-        save_pickle(df_80.index, f'{eval_dir}/df_80_indexes_{i}.pkl')
-        rolls_long_df_test.to_csv(f'{eval_dir}/rolls_long_df_test_{i}.csv')
-        
-        # Musicality
+            save_pickle(rolls_long_df_test, f'{eval_dir}/rolls_long_df_test_{i}')
+            save_pickle(df_80.index, f'{eval_dir}/df_80_indexes_{i}.pkl')
+            rolls_long_df_test.to_csv(f'{eval_dir}/rolls_long_df_test_{i}.csv')
+
+            # Musicality
+            print("Calculating musicality distributions")
+            melodic_distribution = get_intervals_distribution(df_80)
+            rhythmic_distribution = get_rhythmic_distribution(df_80)
+
+            save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution_{i}')
+            save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
+    else:
         print("Calculating musicality distributions")
-        melodic_distribution = get_intervals_distribution(df_80)
-        rhythmic_distribution = get_rhythmic_distribution(df_80)
+        melodic_distribution = get_intervals_distribution(df)
+        rhythmic_distribution = get_rhythmic_distribution(df)
 
-        save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution_{i}')
-        save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
+        save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution')
+        save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution')
 
 def task_assemble_data_to_analyze():
     """Prepare the data for analysis"""
     for b in bars:
-        eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
-
+        eval_dir = f"{data_path}brmf_{b}b/Evaluation"
         yield {
             'name': f"{b}bars",
             'file_dep': [preprocessed_data(b)],
-            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b])],
+            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
+            'targets': [eval_dir + '/melodic_distribution.pkl',
+                        eval_dir + '/rhythmic_distribution.pkl'],
+        }
+
+        eval_dir = f"{data_path}brmf_{b}b/Evaluation/cross_val"
+        yield {
+            'name': f"{b}bars-cv",
+            'file_dep': [preprocessed_data(b)],
+            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, True])],
             'targets': [eval_dir + '/df_80_indexes_0.pkl',
                         eval_dir + '/rolls_long_df_test_0.csv',
                         eval_dir + '/rolls_long_df_test_0.pkl',
@@ -174,7 +190,8 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                 melodic_distribution = load_pickle(f'{eval_dir_cv}/melodic_distribution_{i}')
                 rhythmic_distribution = load_pickle(f'{eval_dir_cv}/rhythmic_distribution_{i}')
 
-                evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir_cv}/{i}')
+                evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir_cv}/{i}',
+                                    '')
 
     else:
         if analysis == 'style_closeness':
@@ -415,14 +432,19 @@ def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
     styles = load_pickle(styles_path)
 
     metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
-    successful_rolls, table = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
+    melodic_musicality_distribution = load_pickle(eval_dir + '/melodic_distribution.pkl')
+    rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
+
+    successful_rolls, table = evaluate_model(df_transferred, metrics, styles, melodic_musicality_distribution,
+                                             rhythmic_musicality_distribution, eval_path=eval_dir)
     save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
     save_pickle(table, f"{eval_dir}/results-{s1}_to_{s2}")
     for t in table.values():
         print(t)
 
     metrics = load_pickle(f"{metrics_dir}/metrics_{s2}_to_{s1}")
-    successful_rolls, table = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
+    successful_rolls, table = evaluate_model(df_transferred, metrics, styles, melodic_musicality_distribution,
+                                             rhythmic_musicality_distribution, eval_path=eval_dir)
     save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s2}_to_{s1}")
     save_pickle(table, f"{eval_dir}/results-{s2}_to_{s1}")
     for t in table.values():
@@ -441,7 +463,10 @@ def task_evaluation():
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [transferred_path, styles_path,
-                             f"{metrics_dir}/metrics_{s1}_to_{s2}.pkl", f"{metrics_dir}/metrics_{s2}_to_{s1}.pkl"],
+                             f"{metrics_dir}/metrics_{s1}_to_{s2}.pkl", f"{metrics_dir}/metrics_{s2}_to_{s1}.pkl",
+                             eval_dir + '/melodic_distribution.pkl',
+                             eval_dir + '/rhythmic_distribution.pkl'
+                             ],
                 'actions': [(do_evaluation, [transferred_path, styles_path, eval_dir, s1, s2, b])],
                 'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl"],
                 'verbosity': 2,

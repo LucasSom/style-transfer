@@ -92,7 +92,11 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
 def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
+    trans_path = get_transferred_path(s1, s2, model_name)
+    metrics = load_pickle(get_metrics_dir(trans_path))
+
+    eval_path = get_eval_dir(transferred_path=trans_path)
+
     plot_intervals_improvements(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'],
                                 plot_path=eval_path)
     plot_intervals_improvements(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'],
@@ -260,7 +264,12 @@ def test_evaluate_model():
     styles_path = get_characteristics_path(model_name)
     styles = load_pickle(styles_path)
 
-    evaluate_model(df, metrics, styles, f"{data_path}/debug_outputs/", thold=2)
+    eval_dir = get_eval_dir(trans_path)
+    melodic_musicality_distribution = load_pickle(eval_dir + '/melodic_distribution.pkl')
+    rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
+
+    evaluate_model(df, metrics, styles, melodic_musicality_distribution, rhythmic_musicality_distribution,
+                   f"{data_path}/debug_outputs/", thold=2)
 
 
 def test_evaluation_task():

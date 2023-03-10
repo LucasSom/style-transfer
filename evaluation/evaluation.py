@@ -180,8 +180,12 @@ def evaluate_IR(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
     return table_results, sorted_df
 
 
-def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir):
-    methods = [('linear', linear_distance), ('kl', kl), ('ot', optimal_transport), ('probability', belonging_probability)]
+def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir, plot_suffix='',
+                        only_probability=False):
+    if only_probability:
+        methods = [('probability', belonging_probability)]
+    else:
+        methods = [('linear', linear_distance), ('kl', kl), ('ot', optimal_transport), ('probability', belonging_probability)]
 
     df_train["Melodic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
     df_train["Rhythmic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
@@ -195,7 +199,7 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
     df_permutations = pd.DataFrame(df_permutations)
 
     for df in [df_train, df_test, df_permutations]:
-    # for df in [df_permutations]: #### For debug purpuses
+    # for df in [df_permutations]: #### For debug purposes
         if 'Title' in df.columns and not 'roll_id' in df.columns:
             df = df.drop_duplicates(subset=['Title'])
 
@@ -210,7 +214,8 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
                          row[f'Melodic musicality difference ({method_name})']
                          + row[f'Rhythmic musicality difference ({method_name})'], axis=1)
 
-    plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir)
+    plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir, plot_suffix,
+                                 only_probability=only_probability)
     # plot_musicality_distribution({'permutations': df_permutations}, eval_dir) #### For debug purpuses
 
 
@@ -231,7 +236,8 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
     plot_closeness(joined_df, orig, dest, eval_path, context, only_joined_ot=True)
 
 
-def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
+def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rhythmic_musicality_distribution,
+                   eval_path=data_path, **kwargs):
     merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
     for k, v in kwargs.items():
         if k == "context":
@@ -268,8 +274,18 @@ def evaluate_model(df, metrics, styles_char, eval_path=data_path, **kwargs):
     # p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], orig, target, eval_path, by_distance, context, thold)
     # p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
     # print(p_table)
-    #
-    # print("===== Evaluating musicality =====")
+
+
+    print("===== Evaluating musicality =====")
+    df_test = df[["Style", "Title", "NewRoll", "roll_id"]]
+    common_columns = ['Style', 'Title', 'roll', 'NewRoll', 'target']
+    joined_df = metrics["rhythmic_bigrams"][common_columns + ["m'"]].merge(metrics["intervals"][common_columns + ["m'"]],
+                                                                        on=common_columns, how='inner')
+    df_test = df_test.merge(joined_df[["Style", "Title", "m'_x", "m'_y"]], on=["Style", "Title"])
+    df_test.rename(columns={"NewRoll": "roll", "m'_x": 'Rhythmic bigram matrix', "m'_y": 'Melodic bigram matrix'}, inplace=True)
+
+    evaluate_musicality(df, df_test, melodic_musicality_distribution, rhythmic_musicality_distribution, eval_path,
+                        f'_{orig}_to_{target}', only_probability=True)
     # ir_table, ir_sorted_df = evaluate_IR(metrics["musicality"], orig, target, eval_path)
     # ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
     # print(ir_table)
