@@ -19,5 +19,4 @@ verbosity
 p_tqdm
 
 keras==2.9.0
-scipy~=1.4.1
 POT==0.8.2
