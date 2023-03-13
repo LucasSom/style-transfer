@@ -8,10 +8,10 @@ datetime~=4.4
 typing~=3.7.4.3
 music21~=7.1.0
 matplotlib~=3.2.1
-scikit-learn~=0.22.2.post1
+scikit-learn~=1.2.2
 seaborn~=0.11.2
 pytest~=6.2.5
-IPython>=7.31.1
+IPython>=8.11
 jupyter
 doit~=0.36.0
 verbosity
