@@ -7,11 +7,12 @@ pandas~=1.4.2
 datetime~=4.4
 typing~=3.7.4.3
 music21~=7.1.0
-matplotlib~=3.2.1
+matplotlib~=3.5
 scikit-learn~=1.2.2
+scipy>=1.6
 seaborn~=0.11.2
 pytest~=6.2.5
-IPython>=8.11
+IPython>=7.31.1
 jupyter
 doit~=0.36.0
 verbosity
@@ -19,5 +20,4 @@ p_tqdm
 
 keras==2.9.0
 scipy~=1.4.1
-sklearn~=0.0
 POT==0.8.2
