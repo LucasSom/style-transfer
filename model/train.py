@@ -57,7 +57,12 @@ def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, ckpt:
         initial_epoch = int(f.read())
     if verbose: print(f"Continuing training from epoch {initial_epoch}")
 
-    vae = keras.models.load_model(vae_dir, custom_objects=dict(kl_beta=build_model.kl_beta))
+    try:
+        vae = keras.models.load_model(vae_dir, custom_objects=dict(kl_beta=build_model.kl_beta))
+    except OSError:
+        new_path = os.path.join(vae_dir, 'ckpt')
+        print(f"Model not found in {vae_dir}. Trying {new_path}.")
+        vae = keras.models.load_model(new_path, custom_objects=dict(kl_beta=build_model.kl_beta))
 
     return train(vae, df, model_name, initial_epoch, final_epoch + initial_epoch, ckpt, verbose)
 
@@ -104,7 +109,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
         # vae.save(path_to_save)
 
-        with open(f'{get_logs_path(model_name)}/initial_epoch', 'w') as f:
+        with open(f'{vae_dir}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
         print(f"Guardado hasta {i + ckpt}!!")
 
