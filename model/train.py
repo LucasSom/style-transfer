@@ -92,7 +92,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
     )
 
     if ckpt == 0: ckpt = final_epoch
-    kl_beta = 0
+    kl_beta = float(vae.get_layer('kl_beta').variables[0])
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         vae.get_layer('kl_beta').variables[0].assign(kl_beta)
         kl_beta += 5e-7
