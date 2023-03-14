@@ -16,8 +16,7 @@ except ImportError:
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path, get_logs_path, \
-    get_model_paths
+from utils.files_utils import load_pickle, data_path, preprocessed_data_path, get_logs_path, get_model_paths
 
 
 def get_targets(ds: np.ndarray) -> List[np.ndarray]:
@@ -111,10 +110,9 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, verbose=2):
 
         with open(f'{vae_dir}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
-        print(f"Guardado hasta {i + ckpt}!!")
+        print(f"Guardado initial_epoch hasta {i + ckpt}!!")
 
-        print(callbacks)
-        callbacks_history = {k: v for k, v in callbacks.history.items() if k != "kl_loss"}
+        callbacks_history = callbacks.history
         callbacks_history['epoch'] = list(np.arange(i, i + ckpt))
         assert len(callbacks_history['epoch']) == len(callbacks_history['loss'])
         callbacks_df = pd.DataFrame(callbacks_history)
