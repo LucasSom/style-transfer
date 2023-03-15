@@ -269,11 +269,11 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     # print(i_table)
     #
     # plot_fragments_distributions(df, styles_char, eval_path, f"Transformation_distribution_{orig}_to_{target}")
-    #
-    # print("===== Evaluating plagiarism =====")
-    # p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], orig, target, eval_path, by_distance, context, thold)
-    # p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
-    # print(p_table)
+
+    print("===== Evaluating plagiarism =====")
+    p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], orig, target, eval_path, by_distance, context, thold)
+    p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
+    print(p_table)
 
 
     print("===== Evaluating musicality =====")

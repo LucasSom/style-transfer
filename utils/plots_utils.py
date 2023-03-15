@@ -115,14 +115,14 @@ def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_sty
     for i, x in enumerate(embeddings):
         embeddings[i] = np.hstack(x)
 
-    tsne: np.ndarray = TSNE(n_components=2).fit_transform(embeddings)
+    tsne: np.ndarray = TSNE(n_components=2).fit_transform(np.array(embeddings))
     grid = plot_tsne(df_tsne, tsne, plot_dir, plot_name, style=("Type" if include_songs else None))
     return grid
 
 
 def plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot=None):
-    intervals_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['intervals_distribution']))
-    rhythmic_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['rhythmic_bigrams_distribution']))
+    intervals_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(np.array(tsne_df['intervals_distribution']))
+    rhythmic_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(np.array(tsne_df['rhythmic_bigrams_distribution']))
 
     tsne_df['intervals_dim_1'] = intervals_tsne[:, 0]
     tsne_df['intervals_dim_2'] = intervals_tsne[:, 1]

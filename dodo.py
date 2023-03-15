@@ -2,7 +2,7 @@ import os.path
 from copy import copy
 
 from doit.api import run
-from keras.saving.save import load_model
+from keras.models import load_model
 
 from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles
 from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms, plot_distances_distribution, plot_closeness, \
@@ -33,7 +33,7 @@ styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
-old_models = ["brmf_4b"]
+old_models = ["brmf_4b", "brmf_4b_beta"]
 models = old_models + [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + ["4-small_br"]
 
 
@@ -132,26 +132,27 @@ def prepare_data(df_path, eval_dir, b, cv):
 def task_assemble_data_to_analyze():
     """Prepare the data for analysis"""
     for b in bars:
-        eval_dir = f"{data_path}brmf_{b}b/Evaluation"
-        yield {
-            'name': f"{b}bars",
-            'file_dep': [preprocessed_data(b)],
-            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
-            'targets': [eval_dir + '/melodic_distribution.pkl',
-                        eval_dir + '/rhythmic_distribution.pkl'],
-        }
+        for model in old_models:
+            eval_dir = f"{data_path}{model}/Evaluation"
+            yield {
+                'name': f"{model}",
+                'file_dep': [preprocessed_data(b)],
+                'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
+                'targets': [eval_dir + '/melodic_distribution.pkl',
+                            eval_dir + '/rhythmic_distribution.pkl'],
+            }
 
-        eval_dir = f"{data_path}brmf_{b}b/Evaluation/cross_val"
-        yield {
-            'name': f"{b}bars-cv",
-            'file_dep': [preprocessed_data(b)],
-            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, True])],
-            'targets': [eval_dir + '/df_80_indexes_0.pkl',
-                        eval_dir + '/rolls_long_df_test_0.csv',
-                        eval_dir + '/rolls_long_df_test_0.pkl',
-                        eval_dir + '/melodic_distribution_0.pkl',
-                        eval_dir + '/rhythmic_distribution_0.pkl'],
-        }
+            eval_dir = f"{data_path}{model}/Evaluation/cross_val"
+            yield {
+                'name': f"{model}-cv",
+                'file_dep': [preprocessed_data(b)],
+                'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, True])],
+                'targets': [eval_dir + '/df_80_indexes_0.pkl',
+                            eval_dir + '/rolls_long_df_test_0.csv',
+                            eval_dir + '/rolls_long_df_test_0.pkl',
+                            eval_dir + '/melodic_distribution_0.pkl',
+                            eval_dir + '/rhythmic_distribution_0.pkl'],
+            }
 
 def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analysis, cv):
     init(b)
@@ -227,28 +228,29 @@ def task_analyze_data():
     for b in bars:
         for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality', 'style_histograms']:
             for cv in [True, False]:
-                eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
-                df_80_indexes_path = eval_dir + '/cross_val/df_80_indexes_'
-                df_test_path = eval_dir + '/cross_val/rolls_long_df_test_'
-                yield {
-                    'name': f"{b}bars-{analysis}{'-cv' if cv else ''}",
-                    'file_dep': [eval_dir + '/cross_val/df_80_indexes_0.pkl',
-                                 eval_dir + '/cross_val/rolls_long_df_test_0.pkl',
-                                 eval_dir + '/cross_val/melodic_distribution_0.pkl',
-                                 eval_dir + '/cross_val/rhythmic_distribution_0.pkl'
-                                 ],
-                    'actions': [(data_analysis, [preprocessed_data(b),
-                                                 df_80_indexes_path,
-                                                 df_test_path,
-                                                 eval_dir,
-                                                 b,
-                                                 analysis,
-                                                 cv])],
-                    'targets': [eval_dir + '/style_histograms.pkl'
-                                if analysis == 'style_differences' and not cv
-                                else f'{analysis}{cv}'],
-                    'uptodate': [False]
-                }
+                for model in old_models:
+                    eval_dir = f"{data_path}/{model}/Evaluation"
+                    df_80_indexes_path = eval_dir + '/cross_val/df_80_indexes_'
+                    df_test_path = eval_dir + '/cross_val/rolls_long_df_test_'
+                    yield {
+                        'name': f"{model}-{analysis}{'-cv' if cv else ''}",
+                        'file_dep': [eval_dir + '/cross_val/df_80_indexes_0.pkl',
+                                     eval_dir + '/cross_val/rolls_long_df_test_0.pkl',
+                                     eval_dir + '/cross_val/melodic_distribution_0.pkl',
+                                     eval_dir + '/cross_val/rhythmic_distribution_0.pkl'
+                                     ],
+                        'actions': [(data_analysis, [preprocessed_data(b),
+                                                     df_80_indexes_path,
+                                                     df_test_path,
+                                                     eval_dir,
+                                                     b,
+                                                     analysis,
+                                                     cv])],
+                        'targets': [eval_dir + '/style_histograms.pkl'
+                                    if analysis == 'style_differences' and not cv
+                                    else f'{eval_dir}/{analysis}{cv}'],
+                        'uptodate': [False]
+                    }
 
 
 def train(df_path, model_name, b):
@@ -268,7 +270,7 @@ def train(df_path, model_name, b):
 def task_train():
     """Trains the model"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         small = "small" in model_name
         vae_path = get_model_paths(model_name)[2]
         yield {
@@ -301,7 +303,7 @@ def analyze_training(df_path, model_name, b, targets):
 def task_test():
     """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         small = "small" in model_name
         vae_path = get_model_paths(model_name)[2]
         yield {
@@ -314,7 +316,6 @@ def task_test():
 
 def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, b):
     init(b)
-    print(os.path.abspath(vae_path))
     model = load_model(os.path.abspath(vae_path))
     plots_dir = os.path.join(model_path, "plots")
     df = load_pickle(df_path)
@@ -323,7 +324,7 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
 
     plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir,
                     include_songs=True)
-    plot_characteristics_distributions(styles_char, plots_dir, "Distributions_characteristics")
+    # plot_characteristics_distributions(styles_char, plots_dir, "Distributions_characteristics")
 
     save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
@@ -332,7 +333,7 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
 def task_embeddings():
     """Calculate the embeddings for each author/style and song"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -372,7 +373,7 @@ def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b
 def task_transfer_style():
     """Do the transference of style from a roll to another style"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -408,7 +409,7 @@ def calculate_metrics(trans_path, char_path, metrics_dir, s1, s2, b=4):
 def task_metrics():
     """Calculate different metrics for a produced dataset"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
 
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
@@ -454,7 +455,7 @@ def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
 def task_evaluation():
     """Evaluate the model considering the calculated metrics"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             styles_path = get_characteristics_path(model_name)
