@@ -397,11 +397,10 @@ def calculate_metrics(trans_path, char_path, metrics_dir, s1, s2, b=4):
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(char_path)
 
-    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams',
-                              'musicality')
+    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
     save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
 
-    metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams', 'musicality')
+    metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams')
     metrics2['plagiarism'] = metrics1['plagiarism']
     save_pickle(metrics2, f"{metrics_dir}/metrics_{s2}_to_{s1}")
 

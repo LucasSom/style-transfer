@@ -187,14 +187,20 @@ def plot_accuracy(df, eval_path):
     save_plot(eval_path, 'styles_accuracy', 'Proportion of rolls that are classified on its own style')
 
 
-def plot_musicality_distribution(dfs: dict, eval_path, plot_suffix='', context='talk', only_probability=False):
+def plot_musicality_distribution(dfs: dict, eval_path, plot_suffix='', context='talk', only_probability=False,
+                                 only_joined=True):
     if only_probability:
         methods = ['probability']
     else:
         methods = ['linear', 'kl', 'ot', 'probability']
 
+    if only_joined:
+        parts = ['Joined']
+    else:
+        parts = ["Melodic", "Rhythmic", "Joined"]
+
     for method in methods:
-        for i, part in enumerate(["Melodic", "Rhythmic", "Joined"]):
+        for i, part in enumerate(parts):
             sns.set_context(context)
             plt.figure(figsize=(10, 6))
             title = f"{part} musicality ({method})"

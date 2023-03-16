@@ -195,7 +195,7 @@ def count_musicality(df_test, df_permutations, i) -> float:
     return n / df_test.shape[0] * 100
 
 def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir, plot_suffix='',
-                        only_probability=False, n_permutations=5):
+                        only_probability=False, only_joined=True, n_permutations=5):
     if only_probability:
         methods = [('probability', belonging_probability)]
     else:
@@ -229,8 +229,8 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
                          row[f'Melodic musicality difference ({method_name})']
                          + row[f'Rhythmic musicality difference ({method_name})'], axis=1)
 
-    plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir, plot_suffix,
-                                 only_probability=only_probability)
+    plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir,
+                                 plot_suffix, only_probability=only_probability, only_joined=only_joined)
 
     sorted_df = df.sort_values(by=['Joined musicality difference (probability)'], ascending=False)
     table = {f'% rolls that are more musical than {i} permutations': [count_musicality(df_test, df_permutations, i)] for i in range(1, n_permutations)}
@@ -283,19 +283,6 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
                                              orig, target, eval_path, context)
     print(s_table)
 
-    # print("===== Evaluating rhythmic bigrams distributions =====")
-    # r_table, r_sorted_df = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
-    #                                                      orig, target, eval_path + '/rhythmic', f"Rhythmic bigrams {orig} to {target}", context)
-    # r_sorted_df["RhythmicStyle rank"] = range(r_sorted_df.shape[0])
-    # print(r_table)
-    #
-    # print("===== Evaluating interval distributions =====")
-    # i_table, i_sorted_df = evaluate_bigrams_distribution(metrics["intervals"],
-    #                                                      orig, target, eval_path + '/melodic', f"Interval {orig} to {target}", context)
-    # i_sorted_df["IntervalStyle rank"] = range(i_sorted_df.shape[0])
-    # print(i_table)
-    #
-    # plot_fragments_distributions(df, styles_char, eval_path, f"Transformation_distribution_{orig}_to_{target}")
 
     print("===== Evaluating plagiarism =====")
     p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], orig, target, eval_path, by_distance, context, thold)
@@ -314,34 +301,10 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     mus_table, mus_sorted_df = evaluate_musicality(df, df_test, melodic_musicality_distribution,
                                                    rhythmic_musicality_distribution, eval_path, f'_{orig}_to_{target}',
                                                    only_probability=True)
-    # ir_table, ir_sorted_df = evaluate_IR(metrics["musicality"], orig, target, eval_path)
-    # ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
-    # print(ir_table)
 
-    # print("===== Selecting audios of successful rolls =====")
-    # successful_rolls = pd.merge(p_sorted_df, i_sorted_df, how="inner",
-    #                             on=["Style", "Title", "roll", "NewRoll", "target"])
-    # if successful_rolls.shape[0] != 0:
-    #     successful_rolls = pd.merge(successful_rolls, r_sorted_df, how="inner",
-    #                                 on=["Style", "Title", "roll", "NewRoll", "target"])
-    # if successful_rolls.shape[0] != 0:
-    #     successful_rolls = pd.merge(successful_rolls, ir_sorted_df, how="inner",
-    #                                 on=["Style", "Title", "roll", "NewRoll"])
-    #
-    # successful_rolls = successful_rolls[["Style", "Title", "roll", "NewRoll", "target",
-    #                                      "IntervalStyle rank", "RhythmicStyle rank", "IR rank", "Plagiarism rank"]]
-    #
-    # successful_rolls["Merged rank"] = sum([successful_rolls["IntervalStyle rank"],
-    #                                        successful_rolls["RhythmicStyle rank"],
-    #                                        successful_rolls["IR rank"],
-    #                                        successful_rolls["Plagiarism rank"]])
-    # successful_rolls.sort_values(by=["Merged rank"], inplace=True)
-
-    return {#"Merged": successful_rolls,
-            "Style": s_df,
+    return {"Style": s_df,
             "IR": mus_sorted_df,
             "Plagiarism": p_sorted_df}, \
         {"Style": s_table,
          "IR": mus_table,
          "Plagiarism": p_table}
-    # return  {}, {}
