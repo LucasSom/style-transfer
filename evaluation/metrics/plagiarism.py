@@ -150,7 +150,7 @@ def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFr
              "N": []
              }
 
-    sub_df = df[(df["Style"] == orig) & (df["target"] == dest)]
+    sub_df = df[df["Style"] == orig]
 
     for style, title, r_orig, r_trans in zip(sub_df["Style"], sub_df["Title"], sub_df['roll'], sub_df["NewRoll"]):
         table["Style"].append(style)

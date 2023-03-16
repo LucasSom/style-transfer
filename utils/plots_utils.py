@@ -223,24 +223,23 @@ def bigrams_plot(df, order: List, eval_dir, plot_name, context='talk'):
     save_plot(eval_dir, plot_name, f'{plot_name} distribution of \n{orig} transformed to {dest}')
 
 
-def plagiarism_plot(df, s1, s2, by_distance, eval_dir, context):
+def plagiarism_plot(df, orig, dest, by_distance, eval_dir, context):
     kind = "Distance" if by_distance else "Differences"
 
     sns.set_theme()
     sns.set_context(context)
 
-    for orig, dest in [(s1, s2), (s2, s1)]:
-        sns.displot(data=df[df["Style"] == orig],
-                    x=f"{kind} relative ranking",
-                    row="target",
-                    aspect=2, kind='hist', stat='proportion', bins=np.arange(0, 1.1, 0.1)
-                    ).set(title=f"Original style: {orig}\nTarget: {dest}")
+    sns.displot(data=df[df["Style"] == orig],
+                x=f"{kind} relative ranking",
+                row="target",
+                aspect=2, kind='hist', stat='proportion', bins=np.arange(0, 1.1, 0.1)
+                ).set(title=f"Original style: {orig}\nTarget: {dest}")
 
-        plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+    plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
-        plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"
-        title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
-        save_plot(eval_dir, plot_name, title)
+    plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"
+    title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
+    save_plot(eval_dir, plot_name, title)
 
 def plot_IR_distributions(df: pd.DataFrame, orig, dest, plot_dir):
     for style in set(df["Style"]):

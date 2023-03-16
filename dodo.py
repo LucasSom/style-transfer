@@ -252,7 +252,7 @@ def task_analyze_data():
                         'targets': [eval_dir + '/style_histograms.pkl'
                                     if analysis == 'style_differences' and not cv
                                     else f'{eval_dir}/{analysis}{cv}'],
-                        'uptodate': [False]
+                        # 'uptodate': [False]
                     }
 
 
@@ -416,7 +416,7 @@ def task_metrics():
                 'actions': [(calculate_metrics, [transferred_path, characteristics_path, metrics_path, s1, s2, b])],
                 'targets': [f"{metrics_path}/metrics_{s1}_to_{s2}.pkl"],
                 'verbosity': 2,
-                # 'uptodate': [False]
+                'uptodate': [False]
             }
 
 
