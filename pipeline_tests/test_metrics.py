@@ -171,7 +171,7 @@ def test_obtain_metrics():
     styles = load_pickle(char_path)
 
     # obtain_metrics(df, e_orig, e_dest, styles, 'rhythmic_bigrams', 'plagiarism', 'intervals')
-    d = obtain_metrics(df, e_orig, e_dest, styles, 'intervals')
+    d = obtain_metrics(df, e_orig, e_dest, 'intervals')
     print("")
     print(d["musicality"])
 

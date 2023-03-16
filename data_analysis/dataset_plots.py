@@ -189,15 +189,9 @@ def plot_accuracy(df, eval_path):
 
 def plot_musicality_distribution(dfs: dict, eval_path, plot_suffix='', context='talk', only_probability=False,
                                  only_joined=True):
-    if only_probability:
-        methods = ['probability']
-    else:
-        methods = ['linear', 'kl', 'ot', 'probability']
 
-    if only_joined:
-        parts = ['Joined']
-    else:
-        parts = ["Melodic", "Rhythmic", "Joined"]
+    methods = ['probability'] if only_probability else ['linear', 'kl', 'ot', 'probability']
+    parts = ['Joined'] if only_joined else ["Melodic", "Rhythmic", "Joined"]
 
     for method in methods:
         for i, part in enumerate(parts):

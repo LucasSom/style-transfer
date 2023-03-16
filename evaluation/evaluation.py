@@ -281,13 +281,11 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
                                              metrics["intervals"],
                                              styles_char,
                                              orig, target, eval_path, context)
-    print(s_table)
 
 
     print("===== Evaluating plagiarism =====")
     p_table, p_sorted_df = evaluate_plagiarism(metrics["plagiarism"], orig, target, eval_path, by_distance, context, thold)
     p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
-    print(p_table)
 
 
     print("===== Evaluating musicality =====")

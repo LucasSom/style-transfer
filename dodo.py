@@ -25,7 +25,8 @@ from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
     plot_characteristics_distributions
-from utils.utils import show_sheets, sample_uniformly
+from utils.utils import show_sheets
+from utils.sampling_utils import sample_uniformly, balanced_sampling
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
@@ -123,8 +124,9 @@ def prepare_data(df_path, eval_dir, b, cv):
             save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
     else:
         print("Calculating musicality distributions")
-        melodic_distribution = get_intervals_distribution(df)
-        rhythmic_distribution = get_rhythmic_distribution(df)
+        df_balanced = balanced_sampling(df)
+        melodic_distribution = get_intervals_distribution(df_balanced)
+        rhythmic_distribution = get_rhythmic_distribution(df_balanced)
 
         save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution')
         save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution')
@@ -140,6 +142,7 @@ def task_assemble_data_to_analyze():
                 'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
                 'targets': [eval_dir + '/melodic_distribution.pkl',
                             eval_dir + '/rhythmic_distribution.pkl'],
+                'uptodate': [False]
             }
 
             eval_dir = f"{data_path}{model}/Evaluation/cross_val"
@@ -362,10 +365,7 @@ def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b
     characteristics = load_pickle(characteristics)
     model_name = os.path.basename(model_path)
 
-    df_transferred = pd.concat([
-        transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2),
-        transfer_style_to(df_emb, model, model_name, characteristics, original_style=s2, target_style=s1),
-    ])
+    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2)
 
     save_pickle(df_transferred, transferred_path)
 
@@ -397,12 +397,8 @@ def calculate_metrics(trans_path, char_path, metrics_dir, s1, s2, b=4):
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(char_path)
 
-    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    metrics1 = obtain_metrics(df_transferred, s1, s2, 'plagiarism', 'intervals', 'rhythmic_bigrams')
     save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
-
-    metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams')
-    metrics2['plagiarism'] = metrics1['plagiarism']
-    save_pickle(metrics2, f"{metrics_dir}/metrics_{s2}_to_{s1}")
 
 
 def task_metrics():
@@ -439,14 +435,6 @@ def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
                                              rhythmic_musicality_distribution, eval_path=eval_dir)
     save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
     save_pickle(table, f"{eval_dir}/results-{s1}_to_{s2}")
-    for t in table.values():
-        print(t)
-
-    metrics = load_pickle(f"{metrics_dir}/metrics_{s2}_to_{s1}")
-    successful_rolls, table = evaluate_model(df_transferred, metrics, styles, melodic_musicality_distribution,
-                                             rhythmic_musicality_distribution, eval_path=eval_dir)
-    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s2}_to_{s1}")
-    save_pickle(table, f"{eval_dir}/results-{s2}_to_{s1}")
     for t in table.values():
         print(t)
 
