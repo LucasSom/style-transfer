@@ -180,8 +180,22 @@ def evaluate_IR(df, orig, dest, plot_dir, permutations=10, alpha=0.1):
     return table_results, sorted_df
 
 
+def count_musicality(df_test, df_permutations, i) -> float:
+    """
+    It calculates the proportion of generated rolls that are more musicals than i permutations of the original roll
+    """
+    n = 0
+    for _, row in df_test.iterrows():
+        t, id = row['Title'], row['roll_id']
+        ps = df_permutations[(df_permutations['Title'] == t) & (df_permutations['roll_id'] == id)]
+        better_than_ps = [abs(d) > abs(row['Joined musicality difference (probability)'])
+                          for d in ps['Joined musicality difference (probability)']]
+        n += sum(better_than_ps) >= i
+
+    return n / df_test.shape[0] * 100
+
 def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir, plot_suffix='',
-                        only_probability=False):
+                        only_probability=False, n_permutations=5):
     if only_probability:
         methods = [('probability', belonging_probability)]
     else:
@@ -190,16 +204,17 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
     df_train["Melodic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
     df_train["Rhythmic bigram matrix"] = df_train.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
 
-    df_permutations = {'roll': [], "Melodic bigram matrix": [], "Rhythmic bigram matrix": []}
+    df_permutations = {'Title': [], 'roll_id': [], 'roll': [], "Melodic bigram matrix": [], "Rhythmic bigram matrix": []}
     for _, row in df_train.iterrows():
-        ps = roll_permutations(row['roll'], n=5)
+        ps = roll_permutations(row['roll'], n=n_permutations)
+        df_permutations['Title'] += n_permutations * [row['Title']]
+        df_permutations['roll_id'] += n_permutations * [row['roll_id']]
         df_permutations['roll'] += ps
         df_permutations['Melodic bigram matrix'] += [matrix_of_adjacent_intervals(p)[0] for p in ps]
         df_permutations['Rhythmic bigram matrix'] += [matrix_of_adjacent_rhythmic_bigrams(p)[0] for p in ps]
     df_permutations = pd.DataFrame(df_permutations)
 
     for df in [df_train, df_test, df_permutations]:
-    # for df in [df_permutations]: #### For debug purposes
         if 'Title' in df.columns and not 'roll_id' in df.columns:
             df = df.drop_duplicates(subset=['Title'])
 
@@ -216,7 +231,16 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
 
     plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir, plot_suffix,
                                  only_probability=only_probability)
-    # plot_musicality_distribution({'permutations': df_permutations}, eval_dir) #### For debug purpuses
+
+    sorted_df = df.sort_values(by=['Joined musicality difference (probability)'], ascending=False)
+    table = {f'% rolls that are more musical than {i} permutations': [count_musicality(df_test, df_permutations, i)] for i in range(1, n_permutations)}
+
+    return pd.DataFrame(table), sorted_df
+
+
+def count_closest(df, style):
+    df_style = df[df["target"] == style]
+    return df_style[df_style["Joined closest style (ot)"] == style].shape[0] / df_style.shape[0] * 100
 
 
 def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances, styles, orig, dest, eval_path, context='talk'):
@@ -235,6 +259,9 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
     # plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context)
     plot_closeness(joined_df, orig, dest, eval_path, context, only_joined_ot=True)
 
+    table = {f'% rolls whose closest style is the target ({dest})': [count_closest(joined_df, dest)]}
+    return pd.DataFrame(table), joined_df
+
 
 def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rhythmic_musicality_distribution,
                    eval_path=data_path, **kwargs):
@@ -250,11 +277,11 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     orig, target = metrics["original_style"], metrics["target_style"]
 
     print("===== Evaluating Style belonging =====")
-    evaluate_style_belonging(metrics["rhythmic_bigrams"],
-                             metrics["intervals"],
-                             styles_char,
-                             orig, target, eval_path, context)
-
+    s_table, s_df = evaluate_style_belonging(metrics["rhythmic_bigrams"],
+                                             metrics["intervals"],
+                                             styles_char,
+                                             orig, target, eval_path, context)
+    print(s_table)
 
     # print("===== Evaluating rhythmic bigrams distributions =====")
     # r_table, r_sorted_df = evaluate_bigrams_distribution(metrics["rhythmic_bigrams"],
@@ -284,8 +311,9 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     df_test = df_test.merge(joined_df[["Style", "Title", "m'_x", "m'_y"]], on=["Style", "Title"])
     df_test.rename(columns={"NewRoll": "roll", "m'_x": 'Rhythmic bigram matrix', "m'_y": 'Melodic bigram matrix'}, inplace=True)
 
-    evaluate_musicality(df, df_test, melodic_musicality_distribution, rhythmic_musicality_distribution, eval_path,
-                        f'_{orig}_to_{target}', only_probability=True)
+    mus_table, mus_sorted_df = evaluate_musicality(df, df_test, melodic_musicality_distribution,
+                                                   rhythmic_musicality_distribution, eval_path, f'_{orig}_to_{target}',
+                                                   only_probability=True)
     # ir_table, ir_sorted_df = evaluate_IR(metrics["musicality"], orig, target, eval_path)
     # ir_sorted_df["IR rank"] = range(ir_sorted_df.shape[0])
     # print(ir_table)
@@ -309,13 +337,11 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     #                                        successful_rolls["Plagiarism rank"]])
     # successful_rolls.sort_values(by=["Merged rank"], inplace=True)
 
-    # return {#"Merged": successful_rolls,
-    #         "IntervalStyle": i_sorted_df,
-    #         "RhythmicStyle": r_sorted_df,
-    #         "IR": ir_sorted_df,
-    #         "Plagiarism": p_sorted_df}, \
-    #     {"interval": i_table,
-    #      "rhythmic": r_table,
-    #      "IR": ir_table,
-    #      "plagiarism": p_table}
-    return  {}, {}
+    return {#"Merged": successful_rolls,
+            "Style": s_df,
+            "IR": mus_sorted_df,
+            "Plagiarism": p_sorted_df}, \
+        {"Style": s_table,
+         "IR": mus_table,
+         "Plagiarism": p_table}
+    # return  {}, {}
