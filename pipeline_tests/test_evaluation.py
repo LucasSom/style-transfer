@@ -272,6 +272,21 @@ def test_evaluate_model():
                    f"{data_path}/debug_outputs/", thold=2)
 
 
+def test_evaluation_task_4br():
+    init(4)
+    # model_name = "4-small_br"
+    model_name = "4-br"
+
+    styles_path = get_characteristics_path(model_name)
+
+    for style1, style2 in styles_names(model_name):
+        transferred_path = get_transferred_path(style1, style2, model_name)
+        eval_path = get_eval_dir(transferred_path)
+
+        do_evaluation(transferred_path, styles_path, eval_path, style1, style2)
+
+
+
 def test_evaluation_task():
     init(4)
     # model_name = "4-small_br"

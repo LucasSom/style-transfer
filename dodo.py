@@ -134,7 +134,7 @@ def prepare_data(df_path, eval_dir, b, cv):
 def task_assemble_data_to_analyze():
     """Prepare the data for analysis"""
     for b in bars:
-        for model in old_models:
+        for model in models:
             eval_dir = f"{data_path}{model}/Evaluation"
             yield {
                 'name': f"{model}",
@@ -142,7 +142,7 @@ def task_assemble_data_to_analyze():
                 'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
                 'targets': [eval_dir + '/melodic_distribution.pkl',
                             eval_dir + '/rhythmic_distribution.pkl'],
-                'uptodate': [False]
+                # 'uptodate': [False]
             }
 
             eval_dir = f"{data_path}{model}/Evaluation/cross_val"
@@ -353,8 +353,8 @@ def task_embeddings():
                           emb_path, b]
                          )],
             'targets': [characteristics_path, emb_path],
-            'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
-            # 'uptodate': [False]
+            # 'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
+            'uptodate': [False]
         }
 
 
@@ -416,7 +416,7 @@ def task_metrics():
                 'actions': [(calculate_metrics, [transferred_path, characteristics_path, metrics_path, s1, s2, b])],
                 'targets': [f"{metrics_path}/metrics_{s1}_to_{s2}.pkl"],
                 'verbosity': 2,
-                'uptodate': [False]
+                # 'uptodate': [False]
             }
 
 
