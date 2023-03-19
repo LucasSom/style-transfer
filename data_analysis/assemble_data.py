@@ -9,6 +9,11 @@ from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigr
 from utils.utils import normalize
 
 
+def get_df_bigram_matrices(df):
+    df["Melodic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
+    df["Rhythmic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
+    return df
+
 def calculate_long_df(df, df_test, styles_train):
     def distanceF(style, part, method_f, row):
         if part == 'Melodic':
@@ -39,10 +44,7 @@ def calculate_long_df(df, df_test, styles_train):
 
 
 def calculate_closest_styles(df_test, styles_train):
-    df_test["Melodic bigram matrix"] = df_test.apply(
-        lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
-    df_test["Rhythmic bigram matrix"] = df_test.apply(
-        lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
+    df_test = get_df_bigram_matrices(df_test)
 
     df_test["Rhythmic closest style (linear)"] = df_test.apply(
         lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train), axis=1)

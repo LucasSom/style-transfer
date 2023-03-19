@@ -4,10 +4,11 @@ from copy import copy
 from doit.api import run
 from keras.models import load_model
 
-from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles
-from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms, plot_distances_distribution, plot_closeness, \
+from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles, get_df_bigram_matrices
+from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms, plot_distances_distribution, \
+    plot_closeness, \
     plot_closest_ot_style, plot_styles_bigrams_entropy, heatmap_style_differences, plot_heatmap_differences, \
-    plot_accuracy, plot_accuracy_distribution
+    plot_accuracy, plot_accuracy_distribution, plot_styles_confusion_matrix
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model, evaluate_musicality
@@ -123,6 +124,9 @@ def prepare_data(df_path, eval_dir, b, cv):
             save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution_{i}')
             save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
     else:
+        df_to_analyze = get_df_bigram_matrices(df)
+        save_pickle(df_to_analyze, f'{eval_dir}/df_to_analyze')
+
         print("Calculating musicality distributions")
         df_balanced = balanced_sampling(df)
         melodic_distribution = get_intervals_distribution(df_balanced)
@@ -140,7 +144,8 @@ def task_assemble_data_to_analyze():
                 'name': f"{model}",
                 'file_dep': [preprocessed_data(b)],
                 'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
-                'targets': [eval_dir + '/melodic_distribution.pkl',
+                'targets': [eval_dir + '/df_to_analyze.pkl',
+                            eval_dir + '/melodic_distribution.pkl',
                             eval_dir + '/rhythmic_distribution.pkl'],
                 # 'uptodate': [False]
             }
@@ -203,7 +208,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                 plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
             plot_accuracy(df, eval_dir)
 
-        elif analysis in ['distances_distribution', 'style_differences', 'style_histograms']:
+        elif analysis in ['distances_distribution', 'style_differences', 'style_histograms', 'confusion_matrix']:
             histograms = plot_styles_heatmaps_and_get_histograms(df, eval_dir)
             save_pickle(histograms, eval_dir + '/style_histograms', verbose=True)
 
@@ -220,6 +225,10 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
                 plot_closest_ot_style(rolls_diff_df, eval_dir)
 
+            elif analysis == 'confusion_matrix':
+                rolls_diff_df = closest_ot_style(df, histograms)
+                plot_styles_confusion_matrix(rolls_diff_df, styles, eval_dir)
+
         elif analysis == 'entropies':
             entropies = styles_bigrams_entropy(df)
             plot_styles_bigrams_entropy(entropies, eval_dir)
@@ -227,22 +236,23 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms' and 'style_differences')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix' and 'style_differences')"""
     for b in bars:
-        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality', 'style_histograms']:
+        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality', 'style_histograms', 'confusion_matrix']:
             for cv in [True, False]:
                 for model in old_models:
-                    eval_dir = f"{data_path}/{model}/Evaluation"
+                    eval_dir = f"{data_path}{model}/Evaluation"
                     df_80_indexes_path = eval_dir + '/cross_val/df_80_indexes_'
                     df_test_path = eval_dir + '/cross_val/rolls_long_df_test_'
                     yield {
                         'name': f"{model}-{analysis}{'-cv' if cv else ''}",
-                        'file_dep': [eval_dir + '/cross_val/df_80_indexes_0.pkl',
-                                     eval_dir + '/cross_val/rolls_long_df_test_0.pkl',
-                                     eval_dir + '/cross_val/melodic_distribution_0.pkl',
-                                     eval_dir + '/cross_val/rhythmic_distribution_0.pkl'
+                        'file_dep': [eval_dir + '/df_to_analyze.pkl',
+                                     eval_dir + f"/cross_val/df_80_indexes{'_0' if cv else ''}.pkl",
+                                     eval_dir + f"/cross_val/rolls_long_df_test{'_0' if cv else ''}.pkl",
+                                     eval_dir + f"/cross_val/melodic_distribution{'_0' if cv else ''}.pkl",
+                                     eval_dir + f"/cross_val/rhythmic_distribution{'_0' if cv else ''}.pkl"
                                      ],
-                        'actions': [(data_analysis, [preprocessed_data(b),
+                        'actions': [(data_analysis, [f'{eval_dir}/df_to_analyze',
                                                      df_80_indexes_path,
                                                      df_test_path,
                                                      eval_dir,

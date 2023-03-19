@@ -37,3 +37,12 @@ def test_style_histograms():
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
     data_analysis(preprocessed_data(b), df_80_indexes_path, df_test_path, eval_dir, b, 'style_histograms', cv=False)
+
+
+def test_confusion_matrix():
+    b = 4
+    eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+    df_80_indexes_path = eval_dir + '/df_80_indexes_'
+    df_test_path = eval_dir + '/rolls_long_df_test_'
+
+    data_analysis(f'{eval_dir}/df_to_analyze', df_80_indexes_path, df_test_path, eval_dir, b, 'confusion_matrix', cv=False)
