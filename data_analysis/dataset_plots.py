@@ -254,5 +254,5 @@ def plot_accuracy_distribution(dfs_test_path, eval_dir):
 def plot_styles_confusion_matrix(df, styles, plot_path):
     d = {s_y: [df[(df["Style"] == s_x) & (df["Joined closest style (ot)"] == s_y)].shape[0] for s_x in styles] for s_y in styles}
     d['Style'] = list(styles)
-    sns.heatmap(pd.DataFrame(d).set_index('Style'), annot=True)
+    sns.heatmap(pd.DataFrame(d).set_index('Style'), annot=True, fmt='d')
     save_plot(plot_path, 'confusion_matrix', 'Confusion matrix of original style and classified style')

@@ -248,7 +248,7 @@ def task_analyze_data():
                         'name': f"{model}-{analysis}{'-cv' if cv else ''}",
                         'file_dep': [eval_dir + '/df_to_analyze.pkl',
                                      eval_dir + f"/cross_val/df_80_indexes{'_0' if cv else ''}.pkl",
-                                     eval_dir + f"/cross_val/rolls_long_df_test{'_0' if cv else ''}.pkl",
+                                     # eval_dir + f"/cross_val/rolls_long_df_test{'_0' if cv else ''}.pkl",
                                      eval_dir + f"/cross_val/melodic_distribution{'_0' if cv else ''}.pkl",
                                      eval_dir + f"/cross_val/rhythmic_distribution{'_0' if cv else ''}.pkl"
                                      ],
