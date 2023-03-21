@@ -8,8 +8,9 @@ import ot.plot
 import seaborn as sns
 from matplotlib import pyplot as plt
 
+from data_analysis.assemble_data import histograms_and_distance
 from evaluation.metrics.intervals import get_style_intervals_bigrams_sum
-from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_sum, possible_patterns
+from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_sum
 
 from utils.plots_utils import save_plot
 
@@ -44,17 +45,6 @@ def plot_styles_heatmaps_and_get_histograms(df, plot_dir):
         histograms[style] = {"melodic_hist": melodic_hist, "rhythmic_hist": rhythmic_hist}
     return histograms
 
-
-def histograms_and_distance(h1, h2, melodic=True):
-    x = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
-    y = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
-    x_mesh, y_mesh = np.meshgrid(x, y)
-    M = np.dstack((x_mesh, y_mesh))
-    M = M.reshape(25 * 25, 2) if melodic else M.reshape(possible_patterns * possible_patterns, 2)
-    D = ot.dist(M)
-
-    a, b = np.hstack(h1) / np.sum(h1), np.hstack(h2) / np.sum(h2)
-    return a, b, D
 
 def plot_heatmap_differences(df, histograms, plot_dir, melodic=True):
     for s1 in set(df["Style"]):

@@ -3,9 +3,8 @@ import ot
 import pandas as pd
 from scipy.special import rel_entr
 
-from data_analysis.dataset_plots import histograms_and_distance
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
-from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
+from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams, possible_patterns
 from utils.utils import normalize
 
 
@@ -169,3 +168,15 @@ def joined_closest_style(interval_matrix, rhythmic_matrix, styles, method='linea
     else:
         raise ValueError(f"{method} is not a valid method.")
     return list(styles.items())[min_style_idx][0]
+
+
+def histograms_and_distance(h1, h2, melodic=True):
+    x = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
+    y = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
+    x_mesh, y_mesh = np.meshgrid(x, y)
+    M = np.dstack((x_mesh, y_mesh))
+    M = M.reshape(25 * 25, 2) if melodic else M.reshape(possible_patterns * possible_patterns, 2)
+    D = ot.dist(M)
+
+    a, b = np.hstack(h1) / np.sum(h1), np.hstack(h2) / np.sum(h2)
+    return a, b, D

@@ -243,24 +243,54 @@ def count_closest(df, style):
     return df_style[df_style["Joined closest style (ot)"] == style].shape[0] / df_style.shape[0] * 100
 
 
+def heatmap_styles_approach(df, styles, orig):
+    d = {s: [] for s in styles.keys() if s != orig}
+    d['orig'] = orig
+    df = df[df["Style"] == orig]
+    for name, style_obj in styles.items():
+        if name != orig:
+            df[f"Rhythmic closeness to {name} (orig)"] = df.apply(lambda row: optimal_transport(style_obj.rhythmic_bigrams_distribution, row["m_orig_rhythmic"], melodic=False), axis=1)
+            df[f"Melodic closeness to {name} (orig)"] = df.apply(lambda row: optimal_transport(style_obj.intervals_distribution, row["m_orig_melodic"], melodic=True), axis=1)
+            df[f"Joined closeness to {name} (orig)"] = df[f"Rhythmic closeness to {name} (orig)"] + df[f"Melodic closeness to {name} (orig)"]
+
+            df[f"Rhythmic closeness to {name} (trans)"] = df.apply(lambda row: optimal_transport(style_obj.rhythmic_bigrams_distribution, row["m_trans_rhythmic"], melodic=False), axis=1)
+            df[f"Melodic closeness to {name} (trans)"] = df.apply(lambda row: optimal_transport(style_obj.intervals_distribution, row["m_trans_melodic"], melodic=True), axis=1)
+            df[f"Joined closeness to {name} (trans)"] = df[f"Rhythmic closeness to {name} (trans)"] + df[f"Melodic closeness to {name} (trans)"]
+
+            df[f"Improvement of joined closeness to {name}"] = df[f"Joined closeness to {name} (trans)"] < df[f"Joined closeness to {name} (orig)"]
+
+            for s2 in styles.keys():
+                if s2 != orig:
+                    sub_df = df[df["target"] == s2]
+                    n = sub_df[sub_df[f"Improvement of joined closeness to {name}"]].shape[0]
+                    d[name].append(n / sub_df.shape[0] * 100)
+
+    return d
+    # sns.heatmap(d, annot=True, fmt='d')
+    # save_plot(plot_path, f"confusion_matrix_{orig}")
+
+
 def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances, styles, orig, dest, eval_path, context='talk'):
     """
     Calculate for each transformed roll to which style it sames to belong by comparing its optimal transport distance
     with the characteristic entropy matrix of rhythmic and melodic bigrams.
     """
     common_columns = ['Style', 'Title', 'roll', 'NewRoll', 'target']
-    joined_df = rhythmic_bigram_distances[common_columns + ["m'"]].merge(melodic_bigram_distances[common_columns + ["m'"]],
+    joined_df = rhythmic_bigram_distances[common_columns + ["m'", "m"]].merge(melodic_bigram_distances[common_columns + ["m'", "m"]],
                                                                         on=common_columns, how='inner')
-    joined_df.rename(columns={"m'_x": 'm_trans_rhythmic', "m'_y": 'm_trans_melodic'}, inplace=True)
-    joined_df = joined_df[joined_df["target"] == dest]
+    joined_df.rename(columns={"m'_x": 'm_trans_rhythmic', "m'_y": 'm_trans_melodic', "m_x": "m_orig_rhythmic", "m_y": "m_orig_melodic"},
+                     inplace=True)
 
+    heatmap_dict = heatmap_styles_approach(joined_df, styles, orig)
+
+    joined_df = joined_df[joined_df["target"] == dest]
     joined_df["Joined closest style (ot)"] = joined_df.apply(lambda row: joined_closest_style(row["m_trans_melodic"], row["m_trans_rhythmic"], styles, method='ot'), axis=1)
 
     # plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context)
     plot_closeness(joined_df, orig, dest, eval_path, context, only_joined_ot=True)
 
     table = {f'% rolls whose closest style is the target ({dest})': [count_closest(joined_df, dest)]}
-    return pd.DataFrame(table), joined_df
+    return pd.DataFrame(table), joined_df, heatmap_dict
 
 
 def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rhythmic_musicality_distribution,
@@ -277,10 +307,10 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     orig, target = metrics["original_style"], metrics["target_style"]
 
     print("===== Evaluating Style belonging =====")
-    s_table, s_df = evaluate_style_belonging(metrics["rhythmic_bigrams"],
-                                             metrics["intervals"],
-                                             styles_char,
-                                             orig, target, eval_path, context)
+    s_table, s_df, heatmap_dict = evaluate_style_belonging(metrics["rhythmic_bigrams"],
+                                                           metrics["intervals"],
+                                                           styles_char,
+                                                           orig, target, eval_path, context)
 
 
     print("===== Evaluating plagiarism =====")
@@ -305,4 +335,4 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
             "Plagiarism": p_sorted_df}, \
         {"Style": s_table,
          "IR": mus_table,
-         "Plagiarism": p_table}
+         "Plagiarism": p_table}, heatmap_dict
