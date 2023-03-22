@@ -8,6 +8,7 @@ from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
     get_metrics_dir, get_characteristics_path, get_audios_path
+from utils.plots_utils import plot_intervals_improvements
 
 
 @pytest.fixture

@@ -441,14 +441,14 @@ def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
     melodic_musicality_distribution = load_pickle(eval_dir + '/melodic_distribution.pkl')
     rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
 
-    successful_rolls, table, heatmap_dict = evaluate_model(df_transferred, metrics, styles,
-                                                           melodic_musicality_distribution,
-                                                           rhythmic_musicality_distribution, eval_path=eval_dir)
+    successful_rolls, tables, overall_metrics = evaluate_model(df_transferred, metrics, styles,
+                                                              melodic_musicality_distribution,
+                                                              rhythmic_musicality_distribution, eval_path=eval_dir)
     save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
-    table.to_csv(f"{eval_dir}/results-{s1}_to_{s2}.csv")
-    save_pickle(heatmap_dict, f"{eval_dir}/confusion_matrix_dict_{s1}_to_{s2}")
-    for t in table.values():
-        print(t)
+    save_pickle(overall_metrics, f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}")
+    for t, v in tables.items():
+        v.to_csv(f"{eval_dir}/{t}_results-{s1}_to_{s2}.csv")
+
 
 
 def task_evaluation():
@@ -470,7 +470,7 @@ def task_evaluation():
                 'actions': [(do_evaluation, [transferred_path, styles_path, eval_dir, s1, s2, b])],
                 'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
                             f"{eval_dir}/results-{s1}_to_{s2}.csv",
-                            f"{eval_dir}/confusion_matrix_dict_{s1}_to_{s2}.pkl"
+                            f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                             ],
                 'verbosity': 2,
                 'uptodate': [False]

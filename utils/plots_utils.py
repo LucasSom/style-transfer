@@ -225,9 +225,7 @@ def bigrams_plot(df, order: List, eval_dir, plot_name, context='talk'):
 
 def plagiarism_plot(df, orig, dest, by_distance, eval_dir, context):
     kind = "Distance" if by_distance else "Differences"
-
-    sns.set_theme()
-    sns.set_context(context)
+    sns.set_theme(context)
 
     sns.displot(data=df[df["Style"] == orig],
                 x=f"{kind} relative ranking",
@@ -265,3 +263,12 @@ def plot_IR_distributions(df: pd.DataFrame, orig, dest, plot_dir):
 
 
         save_plot(plot_dir, f"IR-{style}-{orig}_to_{dest}", f"IR distribution of {style} ({orig} to {dest}) style")
+
+
+def plot_intervals_improvements(orig, dest, interval_distances, plot_path, context='talk'):
+    sns.set_theme()
+    sns.set_context(context)
+    sns.kdeplot(data=interval_distances, x="log(m's/ms)")
+    sns.displot(data=interval_distances, x="log(m's'/ms')", kind="kde")
+    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
+    plt.savefig(os.path.join(data_path, plot_path, f"intervals_{orig}_to_{dest}.png"))
