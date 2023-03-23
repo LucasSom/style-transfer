@@ -309,9 +309,9 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
 
     print("===== Evaluating Style belonging =====")
     s_table, s_df, styles_approach_dict = evaluate_style_belonging(metrics["rhythmic_bigrams"],
-                                                           metrics["intervals"],
-                                                           styles_char,
-                                                           orig, target, eval_path, context)
+                                                                   metrics["intervals"],
+                                                                   styles_char,
+                                                                   orig, target, eval_path, context)
 
 
     print("===== Evaluating plagiarism =====")
@@ -322,8 +322,7 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     print("===== Evaluating musicality =====")
     df_test = df[["Style", "Title", "NewRoll", "roll_id"]]
     common_columns = ['Style', 'Title', 'roll', 'NewRoll', 'target']
-    joined_df = metrics["rhythmic_bigrams"][common_columns + ["m'"]].merge(metrics["intervals"][common_columns + ["m'"]],
-                                                                        on=common_columns, how='inner')
+    joined_df = metrics["rhythmic_bigrams"][common_columns + ["m'"]].merge(metrics["intervals"][common_columns + ["m'"]], on=common_columns, how='inner')
     df_test = df_test.merge(joined_df[["Style", "Title", "m'_x", "m'_y"]], on=["Style", "Title"])
     df_test.rename(columns={"NewRoll": "roll", "m'_x": 'Rhythmic bigram matrix', "m'_y": 'Melodic bigram matrix'}, inplace=True)
 

@@ -7,7 +7,7 @@ from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
-    get_metrics_dir, get_characteristics_path, get_audios_path
+    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics
 from utils.plots_utils import plot_intervals_improvements
 
 
@@ -315,3 +315,51 @@ def test_audio_generation():
     successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
 
     audio_generation(transferred_path, audios_path, successful_rolls_prefix, suffix, s1, s2)
+
+
+def test_packed_metrics_mus_plag():
+    d01 = {"Plagiarism": 1, "Musicality": 1, "orig": '0', "target": '1'}
+    d02 = {"Plagiarism": 2, "Musicality": 2, "orig": '0', "target": '2'}
+    d03 = {"Plagiarism": 3, "Musicality": 3, "orig": '0', "target": '3'}
+    d10 = {"Plagiarism": 10, "Musicality": 10, "orig": '1', "target": '0'}
+    d12 = {"Plagiarism": 12, "Musicality": 12, "orig": '1', "target": '2'}
+    d13 = {"Plagiarism": 13, "Musicality": 13, "orig": '1', "target": '3'}
+    d20 = {"Plagiarism": 20, "Musicality": 20, "orig": '2', "target": '0'}
+    d21 = {"Plagiarism": 21, "Musicality": 21, "orig": '2', "target": '1'}
+    d23 = {"Plagiarism": 23, "Musicality": 23, "orig": '2', "target": '3'}
+    d30 = {"Plagiarism": 30, "Musicality": 30, "orig": '3', "target": '0'}
+    d31 = {"Plagiarism": 31, "Musicality": 31, "orig": '3', "target": '1'}
+    d32 = {"Plagiarism": 32, "Musicality": 32, "orig": '3', "target": '2'}
+
+    p01 = f'{data_path}tests/overall_metrics_dict-01'
+    p02 = f'{data_path}tests/overall_metrics_dict-02'
+    p03 = f'{data_path}tests/overall_metrics_dict-03'
+    p10 = f'{data_path}tests/overall_metrics_dict-10'
+    p12 = f'{data_path}tests/overall_metrics_dict-12'
+    p13 = f'{data_path}tests/overall_metrics_dict-13'
+    p20 = f'{data_path}tests/overall_metrics_dict-20'
+    p21 = f'{data_path}tests/overall_metrics_dict-21'
+    p23 = f'{data_path}tests/overall_metrics_dict-23'
+    p30 = f'{data_path}tests/overall_metrics_dict-30'
+    p31 = f'{data_path}tests/overall_metrics_dict-31'
+    p32 = f'{data_path}tests/overall_metrics_dict-32'
+
+    paths = [p01, p02, p03, p10, p12, p13, p20, p21, p23, p30, p31, p32]
+
+    save_pickle(d01, p01)
+    save_pickle(d02, p02)
+    save_pickle(d03, p03)
+    save_pickle(d10, p10)
+    save_pickle(d12, p12)
+    save_pickle(d13, p13)
+    save_pickle(d20, p20)
+    save_pickle(d21, p21)
+    save_pickle(d23, p23)
+    save_pickle(d30, p30)
+    save_pickle(d31, p31)
+    save_pickle(d32, p32)
+
+    pm = get_packed_metrics([f'{data_path}tests/'])
+
+    print(pm["Musicality"])
+    print(pm["Plagiarism"])

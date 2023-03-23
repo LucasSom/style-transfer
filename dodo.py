@@ -15,6 +15,7 @@ from evaluation.evaluation import evaluate_model, evaluate_musicality
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
+from evaluation.overall_evaluation import overall_evaluation
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
@@ -419,7 +420,7 @@ def task_metrics():
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             characteristics_path = get_characteristics_path(model_name)
-            metrics_path = get_metrics_dir(transferred_path)
+            metrics_path = get_metrics_dir(model_name)
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [transferred_path, characteristics_path],
@@ -458,8 +459,8 @@ def task_evaluation():
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             styles_path = get_characteristics_path(model_name)
-            metrics_dir = get_metrics_dir(transferred_path)
-            eval_dir = get_eval_dir(transferred_path)
+            metrics_dir = get_metrics_dir(model_name)
+            eval_dir = get_eval_dir(model_name)
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [transferred_path, styles_path,
@@ -473,8 +474,32 @@ def task_evaluation():
                             f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                             ],
                 'verbosity': 2,
-                'uptodate': [False]
+                # 'uptodate': [False]
             }
+
+
+def do_overall_evaluation(overall_metric_dirs, b=4):
+    init(b)
+    m = get_packed_metrics(overall_metric_dirs)
+    overall_evaluation(m)
+
+
+def task_overall_evaluation():
+    """Calculate the final metrics after evaluate the model"""
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        # transferred_path = get_transferred_path(s1, s2, model_name)
+        overall_metric_dirs = [get_eval_dir(model_name)]
+        yield {
+            'name': model_name,
+            'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
+                        for eval_dir in overall_metric_dirs for s1, s2 in styles_names(model_name)
+                        ],
+            'actions': [(do_evaluation, [overall_metric_dirs, b])],
+            'targets': [],
+            'verbosity': 1,
+            # 'uptodate': [False]
+        }
 
 
 def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
@@ -528,7 +553,7 @@ def task_sample_audios():
         }
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
-            eval_dir = get_eval_dir(transferred_path)
+            eval_dir = get_eval_dir(model_name)
             suffix = f'{s1}_to_{s2}'
             successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
             yield {
@@ -576,7 +601,7 @@ def task_sample_sheets():
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             sheets_path = get_sheets_path(model_name, original_style=s1, target_style=s2)
-            eval_dir = get_eval_dir(transferred_path)
+            eval_dir = get_eval_dir(model_name)
             suffix = f'{s1}_to_{s2}'
             successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
             yield {
