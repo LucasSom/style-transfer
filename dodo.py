@@ -2,18 +2,20 @@ import os.path
 from copy import copy
 
 from doit.api import run
-from keras.saving.save import load_model
+from keras.models import load_model
 
-from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles
-from data_analysis.dataset_plots import plot_styles_heatmaps, plot_distances_distribution, plot_closeness, \
+from data_analysis.assemble_data import calculate_long_df, calculate_closest_styles, get_df_bigram_matrices
+from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms, plot_distances_distribution, \
+    plot_closeness, \
     plot_closest_ot_style, plot_styles_bigrams_entropy, heatmap_style_differences, plot_heatmap_differences, \
-    plot_accuracy
+    plot_accuracy, plot_accuracy_distribution, plot_styles_confusion_matrix
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
 from evaluation.app.html_maker import make_html
 from evaluation.evaluation import evaluate_model, evaluate_musicality
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
+from evaluation.overall_evaluation import overall_evaluation
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
@@ -25,7 +27,8 @@ from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
     plot_characteristics_distributions
-from utils.utils import show_sheets, sample_uniformly
+from utils.utils import show_sheets
+from utils.sampling_utils import sample_uniformly, balanced_sampling
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
@@ -33,7 +36,7 @@ styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
-old_models = ["brmf_4b"]
+old_models = ["brmf_4b", "brmf_4b_beta"]
 models = old_models + [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + ["4-small_br"]
 
 
@@ -96,51 +99,75 @@ def task_preprocess():
         'uptodate': [os.path.isfile(preprocessed_data(4, True))]
     }
 
-def prepare_data(df_path, eval_dir, b):
+def prepare_data(df_path, eval_dir, b, cv):
     init(b)
     df = load_pickle(df_path)
 
     dfs_80, dfs_test = stratified_split(df, n_splits=cross_val)
 
     styles = set(df["Style"])
-    for i, (df_80, df_test) in enumerate(zip(dfs_80, dfs_test)):
-        styles_train = {name: Style(name, None, df_80) for name in styles}
+    if cv:
+        for i, (df_80, df_test) in enumerate(zip(dfs_80, dfs_test)):
+            styles_train = {name: Style(name, None, df_80) for name in styles}
 
-        rolls_long_df_test = calculate_long_df(df, calculate_closest_styles(df_test, styles_train), styles_train)
-        rolls_long_df_test.drop(columns=["roll"], inplace=True)
+            rolls_long_df_test = calculate_long_df(df, calculate_closest_styles(df_test, styles_train), styles_train)
+            rolls_long_df_test.drop(columns=["roll"], inplace=True)
 
-        save_pickle(rolls_long_df_test, f'{eval_dir}/rolls_long_df_test_{i}')
-        save_pickle(df_80.index, f'{eval_dir}/df_80_indexes_{i}.pkl')
-        rolls_long_df_test.to_csv(f'{eval_dir}/rolls_long_df_test_{i}.csv')
-        
-        # Musicality
+            save_pickle(rolls_long_df_test, f'{eval_dir}/rolls_long_df_test_{i}')
+            save_pickle(df_80.index, f'{eval_dir}/df_80_indexes_{i}.pkl')
+            rolls_long_df_test.to_csv(f'{eval_dir}/rolls_long_df_test_{i}.csv')
+
+            # Musicality
+            print("Calculating musicality distributions")
+            melodic_distribution = get_intervals_distribution(df_80)
+            rhythmic_distribution = get_rhythmic_distribution(df_80)
+
+            save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution_{i}')
+            save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
+    else:
+        df_to_analyze = get_df_bigram_matrices(df)
+        save_pickle(df_to_analyze, f'{eval_dir}/df_to_analyze')
+
         print("Calculating musicality distributions")
-        melodic_distribution = get_intervals_distribution(df_80)
-        rhythmic_distribution = get_rhythmic_distribution(df_80)
+        df_balanced = balanced_sampling(df)
+        melodic_distribution = get_intervals_distribution(df_balanced)
+        rhythmic_distribution = get_rhythmic_distribution(df_balanced)
 
-        save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution_{i}')
-        save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
+        save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution')
+        save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution')
 
 def task_assemble_data_to_analyze():
     """Prepare the data for analysis"""
     for b in bars:
-        eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
+        for model in models:
+            eval_dir = f"{data_path}{model}/Evaluation"
+            yield {
+                'name': f"{model}",
+                'file_dep': [preprocessed_data(b)],
+                'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
+                'targets': [eval_dir + '/df_to_analyze.pkl',
+                            eval_dir + '/melodic_distribution.pkl',
+                            eval_dir + '/rhythmic_distribution.pkl'],
+                # 'uptodate': [False]
+            }
 
-        yield {
-            'name': f"{b}bars",
-            'file_dep': [preprocessed_data(b)],
-            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b])],
-            'targets': [eval_dir + '/df_80_indexes_0.pkl',
-                        eval_dir + '/rolls_long_df_test_0.csv',
-                        eval_dir + '/rolls_long_df_test_0.pkl',
-                        eval_dir + '/melodic_distribution_0.pkl',
-                        eval_dir + '/rhythmic_distribution_0.pkl'],
-        }
+            eval_dir = f"{data_path}{model}/Evaluation/cross_val"
+            yield {
+                'name': f"{model}-cv",
+                'file_dep': [preprocessed_data(b)],
+                'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, True])],
+                'targets': [eval_dir + '/df_80_indexes_0.pkl',
+                            eval_dir + '/rolls_long_df_test_0.csv',
+                            eval_dir + '/rolls_long_df_test_0.pkl',
+                            eval_dir + '/melodic_distribution_0.pkl',
+                            eval_dir + '/rhythmic_distribution_0.pkl'],
+            }
 
 def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analysis, cv):
     init(b)
     df = load_pickle(df_path)
     styles = set(df["Style"])
+    eval_dir_cv = eval_dir + '/cross_val'
 
     if cv:
         for i in range(cross_val):
@@ -149,84 +176,95 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
             if analysis == 'style_closeness':
                 for orig in styles:
-                    plot_closeness(df_test[df_test["Style"] == orig], orig, str(i), eval_dir + "/styles")
-                plot_accuracy(df_test, f'{eval_dir}/{i}')
+                    plot_closeness(df_test[df_test["Style"] == orig], orig, str(i), eval_dir_cv + "/styles")
+                plot_accuracy(df_test, f'{eval_dir_cv}/{i}')
+                plot_accuracy_distribution(dfs_test_path, eval_dir_cv)
 
-            elif analysis in ['distances_distribution', 'style_differences']:
-                histograms_80 = plot_styles_heatmaps(df_80, f'{eval_dir}/{i}/80-percent')
+            elif analysis in ['distances_distribution', 'style_differences', 'style_histograms']:
+                histograms_80 = plot_styles_heatmaps_and_get_histograms(df_80, f'{eval_dir_cv}/{i}/80-percent')
 
                 if analysis == 'style_differences':
                     diff_table_80 = styles_ot_table(df_80, histograms_80)
-                    heatmap_style_differences(diff_table_80, f'{eval_dir}/{i}/80-percent')
-                    plot_heatmap_differences(df_80, histograms_80, f'{eval_dir}/{i}/80-percent')
+                    heatmap_style_differences(diff_table_80, f'{eval_dir_cv}/{i}/80-percent')
+                    plot_heatmap_differences(df_80, histograms_80, f'{eval_dir_cv}/{i}/80-percent')
 
-                else:
+                elif analysis == 'distances_distribution':
                     rolls_diff_df = closest_ot_style(df_test, histograms_80)
 
-                    plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', by_style=False)
+                    plot_distances_distribution(rolls_diff_df, f'{eval_dir_cv}/{i}', by_style=False)
                     # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
 
-                    plot_closest_ot_style(rolls_diff_df, f'{eval_dir}/{i}')
+                    plot_closest_ot_style(rolls_diff_df, f'{eval_dir_cv}/{i}')
             
             elif analysis == 'musicality':
-                melodic_distribution = load_pickle(f'{eval_dir}/melodic_distribution_{i}')
-                rhythmic_distribution = load_pickle(f'{eval_dir}/rhythmic_distribution_{i}')
+                melodic_distribution = load_pickle(f'{eval_dir_cv}/melodic_distribution_{i}')
+                rhythmic_distribution = load_pickle(f'{eval_dir_cv}/rhythmic_distribution_{i}')
 
-                evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir}/{i}')
+                evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir_cv}/{i}',
+                                    '')
 
-        else:
-            if analysis == 'style_closeness':
-                for orig in styles:
-                    plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
-                plot_accuracy(df, eval_dir)
+    else:
+        if analysis == 'style_closeness':
+            for orig in styles:
+                plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
+            plot_accuracy(df, eval_dir)
 
-            elif analysis in ['distances_distribution', 'style_differences']:
-                histograms = plot_styles_heatmaps(df, eval_dir)
+        elif analysis in ['distances_distribution', 'style_differences', 'style_histograms', 'confusion_matrix']:
+            histograms = plot_styles_heatmaps_and_get_histograms(df, eval_dir)
+            save_pickle(histograms, eval_dir + '/style_histograms', verbose=True)
 
-                if analysis == 'style_differences':
-                    diff_table = styles_ot_table(df, histograms)
-                    heatmap_style_differences(diff_table, eval_dir)
-                    plot_heatmap_differences(df, histograms, eval_dir)
+            if analysis == 'style_differences':
+                diff_table = styles_ot_table(df, histograms)
+                heatmap_style_differences(diff_table, eval_dir)
+                plot_heatmap_differences(df, histograms, eval_dir)
 
-                else:
-                    rolls_diff_df = closest_ot_style(df, histograms)
+            elif analysis == 'distances_distribution':
+                rolls_diff_df = closest_ot_style(df, histograms)
 
-                    plot_distances_distribution(rolls_diff_df, eval_dir, by_style=False)
-                    # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
+                plot_distances_distribution(rolls_diff_df, eval_dir, by_style=False)
+                # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
 
-                    plot_closest_ot_style(rolls_diff_df, eval_dir)
+                plot_closest_ot_style(rolls_diff_df, eval_dir)
 
-            elif analysis == 'entropies':
-                entropies = styles_bigrams_entropy(df)
-                plot_styles_bigrams_entropy(entropies, eval_dir)
+            elif analysis == 'confusion_matrix':
+                rolls_diff_df = closest_ot_style(df, histograms)
+                plot_styles_confusion_matrix(rolls_diff_df, styles, eval_dir)
+
+        elif analysis == 'entropies':
+            entropies = styles_bigrams_entropy(df)
+            plot_styles_bigrams_entropy(entropies, eval_dir)
 
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'entropies' and 'style_differences')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix' and 'style_differences')"""
     for b in bars:
-        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality']:
+        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality', 'style_histograms', 'confusion_matrix']:
             for cv in [True, False]:
-                eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
-                df_80_indexes_path = eval_dir + '/df_80_indexes_'
-                df_test_path = eval_dir + '/rolls_long_df_test_'
-                yield {
-                    'name': f"{b}bars-{analysis}{'-cv' if cv else ''}",
-                    'file_dep': [eval_dir + '/df_80_indexes_0.pkl',
-                                 eval_dir + '/rolls_long_df_test_0.pkl',
-                                 eval_dir + '/melodic_distribution_0.pkl',
-                                 eval_dir + '/rhythmic_distribution_0.pkl'
-                                 ],
-                    'actions': [(data_analysis, [preprocessed_data(b),
-                                                 df_80_indexes_path,
-                                                 df_test_path,
-                                                 eval_dir,
-                                                 b,
-                                                 analysis,
-                                                 cv])],
-                    'targets': [],
-                    'uptodate': [False]
-                }
+                for model in old_models:
+                    eval_dir = f"{data_path}{model}/Evaluation"
+                    df_80_indexes_path = eval_dir + '/cross_val/df_80_indexes_'
+                    df_test_path = eval_dir + '/cross_val/rolls_long_df_test_'
+                    yield {
+                        'name': f"{model}-{analysis}{'-cv' if cv else ''}",
+                        'file_dep': [eval_dir + '/df_to_analyze.pkl',
+                                     eval_dir + f"/cross_val/df_80_indexes{'_0' if cv else ''}.pkl",
+                                     # eval_dir + f"/cross_val/rolls_long_df_test{'_0' if cv else ''}.pkl",
+                                     eval_dir + f"/cross_val/melodic_distribution{'_0' if cv else ''}.pkl",
+                                     eval_dir + f"/cross_val/rhythmic_distribution{'_0' if cv else ''}.pkl"
+                                     ],
+                        'actions': [(data_analysis, [f'{eval_dir}/df_to_analyze',
+                                                     df_80_indexes_path,
+                                                     df_test_path,
+                                                     eval_dir,
+                                                     b,
+                                                     analysis,
+                                                     cv])],
+                        'targets': [eval_dir + '/style_histograms.pkl'
+                                    if analysis == 'style_differences' and not cv
+                                    else f'{eval_dir}/{analysis}{cv}'],
+                        # 'uptodate': [False]
+                    }
 
 
 def train(df_path, model_name, b):
@@ -246,7 +284,7 @@ def train(df_path, model_name, b):
 def task_train():
     """Trains the model"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         small = "small" in model_name
         vae_path = get_model_paths(model_name)[2]
         yield {
@@ -279,7 +317,7 @@ def analyze_training(df_path, model_name, b, targets):
 def task_test():
     """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         small = "small" in model_name
         vae_path = get_model_paths(model_name)[2]
         yield {
@@ -292,7 +330,6 @@ def task_test():
 
 def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, b):
     init(b)
-    print(os.path.abspath(vae_path))
     model = load_model(os.path.abspath(vae_path))
     plots_dir = os.path.join(model_path, "plots")
     df = load_pickle(df_path)
@@ -301,7 +338,7 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
 
     plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir,
                     include_songs=True)
-    plot_characteristics_distributions(styles_char, plots_dir, "Distributions_characteristics")
+    # plot_characteristics_distributions(styles_char, plots_dir, "Distributions_characteristics")
 
     save_pickle(styles_char, characteristics_path)
     save_pickle(df_emb, emb_path)
@@ -310,7 +347,7 @@ def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path,
 def task_embeddings():
     """Calculate the embeddings for each author/style and song"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -339,10 +376,7 @@ def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b
     characteristics = load_pickle(characteristics)
     model_name = os.path.basename(model_path)
 
-    df_transferred = pd.concat([
-        transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2),
-        transfer_style_to(df_emb, model, model_name, characteristics, original_style=s2, target_style=s1),
-    ])
+    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2)
 
     save_pickle(df_transferred, transferred_path)
 
@@ -350,7 +384,7 @@ def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b
 def task_transfer_style():
     """Do the transference of style from a roll to another style"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -374,24 +408,19 @@ def calculate_metrics(trans_path, char_path, metrics_dir, s1, s2, b=4):
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(char_path)
 
-    metrics1 = obtain_metrics(df_transferred, s1, s2, styles, 'plagiarism', 'intervals', 'rhythmic_bigrams',
-                              'musicality')
+    metrics1 = obtain_metrics(df_transferred, s1, s2, 'plagiarism', 'intervals', 'rhythmic_bigrams')
     save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
-
-    metrics2 = obtain_metrics(df_transferred, s2, s1, styles, 'intervals', 'rhythmic_bigrams', 'musicality')
-    metrics2['plagiarism'] = metrics1['plagiarism']
-    save_pickle(metrics2, f"{metrics_dir}/metrics_{s2}_to_{s1}")
 
 
 def task_metrics():
     """Calculate different metrics for a produced dataset"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
 
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             characteristics_path = get_characteristics_path(model_name)
-            metrics_path = get_metrics_dir(transferred_path)
+            metrics_path = get_metrics_dir(model_name)
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [transferred_path, characteristics_path],
@@ -402,46 +431,75 @@ def task_metrics():
             }
 
 
-def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
+def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, b=4):
     init(b)
-    metrics_dir = get_metrics_dir(trans_path)
 
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(styles_path)
 
     metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
-    successful_rolls, table = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
-    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
-    save_pickle(table, f"{eval_dir}/results-{s1}_to_{s2}")
-    for t in table.values():
-        print(t)
+    melodic_musicality_distribution = load_pickle(eval_dir + '/melodic_distribution.pkl')
+    rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
 
-    metrics = load_pickle(f"{metrics_dir}/metrics_{s2}_to_{s1}")
-    successful_rolls, table = evaluate_model(df_transferred, metrics, styles, eval_path=eval_dir)
-    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s2}_to_{s1}")
-    save_pickle(table, f"{eval_dir}/results-{s2}_to_{s1}")
-    for t in table.values():
-        print(t)
+    successful_rolls, tables, overall_metrics = evaluate_model(df_transferred, metrics, styles,
+                                                              melodic_musicality_distribution,
+                                                              rhythmic_musicality_distribution, eval_path=eval_dir)
+    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
+    save_pickle(overall_metrics, f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}")
+    for t, v in tables.items():
+        v.to_csv(f"{eval_dir}/{t}_results-{s1}_to_{s2}.csv")
+
 
 
 def task_evaluation():
     """Evaluate the model considering the calculated metrics"""
     for model_name in models:
-        b = model_name[-2] if model_name in old_models else model_name[0]
+        b = model_name[5] if model_name in old_models else model_name[0]
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             styles_path = get_characteristics_path(model_name)
-            metrics_dir = get_metrics_dir(transferred_path)
-            eval_dir = get_eval_dir(transferred_path)
+            metrics_dir = get_metrics_dir(model_name)
+            eval_dir = get_eval_dir(model_name)
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [transferred_path, styles_path,
-                             f"{metrics_dir}/metrics_{s1}_to_{s2}.pkl", f"{metrics_dir}/metrics_{s2}_to_{s1}.pkl"],
-                'actions': [(do_evaluation, [transferred_path, styles_path, eval_dir, s1, s2, b])],
-                'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl"],
-                'verbosity': 2,
-                'uptodate': [False]
+                             f"{metrics_dir}/metrics_{s1}_to_{s2}.pkl", f"{metrics_dir}/metrics_{s2}_to_{s1}.pkl",
+                             eval_dir + '/melodic_distribution.pkl',
+                             eval_dir + '/rhythmic_distribution.pkl'
+                             ],
+                'actions': [(do_evaluation, [transferred_path, styles_path, metrics_dir, eval_dir, s1, s2, b])],
+                'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
+                            f"{eval_dir}/results-{s1}_to_{s2}.csv",
+                            f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
+                            ],
+                'verbosity': 0,
+                # 'uptodate': [False]
             }
+
+
+def do_overall_evaluation(overall_metric_dirs, eval_dir, b=4):
+    init(b)
+    m = get_packed_metrics(overall_metric_dirs)
+    overall_evaluation(m, eval_dir)
+
+
+def task_overall_evaluation():
+    """Calculate the final metrics after evaluate the model"""
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        # transferred_path = get_transferred_path(s1, s2, model_name)
+        overall_metric_dirs = [get_eval_dir(model_name)]
+        eval_path = f"{data_path}/overall_evaluation/{model_name}"
+        yield {
+            'name': model_name,
+            'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
+                        for eval_dir in overall_metric_dirs for s1, s2 in styles_names(model_name)
+                        ],
+            'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b])],
+            'targets': [],
+            'verbosity': 1,
+            # 'uptodate': [False]
+        }
 
 
 def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
@@ -495,7 +553,7 @@ def task_sample_audios():
         }
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
-            eval_dir = get_eval_dir(transferred_path)
+            eval_dir = get_eval_dir(model_name)
             suffix = f'{s1}_to_{s2}'
             successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
             yield {
@@ -543,7 +601,7 @@ def task_sample_sheets():
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             sheets_path = get_sheets_path(model_name, original_style=s1, target_style=s2)
-            eval_dir = get_eval_dir(transferred_path)
+            eval_dir = get_eval_dir(model_name)
             suffix = f'{s1}_to_{s2}'
             successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
             yield {

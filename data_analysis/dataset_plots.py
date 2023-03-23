@@ -1,5 +1,6 @@
 import os
 
+import pandas as pd
 import dfply as dfp
 import numpy as np
 import ot
@@ -7,8 +8,9 @@ import ot.plot
 import seaborn as sns
 from matplotlib import pyplot as plt
 
+from data_analysis.assemble_data import histograms_and_distance
 from evaluation.metrics.intervals import get_style_intervals_bigrams_sum
-from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_sum, possible_patterns
+from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_sum
 
 from utils.plots_utils import save_plot
 
@@ -18,7 +20,15 @@ def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexit
     save_plot(plot_dir, plot_name, "Styles entropies for melody and rhythm")
 
 
-def plot_styles_heatmaps(df, plot_dir):
+def plot_styles_heatmaps_and_get_histograms(df, plot_dir):
+    """
+    For each style, plots the characteristic heatmap and calculates the melodic and rhythmic characteristic matrix
+
+    :param df: DataFrame with columns 'Style' and 'roll'.
+    :param plot_dir: directory where save the plots.
+    :return: A dictionary that maps style names to another dictionary with maps 'melodic_hist' and 'rhythmic_hist' with
+    its corresponding histograms.
+    """
     histograms = {}
     for style in set(df["Style"]):
         melodic_hist, m_xedges, m_yedges = get_style_intervals_bigrams_sum(np.zeros((25,25)), df[df['Style'] == style])
@@ -35,17 +45,6 @@ def plot_styles_heatmaps(df, plot_dir):
         histograms[style] = {"melodic_hist": melodic_hist, "rhythmic_hist": rhythmic_hist}
     return histograms
 
-
-def histograms_and_distance(h1, h2, melodic=True):
-    x = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
-    y = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
-    x_mesh, y_mesh = np.meshgrid(x, y)
-    M = np.dstack((x_mesh, y_mesh))
-    M = M.reshape(25 * 25, 2) if melodic else M.reshape(possible_patterns * possible_patterns, 2)
-    D = ot.dist(M)
-
-    a, b = np.hstack(h1) / np.sum(h1), np.hstack(h2) / np.sum(h2)
-    return a, b, D
 
 def plot_heatmap_differences(df, histograms, plot_dir, melodic=True):
     for s1 in set(df["Style"]):
@@ -69,20 +68,24 @@ def heatmap_style_differences(diff_table, plot_dir):
     save_plot(plot_dir, 'melodic_diff')
 
 
-def plot_closeness(df, orig, dest, eval_path, context='talk'):
+def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=False):
     fig = plt.figure(figsize=(24, 18))
     sns.set_theme()
     sns.set_context(context)
     title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
     fig.suptitle(title)
 
-    i = 1
-    for kind in ['Rhythmic', 'Melodic', 'Joined']:
-        for method in ['linear', 'kl', 'probability', 'ot']:
-            ax = fig.add_subplot(3, 4, i)
-            plt.hist(df[f"{kind} closest style ({method})"])
-            ax.title.set_text(f"{kind} closest style ({method})")
-            i += 1
+    if only_joined_ot:
+        df = df[df['target'] == dest]
+        plt.hist(df["Joined closest style (ot)"])
+    else:
+        i = 1
+        for kind in ['Rhythmic', 'Melodic', 'Joined']:
+            for method in ['linear', 'kl', 'probability', 'ot']:
+                ax = fig.add_subplot(3, 4, i)
+                plt.hist(df[f"{kind} closest style ({method})"])
+                ax.title.set_text(f"{kind} closest style ({method})")
+                i += 1
 
     save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Joined closest style (ot)")
     plt.close()
@@ -174,15 +177,72 @@ def plot_accuracy(df, eval_path):
     save_plot(eval_path, 'styles_accuracy', 'Proportion of rolls that are classified on its own style')
 
 
-def plot_musicality_distribution(dfs: dict, eval_path, context='talk'):
-    for i, part in enumerate(["Melodic", "Rhythmic", "Joined"]):
-        sns.set_context(context)
-        plt.figure(figsize=(10, 6))
-        title = f"{part} musicality"
-        sns.set_theme()
+def plot_musicality_distribution(dfs: dict, eval_path, plot_suffix='', context='talk', only_probability=False,
+                                 only_joined=True):
 
-        for df in dfs.values():
-            sns.kdeplot(df[f'{part} musicality difference'])
+    methods = ['probability'] if only_probability else ['linear', 'kl', 'ot', 'probability']
+    parts = ['Joined'] if only_joined else ["Melodic", "Rhythmic", "Joined"]
 
-        plt.legend(labels=dfs.keys())
-        save_plot(eval_path, f'{part}_musicality', title)
+    for method in methods:
+        for i, part in enumerate(parts):
+            sns.set_context(context)
+            plt.figure(figsize=(10, 6))
+            title = f"{part} musicality ({method})"
+            sns.set_theme()
+
+            for df in dfs.values():
+                sns.kdeplot(df[f'{part} musicality difference ({method})'])
+
+            plt.legend(labels=dfs.keys())
+            save_plot(eval_path, f'{part}_musicality_{method}{plot_suffix}', title + plot_suffix)
+
+
+def plot_accuracy_distribution(dfs_test_path, eval_dir):
+    """
+    For each method and part, it plots a Box plot of the accuracies of belonging to the correct style
+    """
+    cat_long = pd.concat([
+        pd.read_pickle(f'{dfs_test_path}{i}.pkl')
+        >> dfp.mutate(fold=i)
+        for i in range(5)
+    ])
+
+    @dfp.make_symbolic
+    def find_closest(targets_distances):
+        return targets_distances.sort_values('distance').iloc[0]['target']
+
+    cat_long >> dfp.drop(dfp.contains('matrix'))
+
+    closest_df = (
+        cat_long
+        >> dfp.drop(dfp.contains('matrix'))
+        >> dfp.group_by('method', 'part', 'roll_id', 'Title', 'fold')
+        >> dfp.summarize(
+            closest=find_closest(dfp.X),
+            style=dfp.X.Style.iloc[0]
+        )
+    )
+
+    @dfp.make_symbolic
+    def matches(df):
+        return df['style'] == df['closest']
+
+    accuracy_df = (
+        closest_df
+        >> dfp.mutate(matches=matches(dfp.X))
+        >> dfp.group_by('fold', 'method', 'part', 'style')
+        >> dfp.summarize(accuracy=dfp.X.matches.mean())
+    )
+
+    sns.catplot(data=accuracy_df, x='style', y='accuracy', row='method',
+                col='part', kind='box')
+    save_plot(eval_dir, 'style_closeness_accuracy', 'Styles closeness accuracy')
+
+    return cat_long, closest_df, accuracy_df
+
+
+def plot_styles_confusion_matrix(df, styles, plot_path):
+    d = {s_y: [df[(df["Style"] == s_x) & (df["Joined closest style (ot)"] == s_y)].shape[0] for s_x in styles] for s_y in styles}
+    d['Style'] = list(styles)
+    sns.heatmap(pd.DataFrame(d).set_index('Style'), annot=True, fmt='d')
+    save_plot(plot_path, 'confusion_matrix', 'Confusion matrix of original style and classified style')

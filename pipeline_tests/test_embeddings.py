@@ -8,7 +8,7 @@ from model.colab_tension_vae.params import init
 from model.embeddings.embeddings import obtain_embeddings
 from model.embeddings.style import Style
 from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models, get_embedding_path, \
-    get_reconstruction_path, get_characteristics_path, get_emb_path, data_path
+    get_reconstruction_path, get_characteristics_path, get_emb_path, data_path, get_model_paths
 from utils.plots_utils import plot_characteristics_distributions
 
 
@@ -79,11 +79,27 @@ def test_plot_distributions(characteristics):
     plot_characteristics_distributions(characteristics, plot_dir, plot_name)
 
 
-def test_characteristics(): # TODO: correr este test para ver cómo inicializo Style
+def test_characteristics():
     model_name = '4-small_br'
     model_path = data_path + f'/{model_name}/vae'
     do_embeddings(preprocessed_data(4), model_path, model_path, get_characteristics_path(model_name),
                   get_emb_path(model_name), 4)
+
+
+def test_characteristics_beta():
+    model_name = 'brmf_4b_beta'
+    b = 4
+
+    model_path, vae_dir, vae_path = get_model_paths(model_name)
+    characteristics_path = get_characteristics_path(model_name)
+    emb_path = get_emb_path(model_name)
+    small = "small" in model_name
+
+    do_embeddings(preprocessed_data(b, small),
+                          model_path,
+                          vae_dir,
+                          characteristics_path,
+                          emb_path, b)
 
 def test_all_models_characteristics():
     for model_name in models:

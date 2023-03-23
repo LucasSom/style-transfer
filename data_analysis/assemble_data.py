@@ -3,11 +3,15 @@ import ot
 import pandas as pd
 from scipy.special import rel_entr
 
-from data_analysis.dataset_plots import histograms_and_distance
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
-from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
+from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams, possible_patterns
 from utils.utils import normalize
 
+
+def get_df_bigram_matrices(df):
+    df["Melodic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
+    df["Rhythmic bigram matrix"] = df.apply(lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
+    return df
 
 def calculate_long_df(df, df_test, styles_train):
     def distanceF(style, part, method_f, row):
@@ -39,10 +43,7 @@ def calculate_long_df(df, df_test, styles_train):
 
 
 def calculate_closest_styles(df_test, styles_train):
-    df_test["Melodic bigram matrix"] = df_test.apply(
-        lambda row: matrix_of_adjacent_intervals(row["roll"])[0], axis=1)
-    df_test["Rhythmic bigram matrix"] = df_test.apply(
-        lambda row: matrix_of_adjacent_rhythmic_bigrams(row["roll"])[0], axis=1)
+    df_test = get_df_bigram_matrices(df_test)
 
     df_test["Rhythmic closest style (linear)"] = df_test.apply(
         lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train), axis=1)
@@ -167,3 +168,15 @@ def joined_closest_style(interval_matrix, rhythmic_matrix, styles, method='linea
     else:
         raise ValueError(f"{method} is not a valid method.")
     return list(styles.items())[min_style_idx][0]
+
+
+def histograms_and_distance(h1, h2, melodic=True):
+    x = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
+    y = np.arange(-12, 13) if melodic else np.arange(possible_patterns)
+    x_mesh, y_mesh = np.meshgrid(x, y)
+    M = np.dstack((x_mesh, y_mesh))
+    M = M.reshape(25 * 25, 2) if melodic else M.reshape(possible_patterns * possible_patterns, 2)
+    D = ot.dist(M)
+
+    a, b = np.hstack(h1) / np.sum(h1), np.hstack(h2) / np.sum(h2)
+    return a, b, D

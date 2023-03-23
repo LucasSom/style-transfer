@@ -160,20 +160,29 @@ def test_rhythm_dumb_plagiarism():
 
 
 # -------------------------------- TASK --------------------------------
-def test_obtain_metrics():
+def test_obtain_metrics_intervals():
     init(4)
     model_name = "brmf_4b"
     e_orig, e_dest = "Bach", "Mozart"
 
     df = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
 
-    char_path = get_characteristics_path(model_name)
-    styles = load_pickle(char_path)
-
     # obtain_metrics(df, e_orig, e_dest, styles, 'rhythmic_bigrams', 'plagiarism', 'intervals')
-    d = obtain_metrics(df, e_orig, e_dest, styles, 'intervals')
+    d = obtain_metrics(df, e_orig, e_dest, 'intervals')
     print("")
-    print(d["musicality"])
+    print(d["intervals"])
+
+
+def test_obtain_metrics_plagiarism():
+    init(4)
+    model_name = "brmf_4b"
+    e_orig, e_dest = "Bach", "Mozart"
+
+    df = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
+
+    d = obtain_metrics(df, e_orig, e_dest, 'plagiarism')
+    print("")
+    print(d["plagiarism"])
 
 
 def test_task():

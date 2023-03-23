@@ -1,4 +1,3 @@
-import os.path
 from typing import List, Tuple
 
 import numpy as np
@@ -6,7 +5,6 @@ import pandas as pd
 
 from model.colab_tension_vae import params
 from roll.guoroll import GuoRoll
-from utils.files_utils import root_file_name
 
 
 # TODO: revisar porque el pading en realidad no debería estar si ya le paso solo la matriz que importa.
@@ -100,7 +98,7 @@ def get_plagiarism_position(df, original_roll, transferred_roll, by_distance=Fal
 
     :param df: df_transferred
     :param original_roll: original roll
-    :param transferred_roll: original roll after apply transference
+    :param transferred_roll: roll after apply transference
     :param by_distance: whether to compute plagiarism rate summarizing the distances between each time frame or to count
      only how many times the roll differs to the original
 
@@ -120,16 +118,17 @@ def get_plagiarism_position(df, original_roll, transferred_roll, by_distance=Fal
     return position, len(rolls), sorted_rolls[position][0]
 
 
-def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.DataFrame:
+def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFrame:
     """
     :param df: df_transferred
-    :param cache_path: path where save the dataframe generated as CSV and the "winners" dictionary as pickle
+    :param orig: original style
+    :param dest: target style
     :param by_distance: whether to calculate plagiarism counting every distance between notes or only the amount of
     differences
     :return: a Dataframe with columns:
             - Style
             - Title
-            - rollNo debe haber muchos
+            - roll
             - NewRoll
             - Differences position
             - Differences relative ranking
@@ -140,11 +139,6 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.D
             2 counters with proportion of winners by style (the first one computed by difference, the second one by
             distance)
     """
-    if cache_path is not None:
-        csv_path = root_file_name(cache_path) + '.csv'
-        if os.path.isfile(cache_path):
-            return pd.read_csv(csv_path)
-
     kind = "Distance" if by_distance else "Differences"
     table = {"Style": [],
              "Title": [],
@@ -155,7 +149,10 @@ def get_plagiarism_ranking_table(df, cache_path=None, by_distance=False) -> pd.D
              f"{kind} rate": [],
              "N": []
              }
-    for style, title, r_orig, r_trans in zip(df["Style"], df["Title"], df['roll'], df["NewRoll"]):
+
+    sub_df = df[df["Style"] == orig]
+
+    for style, title, r_orig, r_trans in zip(sub_df["Style"], sub_df["Title"], sub_df['roll'], sub_df["NewRoll"]):
         table["Style"].append(style)
         table["Title"].append(title)
         table["roll"].append(r_orig)

@@ -115,14 +115,14 @@ def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_sty
     for i, x in enumerate(embeddings):
         embeddings[i] = np.hstack(x)
 
-    tsne: np.ndarray = TSNE(n_components=2).fit_transform(embeddings)
+    tsne: np.ndarray = TSNE(n_components=2).fit_transform(np.array(embeddings))
     grid = plot_tsne(df_tsne, tsne, plot_dir, plot_name, style=("Type" if include_songs else None))
     return grid
 
 
 def plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot=None):
-    intervals_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['intervals_distribution']))
-    rhythmic_tsne: np.ndarray = TSNE(n_components=2).fit_transform(list(tsne_df['rhythmic_bigrams_distribution']))
+    intervals_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(np.array(tsne_df['intervals_distribution']))
+    rhythmic_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(np.array(tsne_df['rhythmic_bigrams_distribution']))
 
     tsne_df['intervals_dim_1'] = intervals_tsne[:, 0]
     tsne_df['intervals_dim_2'] = intervals_tsne[:, 1]
@@ -223,24 +223,21 @@ def bigrams_plot(df, order: List, eval_dir, plot_name, context='talk'):
     save_plot(eval_dir, plot_name, f'{plot_name} distribution of \n{orig} transformed to {dest}')
 
 
-def plagiarism_plot(df, s1, s2, by_distance, eval_dir, context):
+def plagiarism_plot(df, orig, dest, by_distance, eval_dir, context):
     kind = "Distance" if by_distance else "Differences"
+    sns.set_theme(context)
 
-    sns.set_theme()
-    sns.set_context(context)
+    sns.displot(data=df[df["Style"] == orig],
+                x=f"{kind} relative ranking",
+                row="target",
+                aspect=2, kind='hist', stat='proportion', bins=np.arange(0, 1.1, 0.1)
+                ).set(title=f"Original style: {orig}\nTarget: {dest}")
 
-    for orig, dest in [(s1, s2), (s2, s1)]:
-        sns.displot(data=df[df["Style"] == orig],
-                    x=f"{kind} relative ranking",
-                    row="target",
-                    aspect=2, kind='hist', stat='proportion', bins=np.arange(0, 1.1, 0.1)
-                    ).set(title=f"Original style: {orig}\nTarget: {dest}")
+    plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
-        plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-
-        plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"
-        title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
-        save_plot(eval_dir, plot_name, title)
+    plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"
+    title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
+    save_plot(eval_dir, plot_name, title)
 
 def plot_IR_distributions(df: pd.DataFrame, orig, dest, plot_dir):
     for style in set(df["Style"]):
@@ -266,3 +263,12 @@ def plot_IR_distributions(df: pd.DataFrame, orig, dest, plot_dir):
 
 
         save_plot(plot_dir, f"IR-{style}-{orig}_to_{dest}", f"IR distribution of {style} ({orig} to {dest}) style")
+
+
+def plot_intervals_improvements(orig, dest, interval_distances, plot_path, context='talk'):
+    sns.set_theme()
+    sns.set_context(context)
+    sns.kdeplot(data=interval_distances, x="log(m's/ms)")
+    sns.displot(data=interval_distances, x="log(m's'/ms')", kind="kde")
+    plt.title(f'Interval distribution of \n{orig} transformed to {dest}')
+    plt.savefig(os.path.join(data_path, plot_path, f"intervals_{orig}_to_{dest}.png"))

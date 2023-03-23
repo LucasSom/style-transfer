@@ -1,7 +1,9 @@
+import glob
 import os
 import pickle
-from typing import Union
+from typing import Union, List
 
+import numpy as np
 import pandas as pd
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -78,13 +80,13 @@ def get_model_paths(model_name: str):
 
     if not os.path.isdir(model_dir):
         os.makedirs(vae_dir)
-    # logs_dir = os.path.join(model_dir, "logs")
+
     vae_path = os.path.join(vae_dir, "saved_model.pb")
     return model_dir, vae_dir, vae_path
 
 
-def get_metrics_dir(transferred_path: str):
-    metrics_file_path = f"{os.path.dirname(os.path.dirname(transferred_path))}/metrics"
+def get_metrics_dir(model_name: str):
+    metrics_file_path = f"{data_path}{model_name}/metrics"
     make_dirs_if_not_exists(metrics_file_path)
     return metrics_file_path
 
@@ -110,8 +112,8 @@ def get_reconstruction_path(model_name: str):
     return os.path.join(get_logs_path(model_name), 'reconstruction.pkl')
 
 
-def get_eval_dir(transferred_path: str):
-    eval_path = f"{os.path.dirname(os.path.dirname(transferred_path))}/Evaluation"
+def get_eval_dir(model_name: str):
+    eval_path = f"{data_path}{model_name}/Evaluation"
     make_dirs_if_not_exists(eval_path)
     return eval_path
 
@@ -150,3 +152,52 @@ def get_sheets_path(model_name: str = None, original_style: str = None, target_s
     if not os.path.isdir(path):
         os.makedirs(path)
     return path
+
+
+def get_packed_metrics(overall_metric_dirs: List[str]):
+    """
+    :overall_metric_dirs: list of file names of pickles with the individual evaluations.
+    :return: dict with keys "Style", "Musicality" and "Plagiarism" with their respective DataFrames to plot the heatmaps.
+    The value of "Style" is a dictionary of DataFrames with the original styles as keys.
+    """
+    files = [f for d in overall_metric_dirs for f in glob.glob(os.path.join(d, 'overall_metrics_dict-*'))]
+    dicts_overall_metrics = [load_pickle(f) for f in files]
+
+    styles = np.unique([d["orig"] for d in dicts_overall_metrics])
+
+    # Packing musicality and plagiarism evaluation
+    packed_metrics_aux = {"Style": {},
+                          "Musicality": {target: {orig:0 for orig in styles} for target in styles},
+                          "Plagiarism": {target: {orig:0 for orig in styles} for target in styles}}
+
+    for d in dicts_overall_metrics:
+        packed_metrics_aux["Musicality"][d["target"]][d['orig']] = d['Musicality']
+        packed_metrics_aux["Plagiarism"][d["target"]][d['orig']] = d['Plagiarism']
+
+    musicality = {}
+    plagiarism = {}
+    for target in styles:
+        musicality[target] = []
+        plagiarism[target] = []
+        musicality['original'] = []
+        plagiarism['original'] = []
+
+        for orig in styles:
+            musicality[target].append(packed_metrics_aux["Musicality"][target][orig])
+            plagiarism[target].append(packed_metrics_aux["Plagiarism"][target][orig])
+
+            musicality['original'].append(orig)
+            plagiarism['original'].append(orig)
+
+    # Packing style evaluation
+    style_eval = {d['orig']: {'target': []} for d in dicts_overall_metrics}
+    for d in dicts_overall_metrics:
+        style_eval[d['orig']][d['target']] = list(d["Style"].values())
+        style_eval[d['orig']]['target'].append(d['target'])
+
+    packed_metrics = {"Musicality": pd.DataFrame(musicality).set_index('original'),
+                      "Plagiarism": pd.DataFrame(plagiarism).set_index('original'),
+                      "Style": {s: pd.DataFrame(val).set_index('target') for s, val in style_eval.items()}
+                      }
+
+    return packed_metrics

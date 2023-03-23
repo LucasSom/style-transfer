@@ -2,12 +2,13 @@ import os.path
 
 import pytest
 
-from dodo import do_evaluation, styles_names, audio_generation
+from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
-    get_metrics_dir, get_characteristics_path, get_audios_path
+    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics
+from utils.plots_utils import plot_intervals_improvements
 
 
 @pytest.fixture
@@ -92,7 +93,11 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
 def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
+    trans_path = get_transferred_path(s1, s2, model_name)
+    metrics = load_pickle(get_metrics_dir(trans_path))
+
+    eval_path = get_eval_dir(transferred_path=trans_path)
+
     plot_intervals_improvements(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'],
                                 plot_path=eval_path)
     plot_intervals_improvements(orig="ragtime", dest="Bach", interval_distances=metrics['intervals'],
@@ -260,7 +265,28 @@ def test_evaluate_model():
     styles_path = get_characteristics_path(model_name)
     styles = load_pickle(styles_path)
 
-    evaluate_model(df, metrics, styles, f"{data_path}/debug_outputs/", thold=2)
+    eval_dir = get_eval_dir(trans_path)
+    melodic_musicality_distribution = load_pickle(eval_dir + '/melodic_distribution.pkl')
+    rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
+
+    evaluate_model(df, metrics, styles, melodic_musicality_distribution, rhythmic_musicality_distribution,
+                   f"{data_path}/debug_outputs/", thold=2)
+
+
+def test_evaluation_task_4br():
+    init(4)
+    # model_name = "4-small_br"
+    model_name = "4-br"
+
+    styles_path = get_characteristics_path(model_name)
+    metrics_dir = get_metrics_dir(model_name)
+    eval_path = get_eval_dir(model_name)
+
+    for style1, style2 in styles_names(model_name):
+        transferred_path = get_transferred_path(style1, style2, model_name)
+
+        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
+
 
 
 def test_evaluation_task():
@@ -269,12 +295,14 @@ def test_evaluation_task():
     model_name = "brmf_4b"
 
     styles_path = get_characteristics_path(model_name)
+    metrics_dir = get_metrics_dir(model_name)
+    eval_path = get_eval_dir(model_name)
 
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
-        eval_path = get_eval_dir(transferred_path)
 
-        do_evaluation(transferred_path, styles_path, eval_path, style1, style2)
+
+        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
 
 
 def test_audio_generation():
@@ -290,3 +318,64 @@ def test_audio_generation():
     successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
 
     audio_generation(transferred_path, audios_path, successful_rolls_prefix, suffix, s1, s2)
+
+
+def test_packed_metrics():
+    d01 = {"Plagiarism": 1, "Musicality": 1, "orig": 's0', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
+    d02 = {"Plagiarism": 2, "Musicality": 2, "orig": 's0', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
+    d03 = {"Plagiarism": 3, "Musicality": 3, "orig": 's0', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
+    d10 = {"Plagiarism": 10, "Musicality": 10, "orig": 's1', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
+    d12 = {"Plagiarism": 12, "Musicality": 12, "orig": 's1', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
+    d13 = {"Plagiarism": 13, "Musicality": 13, "orig": 's1', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
+    d20 = {"Plagiarism": 20, "Musicality": 20, "orig": 's2', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
+    d21 = {"Plagiarism": 21, "Musicality": 21, "orig": 's2', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
+    d23 = {"Plagiarism": 23, "Musicality": 23, "orig": 's2', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
+    d30 = {"Plagiarism": 30, "Musicality": 30, "orig": 's3', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
+    d31 = {"Plagiarism": 31, "Musicality": 31, "orig": 's3', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
+    d32 = {"Plagiarism": 32, "Musicality": 32, "orig": 's3', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
+
+    p01 = f'{data_path}tests/overall_metrics_dict-01'
+    p02 = f'{data_path}tests/overall_metrics_dict-02'
+    p03 = f'{data_path}tests/overall_metrics_dict-03'
+    p10 = f'{data_path}tests/overall_metrics_dict-10'
+    p12 = f'{data_path}tests/overall_metrics_dict-12'
+    p13 = f'{data_path}tests/overall_metrics_dict-13'
+    p20 = f'{data_path}tests/overall_metrics_dict-20'
+    p21 = f'{data_path}tests/overall_metrics_dict-21'
+    p23 = f'{data_path}tests/overall_metrics_dict-23'
+    p30 = f'{data_path}tests/overall_metrics_dict-30'
+    p31 = f'{data_path}tests/overall_metrics_dict-31'
+    p32 = f'{data_path}tests/overall_metrics_dict-32'
+
+    save_pickle(d01, p01)
+    save_pickle(d02, p02)
+    save_pickle(d03, p03)
+    save_pickle(d10, p10)
+    save_pickle(d12, p12)
+    save_pickle(d13, p13)
+    save_pickle(d20, p20)
+    save_pickle(d21, p21)
+    save_pickle(d23, p23)
+    save_pickle(d30, p30)
+    save_pickle(d31, p31)
+    save_pickle(d32, p32)
+
+    pm = get_packed_metrics([f'{data_path}tests/'])
+
+    print(pm["Musicality"])
+    print(pm["Plagiarism"])
+
+    print("================================= STYLE =================================")
+    for orig, val in pm["Style"].items():
+        print(orig)
+        print(val)
+
+
+def test_overall_evaluation():
+    b = 4
+    model_name = "brmf_4b"
+
+    overall_metric_dirs = [get_eval_dir(model_name)]
+    eval_path = f"{data_path}/overall_evaluation/{model_name}"
+
+    do_overall_evaluation(overall_metric_dirs, eval_path, b)
