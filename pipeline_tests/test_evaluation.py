@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from dodo import do_evaluation, styles_names, audio_generation
+from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
@@ -279,12 +279,13 @@ def test_evaluation_task_4br():
     model_name = "4-br"
 
     styles_path = get_characteristics_path(model_name)
+    metrics_dir = get_metrics_dir(model_name)
+    eval_path = get_eval_dir(model_name)
 
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
-        eval_path = get_eval_dir(transferred_path)
 
-        do_evaluation(transferred_path, styles_path, eval_path, style1, style2)
+        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
 
 
 
@@ -294,12 +295,14 @@ def test_evaluation_task():
     model_name = "brmf_4b"
 
     styles_path = get_characteristics_path(model_name)
+    metrics_dir = get_metrics_dir(model_name)
+    eval_path = get_eval_dir(model_name)
 
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
-        eval_path = get_eval_dir(transferred_path)
 
-        do_evaluation(transferred_path, styles_path, eval_path, style1, style2)
+
+        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
 
 
 def test_audio_generation():
@@ -366,3 +369,13 @@ def test_packed_metrics():
     for orig, val in pm["Style"].items():
         print(orig)
         print(val)
+
+
+def test_overall_evaluation():
+    b = 4
+    model_name = "brmf_4b"
+
+    overall_metric_dirs = [get_eval_dir(model_name)]
+    eval_path = f"{data_path}/overall_evaluation/{model_name}"
+
+    do_overall_evaluation(overall_metric_dirs, eval_path, b)

@@ -1,7 +1,7 @@
 import glob
 import os
 import pickle
-from typing import Union
+from typing import Union, List
 
 import numpy as np
 import pandas as pd
@@ -154,11 +154,18 @@ def get_sheets_path(model_name: str = None, original_style: str = None, target_s
     return path
 
 
-def get_packed_metrics(overall_metric_dirs):
+def get_packed_metrics(overall_metric_dirs: List[str]):
+    """
+    :overall_metric_dirs: list of file names of pickles with the individual evaluations.
+    :return: dict with keys "Style", "Musicality" and "Plagiarism" with their respective DataFrames to plot the heatmaps.
+    The value of "Style" is a dictionary of DataFrames with the original styles as keys.
+    """
     files = [f for d in overall_metric_dirs for f in glob.glob(os.path.join(d, 'overall_metrics_dict-*'))]
     dicts_overall_metrics = [load_pickle(f) for f in files]
 
     styles = np.unique([d["orig"] for d in dicts_overall_metrics])
+
+    # Packing musicality and plagiarism evaluation
     packed_metrics_aux = {"Style": {},
                           "Musicality": {target: {orig:0 for orig in styles} for target in styles},
                           "Plagiarism": {target: {orig:0 for orig in styles} for target in styles}}
@@ -182,14 +189,12 @@ def get_packed_metrics(overall_metric_dirs):
             musicality['original'].append(orig)
             plagiarism['original'].append(orig)
 
-    # style_eval = {d['orig']: {d['target']: list(d["Style"].values())}
-    #                for d in dicts_overall_metrics
-    #                }
-
+    # Packing style evaluation
     style_eval = {d['orig']: {'target': []} for d in dicts_overall_metrics}
     for d in dicts_overall_metrics:
         style_eval[d['orig']][d['target']] = list(d["Style"].values())
         style_eval[d['orig']]['target'].append(d['target'])
+
     packed_metrics = {"Musicality": pd.DataFrame(musicality).set_index('original'),
                       "Plagiarism": pd.DataFrame(plagiarism).set_index('original'),
                       "Style": {s: pd.DataFrame(val).set_index('target') for s, val in style_eval.items()}

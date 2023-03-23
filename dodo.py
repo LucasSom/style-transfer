@@ -431,9 +431,8 @@ def task_metrics():
             }
 
 
-def do_evaluation(trans_path, styles_path, eval_dir, s1, s2, b=4):
+def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, b=4):
     init(b)
-    metrics_dir = get_metrics_dir(trans_path)
 
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(styles_path)
@@ -468,20 +467,20 @@ def task_evaluation():
                              eval_dir + '/melodic_distribution.pkl',
                              eval_dir + '/rhythmic_distribution.pkl'
                              ],
-                'actions': [(do_evaluation, [transferred_path, styles_path, eval_dir, s1, s2, b])],
+                'actions': [(do_evaluation, [transferred_path, styles_path, metrics_dir, eval_dir, s1, s2, b])],
                 'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
                             f"{eval_dir}/results-{s1}_to_{s2}.csv",
                             f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                             ],
-                'verbosity': 2,
+                'verbosity': 0,
                 # 'uptodate': [False]
             }
 
 
-def do_overall_evaluation(overall_metric_dirs, b=4):
+def do_overall_evaluation(overall_metric_dirs, eval_dir, b=4):
     init(b)
     m = get_packed_metrics(overall_metric_dirs)
-    overall_evaluation(m)
+    overall_evaluation(m, eval_dir)
 
 
 def task_overall_evaluation():
@@ -490,12 +489,13 @@ def task_overall_evaluation():
         b = model_name[5] if model_name in old_models else model_name[0]
         # transferred_path = get_transferred_path(s1, s2, model_name)
         overall_metric_dirs = [get_eval_dir(model_name)]
+        eval_path = f"{data_path}/overall_evaluation/{model_name}"
         yield {
             'name': model_name,
             'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                         for eval_dir in overall_metric_dirs for s1, s2 in styles_names(model_name)
                         ],
-            'actions': [(do_evaluation, [overall_metric_dirs, b])],
+            'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b])],
             'targets': [],
             'verbosity': 1,
             # 'uptodate': [False]
