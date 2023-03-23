@@ -182,7 +182,17 @@ def get_packed_metrics(overall_metric_dirs):
             musicality['original'].append(orig)
             plagiarism['original'].append(orig)
 
+    # style_eval = {d['orig']: {d['target']: list(d["Style"].values())}
+    #                for d in dicts_overall_metrics
+    #                }
+
+    style_eval = {d['orig']: {'target': []} for d in dicts_overall_metrics}
+    for d in dicts_overall_metrics:
+        style_eval[d['orig']][d['target']] = list(d["Style"].values())
+        style_eval[d['orig']]['target'].append(d['target'])
     packed_metrics = {"Musicality": pd.DataFrame(musicality).set_index('original'),
-                      "Plagiarism": pd.DataFrame(plagiarism).set_index('original')}
+                      "Plagiarism": pd.DataFrame(plagiarism).set_index('original'),
+                      "Style": {s: pd.DataFrame(val).set_index('target') for s, val in style_eval.items()}
+                      }
 
     return packed_metrics

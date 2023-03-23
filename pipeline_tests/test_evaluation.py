@@ -317,19 +317,19 @@ def test_audio_generation():
     audio_generation(transferred_path, audios_path, successful_rolls_prefix, suffix, s1, s2)
 
 
-def test_packed_metrics_mus_plag():
-    d01 = {"Plagiarism": 1, "Musicality": 1, "orig": '0', "target": '1'}
-    d02 = {"Plagiarism": 2, "Musicality": 2, "orig": '0', "target": '2'}
-    d03 = {"Plagiarism": 3, "Musicality": 3, "orig": '0', "target": '3'}
-    d10 = {"Plagiarism": 10, "Musicality": 10, "orig": '1', "target": '0'}
-    d12 = {"Plagiarism": 12, "Musicality": 12, "orig": '1', "target": '2'}
-    d13 = {"Plagiarism": 13, "Musicality": 13, "orig": '1', "target": '3'}
-    d20 = {"Plagiarism": 20, "Musicality": 20, "orig": '2', "target": '0'}
-    d21 = {"Plagiarism": 21, "Musicality": 21, "orig": '2', "target": '1'}
-    d23 = {"Plagiarism": 23, "Musicality": 23, "orig": '2', "target": '3'}
-    d30 = {"Plagiarism": 30, "Musicality": 30, "orig": '3', "target": '0'}
-    d31 = {"Plagiarism": 31, "Musicality": 31, "orig": '3', "target": '1'}
-    d32 = {"Plagiarism": 32, "Musicality": 32, "orig": '3', "target": '2'}
+def test_packed_metrics():
+    d01 = {"Plagiarism": 1, "Musicality": 1, "orig": 's0', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
+    d02 = {"Plagiarism": 2, "Musicality": 2, "orig": 's0', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
+    d03 = {"Plagiarism": 3, "Musicality": 3, "orig": 's0', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
+    d10 = {"Plagiarism": 10, "Musicality": 10, "orig": 's1', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
+    d12 = {"Plagiarism": 12, "Musicality": 12, "orig": 's1', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
+    d13 = {"Plagiarism": 13, "Musicality": 13, "orig": 's1', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
+    d20 = {"Plagiarism": 20, "Musicality": 20, "orig": 's2', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
+    d21 = {"Plagiarism": 21, "Musicality": 21, "orig": 's2', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
+    d23 = {"Plagiarism": 23, "Musicality": 23, "orig": 's2', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
+    d30 = {"Plagiarism": 30, "Musicality": 30, "orig": 's3', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
+    d31 = {"Plagiarism": 31, "Musicality": 31, "orig": 's3', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
+    d32 = {"Plagiarism": 32, "Musicality": 32, "orig": 's3', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
 
     p01 = f'{data_path}tests/overall_metrics_dict-01'
     p02 = f'{data_path}tests/overall_metrics_dict-02'
@@ -343,8 +343,6 @@ def test_packed_metrics_mus_plag():
     p30 = f'{data_path}tests/overall_metrics_dict-30'
     p31 = f'{data_path}tests/overall_metrics_dict-31'
     p32 = f'{data_path}tests/overall_metrics_dict-32'
-
-    paths = [p01, p02, p03, p10, p12, p13, p20, p21, p23, p30, p31, p32]
 
     save_pickle(d01, p01)
     save_pickle(d02, p02)
@@ -363,3 +361,8 @@ def test_packed_metrics_mus_plag():
 
     print(pm["Musicality"])
     print(pm["Plagiarism"])
+
+    print("================================= STYLE =================================")
+    for orig, val in pm["Style"].items():
+        print(orig)
+        print(val)
