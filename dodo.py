@@ -472,7 +472,7 @@ def task_evaluation():
                             f"{eval_dir}/results-{s1}_to_{s2}.csv",
                             f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                             ],
-                'verbosity': 0,
+                'verbosity': 2,
                 # 'uptodate': [False]
             }
 
@@ -497,8 +497,8 @@ def task_overall_evaluation():
                         ],
             'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b])],
             'targets': [],
-            'verbosity': 1,
-            # 'uptodate': [False]
+            'verbosity': 2,
+            'uptodate': [False]
         }
 
 

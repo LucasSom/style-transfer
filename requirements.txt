@@ -10,7 +10,7 @@ music21~=7.1.0
 matplotlib~=3.5
 scikit-learn~=1.2.2
 scipy>=1.6
-seaborn~=0.11.2
+seaborn~=0.12.2
 pytest~=6.2.5
 IPython>=7.31.1
 jupyter

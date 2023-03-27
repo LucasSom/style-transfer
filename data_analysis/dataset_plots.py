@@ -70,8 +70,7 @@ def heatmap_style_differences(diff_table, plot_dir):
 
 def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=False):
     fig = plt.figure(figsize=(24, 18))
-    sns.set_theme()
-    sns.set_context(context)
+    sns.set_theme(context)
     title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
     fig.suptitle(title)
 
@@ -91,9 +90,25 @@ def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=Fal
     plt.close()
 
 
-def plot_closest_ot_style(df, eval_path, context='talk'):
+def plot_distances(distances, orig, dest, plot_path, context='talk'):
+    sns.set_theme(context)
+
+    d = {"style": [], "distance": []}
+    for s, ds in distances.items():
+        d["style"] += len(ds) * [s]
+        d["distance"] += ds
+    df = pd.DataFrame(d)
+
+    sns.barplot(data=df, x="style", y="distance", errorbar="sd")
+
+    save_plot(plot_path, f"distances_{orig}_{dest}", f"Distances to styles\nafter {orig} to {dest} transformation")
+
+
+def plot_closest_ot_style(df, plot_path, context='talk'):
     """
     :param df: DataFrame with column 'Closest style (ot)'
+    :param plot_path: path where save the plot
+    :param context: seaborn context
     """
     for s in set(df["Style"]):
         fig = plt.figure(figsize=(18, 18))
@@ -114,7 +129,7 @@ def plot_closest_ot_style(df, eval_path, context='talk'):
         plt.hist(df[df["Style"] == s]['Joined closest style (ot)'])
         ax3.title.set_text("Joined closest style (ot)")
 
-        save_plot(eval_path, f"closest_styles_ot-{s}", 'Joined closest style (ot)')
+        save_plot(plot_path, f"closest_styles_ot-{s}", 'Joined closest style (ot)')
 
 
 def plot_distances_distribution(df, eval_path, context='talk', by_style=True, single_plot=False):
