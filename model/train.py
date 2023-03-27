@@ -133,7 +133,7 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, ver
         new_callbacks.to_csv(callbacks_path)
         print("Guardado el csv!!")
 
-        if callbacks_history['loss'] < loss_thold:
+        if callbacks_history['loss'][-1] < loss_thold:
             break
 
     return vae
