@@ -373,7 +373,7 @@ def test_packed_metrics():
 
 def test_overall_evaluation():
     b = 4
-    model_name = "brmf_4b"
+    model_name = "brmf_4b_beta"
 
     overall_metric_dirs = [get_eval_dir(model_name)]
     eval_path = f"{data_path}/overall_evaluation/{model_name}"

@@ -32,13 +32,13 @@ def overall_evaluation(metrics, plot_dir, context='talk'):
     # Plot heatmap musicality
     sns.heatmap(metrics["Musicality"], annot=True, fmt='g', vmin=0, vmax=100)
     save_plot(plot_dir, "heatmap_musicality", "Avg of % of permutations\nthat are less musical than the generated")
-    d = {s: [sum(metrics["Musicality"][s])] for s in metrics["Musicality"].columns}
+    d = {s: [sum(metrics["Musicality"][s]) / 3] for s in metrics["Musicality"].columns}
     df_mus = pd.DataFrame(d)
     df_mus.to_csv(plot_dir + "/overall_musicality.csv", index=False)
 
     # Plot heatmap plagiarism
     sns.heatmap(metrics["Plagiarism"], annot=True, fmt='g', vmin=0, vmax=1)
     save_plot(plot_dir, "heatmap_plagiarism", "Avg of % of rolls\nthat are more different than the generated")
-    d = {s: [sum(metrics["Plagiarism"][s])] for s in metrics["Plagiarism"].columns}
+    d = {s: [sum(metrics["Plagiarism"][s]) / 3] for s in metrics["Plagiarism"].columns}
     df_plagiarism = pd.DataFrame(d)
     df_plagiarism.to_csv(plot_dir + "/overall_plagiarism.csv", index=False)

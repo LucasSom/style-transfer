@@ -193,4 +193,4 @@ def test_task():
     metrics_path = get_metrics_dir(transferred_path)
     char_path = get_characteristics_path(model_name)
 
-    calculate_metrics(transferred_path, char_path, metrics_path, None, None)
+    calculate_metrics(transferred_path, metrics_path, None, None)

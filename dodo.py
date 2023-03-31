@@ -403,10 +403,9 @@ def task_transfer_style():
             }
 
 
-def calculate_metrics(trans_path, char_path, metrics_dir, s1, s2, b=4):
+def calculate_metrics(trans_path, metrics_dir, s1, s2, b=4):
     init(b)
     df_transferred = load_pickle(trans_path)
-    styles = load_pickle(char_path)
 
     metrics1 = obtain_metrics(df_transferred, s1, s2, 'plagiarism', 'intervals', 'rhythmic_bigrams')
     save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
@@ -419,12 +418,11 @@ def task_metrics():
 
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
-            characteristics_path = get_characteristics_path(model_name)
             metrics_path = get_metrics_dir(model_name)
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
-                'file_dep': [transferred_path, characteristics_path],
-                'actions': [(calculate_metrics, [transferred_path, characteristics_path, metrics_path, s1, s2, b])],
+                'file_dep': [transferred_path],
+                'actions': [(calculate_metrics, [transferred_path, metrics_path, s1, s2, b])],
                 'targets': [f"{metrics_path}/metrics_{s1}_to_{s2}.pkl"],
                 'verbosity': 2,
                 # 'uptodate': [False]
