@@ -485,17 +485,31 @@ def do_overall_evaluation(overall_metric_dirs, eval_dir, b=4):
 
 def task_overall_evaluation():
     """Calculate the final metrics after evaluate the model"""
-    for model_name in models:
-        b = model_name[5] if model_name in old_models else model_name[0]
-        # transferred_path = get_transferred_path(s1, s2, model_name)
-        overall_metric_dirs = [get_eval_dir(model_name)]
+    for b in bars:
+        ensamble = [m for m in models if len(m) == 4 and m[0] == str(b)]
+        overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
+        eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars"
+        yield {
+            'name': f"ensamble_{b}bars",
+            'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
+                         for eval_dir in overall_metric_dirs for s1, s2 in styles_names("brmf_4b")
+                         ],
+            'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b])],
+            'targets': [],
+            'verbosity': 2,
+            'uptodate': [False]
+        }
+
+    for model_name in old_models:
+        b = model_name[5]
+        eval_dir = get_eval_dir(model_name)
         eval_path = f"{data_path}/overall_evaluation/{model_name}"
         yield {
             'name': model_name,
             'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
-                        for eval_dir in overall_metric_dirs for s1, s2 in styles_names(model_name)
+                        for s1, s2 in styles_names(model_name)
                         ],
-            'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b])],
+            'actions': [(do_overall_evaluation, [eval_dir, eval_path, b])],
             'targets': [],
             'verbosity': 2,
             'uptodate': [False]

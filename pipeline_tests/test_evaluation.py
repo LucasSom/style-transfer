@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation
+from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation, models
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
@@ -378,4 +378,12 @@ def test_overall_evaluation():
     overall_metric_dirs = [get_eval_dir(model_name)]
     eval_path = f"{data_path}/overall_evaluation/{model_name}"
 
+    do_overall_evaluation(overall_metric_dirs, eval_path, b)
+
+
+def test_ensamble_overall_evaluation():
+    b = 4
+    ensamble = [m for m in models if len(m) == 4 and m[0] == str(b)]
+    overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
+    eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars"
     do_overall_evaluation(overall_metric_dirs, eval_path, b)
