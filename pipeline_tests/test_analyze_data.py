@@ -9,16 +9,17 @@ def test_prepare_data():
     eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
     df_path = preprocessed_data(b)
 
-    prepare_data(df_path, eval_dir, b)
+    prepare_data(df_path, eval_dir, b, cv=False)
 
 
 def test_closeness():
     b = 4
-    eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
+    model = "brmf_4b"
+    eval_dir = f"{data_path}{model}/Evaluation"
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
-    data_analysis(preprocessed_data(b), df_80_indexes_path, df_test_path, eval_dir, b, 'closeness', cv=True)
+    data_analysis(f'{eval_dir}/df_to_analyze', df_80_indexes_path, df_test_path, eval_dir, b, 'style_closeness', cv=False)
 
 
 def test_musicality():
@@ -27,7 +28,7 @@ def test_musicality():
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
-    data_analysis(preprocessed_data(b), df_80_indexes_path, df_test_path, eval_dir, b, 'musicality', cv=True)
+    data_analysis(f'{eval_dir}/df_to_analyze', df_80_indexes_path, df_test_path, eval_dir, b, 'musicality', cv=True)
 
 
 def test_style_histograms():
@@ -36,7 +37,7 @@ def test_style_histograms():
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
-    data_analysis(preprocessed_data(b), df_80_indexes_path, df_test_path, eval_dir, b, 'style_histograms', cv=False)
+    data_analysis(f'{eval_dir}/df_to_analyze', df_80_indexes_path, df_test_path, eval_dir, b, 'style_histograms', cv=False)
 
 
 def test_confusion_matrix():

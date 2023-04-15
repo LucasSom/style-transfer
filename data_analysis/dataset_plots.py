@@ -75,7 +75,8 @@ def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=Fal
     fig.suptitle(title)
 
     if only_joined_ot:
-        df = df[df['target'] == dest]
+        if 'target' in df.columns:
+            df = df[df['target'] == dest]
         plt.hist(df["Joined closest style (ot)"])
     else:
         i = 1
@@ -114,8 +115,7 @@ def plot_closest_ot_style(df, plot_path, context='talk'):
         fig = plt.figure(figsize=(18, 18))
         title = f"Closest styles of test {s} rolls"
         fig.suptitle(title)
-        sns.set_theme()
-        sns.set_context(context)
+        sns.set_theme(context)
 
         ax1 = fig.add_subplot(1, 3, 1)
         plt.hist(df[df["Style"] == s]['Melodic closest style (ot)'])
@@ -130,6 +130,16 @@ def plot_closest_ot_style(df, plot_path, context='talk'):
         ax3.title.set_text("Joined closest style (ot)")
 
         save_plot(plot_path, f"closest_styles_ot-{s}", 'Joined closest style (ot)')
+
+    fig = plt.figure(figsize=(25, 15))
+    title = f"Estilo más próximo para los fragmentos de cada estilo"
+    fig.suptitle(title)
+    sns.set_theme(context)
+    for i, s in enumerate(set(df["Style"])):
+        ax = fig.add_subplot(1, 4, i+1)
+        plt.hist(df[df["Style"] == s]['Joined closest style (ot)'])
+        ax.title.set_text(s)
+    save_plot(plot_path, f"estilos_mas_proximos", s)
 
 
 def plot_distances_distribution(df, eval_path, context='talk', by_style=True, single_plot=False):

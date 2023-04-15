@@ -206,7 +206,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
     else:
         if analysis == 'style_closeness':
             for orig in styles:
-                plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles")
+                plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles", only_joined_ot=True)
             plot_accuracy(df, eval_dir)
 
         elif analysis in ['distances_distribution', 'style_differences', 'style_histograms', 'confusion_matrix']:
@@ -324,7 +324,8 @@ def task_test():
             'name': f"{model_name}",
             'file_dep': [preprocessed_data(b, small), vae_path],
             'actions': [(analyze_training, [preprocessed_data(b, small), model_name, b])],
-            'targets': [get_reconstruction_path(model_name)]
+            'targets': [get_reconstruction_path(model_name)],
+            'uptodate': [False]
         }
 
 
