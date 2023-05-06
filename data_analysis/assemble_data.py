@@ -143,26 +143,26 @@ def melodic_closest_style(bigram_matrix, styles, method='linear'):
 def joined_closest_style(interval_matrix, rhythmic_matrix, styles, method='linear'):
     if method == 'kl':
         min_style_idx = np.argmin(
-            [kl(style.intervals_distribution, interval_matrix)
-             + kl(style.rhythmic_bigrams_distribution, rhythmic_matrix)
+            [abs(kl(style.intervals_distribution, interval_matrix))
+             + abs(kl(style.rhythmic_bigrams_distribution, rhythmic_matrix))
              for style in styles.values()]
         )
     elif method == 'linear':
         min_style_idx = np.argmin(
-            [linear_distance(style.intervals_distribution, interval_matrix)
-             + linear_distance(style.rhythmic_bigrams_distribution, rhythmic_matrix)
+            [abs(linear_distance(style.intervals_distribution, interval_matrix))
+             + abs(linear_distance(style.rhythmic_bigrams_distribution, rhythmic_matrix))
              for style in styles.values()]
         )
     elif method == 'probability':
         min_style_idx = np.argmin(
-            [belonging_probability(style.intervals_distribution, interval_matrix)
-             + belonging_probability(style.rhythmic_bigrams_distribution, rhythmic_matrix)
+            [abs(belonging_probability(style.intervals_distribution, interval_matrix))
+             + abs(belonging_probability(style.rhythmic_bigrams_distribution, rhythmic_matrix))
              for style in styles.values()]
         )
     elif method == 'ot':
         min_style_idx = np.argmin(
-            [optimal_transport(style.intervals_distribution, interval_matrix, True)
-             + optimal_transport(style.rhythmic_bigrams_distribution, rhythmic_matrix, False)
+            [abs(optimal_transport(style.intervals_distribution, interval_matrix, True))
+             + abs(optimal_transport(style.rhythmic_bigrams_distribution, rhythmic_matrix, False))
              for style in styles.values()]
         )
     else:

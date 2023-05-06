@@ -325,7 +325,7 @@ def task_test():
             'file_dep': [preprocessed_data(b, small), vae_path],
             'actions': [(analyze_training, [preprocessed_data(b, small), model_name, b])],
             'targets': [get_reconstruction_path(model_name)],
-            'uptodate': [False]
+            # 'uptodate': [False]
         }
 
 

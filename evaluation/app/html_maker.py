@@ -32,7 +32,7 @@ def make_table(target: str, songs: List[dict]) -> str:
 
       <figure><table>
         <thead>
-        <tr><th>Nombre de canción</th><th>Criterio de selección</th><th>Original</th><th>A {target}</th><th>Opinión March</th><th>Opinión Lucas</th></tr>
+        <tr><th>Nombre de canción</th><th>Criterio de selección</th><th>Original</th><th>A {target}</th></tr>
         </thead>
         <tbody>
         """
@@ -48,8 +48,7 @@ def make_table(target: str, songs: List[dict]) -> str:
                     Your browser does not support the audio element.
                     </audio></td>\n"""
 
-        table += 2 * """<td><input type="text"></td>
-                        </tr>\n"""
+        table += """</tr>\n"""
 
     return table + """  
         </tbody>

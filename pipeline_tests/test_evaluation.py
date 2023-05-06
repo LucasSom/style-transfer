@@ -7,7 +7,7 @@ from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
-    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics
+    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics, get_reconstruction_path
 from utils.plots_utils import plot_intervals_improvements
 
 
@@ -292,7 +292,7 @@ def test_evaluation_task_4br():
 def test_evaluation_task():
     init(4)
     # model_name = "4-small_br"
-    model_name = "brmf_4b"
+    model_name = "brmf_4b_beta"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
@@ -306,15 +306,15 @@ def test_evaluation_task():
 
 
 def test_audio_generation():
-    model_name = "brmf_4b"
-    s1 = "Mozart"
-    s2 = "ragtime"
-    suffix = f'{s1}_to_{s2}'
+    model_name = "brmf_4b_beta"
+    s1 = "Bach"
+    s2 = "Mozart"
 
     audios_path = get_audios_path(model_name)
-    transferred_path = get_transferred_path(s1, s2, model_name)
 
-    eval_dir = get_eval_dir(transferred_path)
+    transferred_path = get_transferred_path(s1, s2, model_name)
+    eval_dir = get_eval_dir(model_name)
+    suffix = f'{s1}_to_{s2}'
     successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
 
     audio_generation(transferred_path, audios_path, successful_rolls_prefix, suffix, s1, s2)

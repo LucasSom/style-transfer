@@ -64,6 +64,7 @@ def evaluate_plagiarism(df: pd.DataFrame, orig, dest, eval_dir, by_distance=Fals
     df["target"] = [dest if orig == df["Style"][i] else orig for i in range(df.shape[0])]
 
     sorted_df = df.sort_values(by=[f"{kind} position"])
+    sorted_df.rename({f'{kind} position': "Plagiarism rank"}, inplace=True)
     avg_plagiarism_rank = sorted_df.loc[:, f"{kind} relative ranking"].mean()
 
     df_abs = (df
@@ -224,12 +225,13 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
     plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations}, eval_dir,
                                  plot_suffix, only_probability=only_probability, only_joined=only_joined)
 
-    sorted_df = df.sort_values(by=['Joined musicality difference (probability)'], ascending=False)
-
     df_test = count_musicality(df_test, df_permutations)
     avg_musicality_rank = df_test.loc[:, "% permutations that are less musical"].mean()
     table = {'% rolls that are more musical than all permutations': [df_test[df_test["% permutations that are less musical"] == 100]]}
 
+    df_test['Joined musicality difference (probability)'] = df_test.apply(lambda row: abs(row['Joined musicality difference (probability)']), axis=1)
+    sorted_df = df_test.sort_values(by=['Joined musicality difference (probability)'], ascending=True)
+    sorted_df.rename({'Joined musicality difference (probability)': "Musicality rank"}, inplace=True, axis=1)
     return pd.DataFrame(table), sorted_df, avg_musicality_rank
 
 
@@ -289,6 +291,11 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
 
     joined_df = joined_df[joined_df["target"] == dest]
     joined_df["Joined closest style (ot)"] = joined_df.apply(lambda row: joined_closest_style(row["m_trans_melodic"], row["m_trans_rhythmic"], styles, method='ot'), axis=1)
+    joined_df["Style rank"] = joined_df.apply(lambda row:
+                                              abs(optimal_transport(styles[dest].intervals_distribution, row["m_trans_melodic"], True))
+                                            + abs(optimal_transport(styles[dest].rhythmic_bigrams_distribution, row["m_trans_rhythmic"], False)),
+                                              axis=1)
+    joined_df.sort_values(by=['Style rank'], ascending=True)
 
     # plot_closeness(rhythmic_bigram_distances, melodic_bigram_distances, orig, dest, eval_path, context)
     plot_closeness(joined_df, orig, dest, eval_path, context, only_joined_ot=True)
@@ -324,11 +331,11 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
 
 
     print("===== Evaluating musicality =====")
-    df_test = df[["Style", "Title", "NewRoll", "roll_id"]]
+    df_test = df[["Style", "Title", "roll", "NewRoll", "roll_id"]]
     common_columns = ['Style', 'Title', 'roll', 'NewRoll', 'target']
     joined_df = metrics["rhythmic_bigrams"][common_columns + ["m'"]].merge(metrics["intervals"][common_columns + ["m'"]], on=common_columns, how='inner')
     df_test = df_test.merge(joined_df[["Style", "Title", "m'_x", "m'_y"]], on=["Style", "Title"])
-    df_test.rename(columns={"NewRoll": "roll", "m'_x": 'Rhythmic bigram matrix', "m'_y": 'Melodic bigram matrix'}, inplace=True)
+    df_test.rename(columns={"m'_x": 'Rhythmic bigram matrix', "m'_y": 'Melodic bigram matrix'}, inplace=True)
 
     mus_table, mus_sorted_df, avg_musicality_rank = evaluate_musicality(df, df_test, melodic_musicality_distribution,
                                                                         rhythmic_musicality_distribution, eval_path,
