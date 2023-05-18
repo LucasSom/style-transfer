@@ -221,25 +221,34 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
             elif analysis == 'distances_distribution':
                 rolls_diff_df = closest_ot_style(df, histograms)
 
-                plot_distances_distribution(rolls_diff_df, eval_dir, by_style=False)
-                # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
+                # plot_distances_distribution(rolls_diff_df, eval_dir, by_style=False)
+                # # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
 
                 plot_closest_ot_style(rolls_diff_df, eval_dir)
+                save_pickle(rolls_diff_df, eval_dir + '/rolls_diff_df')
 
             elif analysis == 'confusion_matrix':
-                rolls_diff_df = closest_ot_style(df, histograms)
+                try:
+                    rolls_diff_df = load_pickle(eval_dir + '/rolls_diff_df')
+                except:
+                    rolls_diff_df = closest_ot_style(df, histograms)
                 plot_styles_confusion_matrix(rolls_diff_df, styles, eval_dir)
 
         elif analysis == 'entropies':
             entropies = styles_bigrams_entropy(df)
             plot_styles_bigrams_entropy(entropies, eval_dir)
 
+        elif analysis == 'style_confusion_matrix':
+            rolls_diff_df = load_pickle(eval_dir + '/rolls_diff_df')
+
+
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix' and 'style_differences')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
     for b in bars:
-        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality', 'style_histograms', 'confusion_matrix']:
+        for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality',
+                         'style_histograms', 'confusion_matrix', 'style_confusion_matrix']:
             for cv in [True, False]:
                 for model in old_models:
                     eval_dir = f"{data_path}{model}/Evaluation"

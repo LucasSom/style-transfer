@@ -264,7 +264,7 @@ def styles_approach(df, styles, orig: str, dest: str) -> Tuple[Dict[str, int], D
             df[f"Joined closeness to {name} (trans)"] = df[f"Rhythmic closeness to {name} (trans)"] + df[f"Melodic closeness to {name} (trans)"]
 
             df[f"Improvement of joined closeness to {name}"] = df[f"Joined closeness to {name} (trans)"] < df[f"Joined closeness to {name} (orig)"]
-            df[f"Normalized distance to {name}"] = np.log(df[f"Joined closeness to {name} (trans)"] / df[f"Joined closeness to {name} (orig)"])
+            df[f"Normalized distance to {name}"] = (df[f"Joined closeness to {name} (trans)"] - df[f"Joined closeness to {name} (orig)"])
 
             sub_df = df[df["target"] == dest]
             n = sub_df[sub_df[f"Improvement of joined closeness to {name}"]].shape[0]

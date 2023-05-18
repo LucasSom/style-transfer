@@ -1,4 +1,5 @@
 import os
+from collections import Counter
 
 import pandas as pd
 import dfply as dfp
@@ -137,7 +138,10 @@ def plot_closest_ot_style(df, plot_path, context='talk'):
     sns.set_theme(context)
     for i, s in enumerate(set(df["Style"])):
         ax = fig.add_subplot(1, 4, i+1)
-        plt.hist(df[df["Style"] == s]['Joined closest style (ot)'])
+        c = Counter(df[df["Style"] == s]['Joined closest style (ot)'])
+        n = sum(c.values())
+        plt.bar(["Mozart", "Bach", "Frescobaldi", "ragtime"],
+                [c["Mozart"] / n * 100, c["Bach"] / n * 100, c["Frescobaldi"] / n * 100, c["ragtime"] / n * 100])
         ax.title.set_text(s)
     save_plot(plot_path, f"estilos_mas_proximos", s)
 
@@ -269,5 +273,8 @@ def plot_accuracy_distribution(dfs_test_path, eval_dir):
 def plot_styles_confusion_matrix(df, styles, plot_path):
     d = {s_y: [df[(df["Style"] == s_x) & (df["Joined closest style (ot)"] == s_y)].shape[0] for s_x in styles] for s_y in styles}
     d['Style'] = list(styles)
-    sns.heatmap(pd.DataFrame(d).set_index('Style'), annot=True, fmt='d')
+    m = pd.DataFrame(d).set_index('Style')
+    sns.heatmap(m, annot=True, fmt='d')
+    m.to_csv(plot_path + '/confusion_matrix.csv')
+    print(f"Saving confusion matrix as {plot_path + '/confusion_matrix.csv'}")
     save_plot(plot_path, 'confusion_matrix', 'Confusion matrix of original style and classified style')

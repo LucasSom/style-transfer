@@ -1,5 +1,6 @@
 import pandas as pd
 import seaborn as sns
+from numpy import float64
 
 from utils.plots_utils import save_plot
 
@@ -21,13 +22,15 @@ def overall_evaluation(metrics, plot_dir, context='talk'):
         heatmap_style_evaluation(df, orig, plot_dir, context)
 
     d = {orig: [(s, df[s][s]) for s in df.columns] for orig, df in metrics["Style"].items()}
-    df_style = pd.DataFrame(index=metrics["Style"].keys(), columns=metrics["Style"].keys())
+    df_style = pd.DataFrame(index=metrics["Style"].keys(), columns=metrics["Style"].keys(), dtype=float64)
     for s in d.keys():
-        df_style.at[s, s] = 0
+        df_style.at[s, s] = 0.0
     for orig, l in d.items():
         for dest, value in l:
             df_style.at[orig, dest] = value  # index: orig; columns: dest
     df_style.to_csv(plot_dir + "/overall_style.csv", index=True)
+    sns.heatmap(df_style, annot=True, fmt='g', vmin=0, vmax=100)
+    save_plot(plot_dir, f"heatmap_style", f"Promedios de % de acercamiento\na los nuevos estilos")
 
     # Plot heatmap musicality
     sns.heatmap(metrics["Musicality"], annot=True, fmt='g', vmin=0, vmax=100)
