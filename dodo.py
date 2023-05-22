@@ -17,7 +17,7 @@ from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 from evaluation.overall_evaluation import overall_evaluation
 from model.colab_tension_vae.params import init
-from model.embeddings.characteristics import obtain_characteristics
+from model.embeddings.characteristics import obtain_characteristics, calculate_characteristics, interpolate_centroids
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
@@ -311,16 +311,19 @@ def analyze_training(df_path, model_name, b, targets):
     model = load_model(vae_dir)
     model_name = os.path.basename(model_name)
     plots_path = os.path.join(data_path, model_path, "plots")
+    audios_path = get_audios_path(model_name)
     df = load_pickle(df_path)
 
-    df_emb = obtain_embeddings(df, model, inplace=True)
+    df_emb, styles = obtain_characteristics(df, model)
+    df_interpolation = interpolate_centroids(styles.values(), model, audios_path + 'interpolation/')
+    save_pickle(df_interpolation, targets[0] + '-interpolation')
     tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
     plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
     plot_tsne(df_emb, tsne_emb, plots_path)
 
     df_reconstructed = get_reconstruction(df, model, model_name, 500, inplace=False)
-    save_pickle(df_reconstructed, targets[0])
+    save_pickle(df_reconstructed, targets[0] + '-reconstructed')
 
 
 def task_test():
