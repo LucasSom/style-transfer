@@ -62,6 +62,17 @@ def datasets_name(ds):
     return composed_name
 
 
+def preprocessed_data(b, small=False):
+    if small:
+        return f"{preprocessed_data_path}{b}-small_br.pkl"
+    return f"{preprocessed_data_path}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+
+
+def oversample_path(model_name):
+    return f"{preprocessed_data_path}{model_name}-balanced.pkl"
+
+
+
 def get_logs_path(model_name):
     return os.path.join(data_path, model_name, 'logs/')
 

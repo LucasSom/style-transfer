@@ -1,8 +1,8 @@
 from keras.saving.save import load_model
 
-from dodo import preprocessed_data
 from model.embeddings.embeddings import get_reconstruction
-from utils.files_utils import load_pickle, data_path, save_pickle, get_reconstruction_path, get_model_paths
+from utils.files_utils import load_pickle, data_path, save_pickle, get_reconstruction_path, get_model_paths, \
+    preprocessed_data
 
 
 def test_reconstruction():

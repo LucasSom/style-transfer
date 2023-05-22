@@ -1,6 +1,8 @@
 import getopt
 import os
 import sys
+from collections import Counter
+
 import p_tqdm
 from typing import List, Dict
 
@@ -115,3 +117,23 @@ if __name__ == "__main__":
         print("=================================================================================\n",
               f"Saved dataset preprocessed in {file_name}.pkl",
               "=================================================================================")
+
+
+def oversample(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Oversample the minority classes
+    """
+    c = Counter(df["Style"])
+    m = 0
+    for s, v in c.items():
+        if v > m:
+            m = v
+            s_max = s
+
+    sample_df = pd.DataFrame()
+    for s in set(df["Style"]):
+        if s != s_max:
+            sub_df = df[df["Style"] == s]
+            n = sub_df.shape[0]
+            sample_df = pd.concat([sample_df, sub_df.sample(n=m-n, random_state=41, replace=True)])
+    return pd.concat([df, sample_df])

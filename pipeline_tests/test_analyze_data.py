@@ -1,7 +1,7 @@
 import pytest
 
-from dodo import data_analysis, preprocessed_data, prepare_data
-from utils.files_utils import data_path
+from dodo import data_analysis, prepare_data
+from utils.files_utils import data_path, preprocessed_data
 
 
 def test_prepare_data():

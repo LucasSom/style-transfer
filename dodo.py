@@ -17,16 +17,16 @@ from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 from evaluation.overall_evaluation import overall_evaluation
 from model.colab_tension_vae.params import init
-from model.embeddings.characteristics import obtain_characteristics, calculate_characteristics, interpolate_centroids
-from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
+from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids
+from model.embeddings.embeddings import get_reconstruction
 from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
-from preprocessing import preprocess_data
+from preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios
 from utils.files_utils import *
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, \
-    plot_characteristics_distributions
+from utils.files_utils import preprocessed_data
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings
 from utils.utils import show_sheets
 from utils.sampling_utils import sample_uniformly, balanced_sampling
 
@@ -59,12 +59,6 @@ def styles_names(model_name):
         for s1, s2 in copy(styles):
             styles.append((s2, s1))
     return styles
-
-
-def preprocessed_data(b, small=False):
-    if small:
-        return f"{preprocessed_data_path}{b}-small_br.pkl"
-    return f"{preprocessed_data_path}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
 
 
 DOIT_CONFIG = {'verbosity': 2}
@@ -276,6 +270,26 @@ def task_analyze_data():
                     }
 
 
+def do_oversampling(path_in, path_out, b):
+    init(b)
+    df = load_pickle(path_in)
+    df = oversample(df)
+    save_pickle(df, path_out)
+
+def task_oversample():
+    """Balances the minority classes"""
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        small = "small" in model_name
+        oversample_data_path = oversample_path(model_name)
+        yield {
+            'name': f"{model_name}",
+            'file_dep': [preprocessed_data(b, small)],
+            'actions': [(do_oversampling, [preprocessed_data(b, small), oversample_data_path, b])],
+            'targets': [oversample_data_path],
+            # 'uptodate': [True]
+        }
+
 def train(df_path, model_name, b):
     init(b)
     if_train = input("Do you want to train the model [Y/n]? ")
@@ -294,12 +308,12 @@ def task_train():
     """Trains the model"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        small = "small" in model_name
+        oversample_data_path = oversample_path(model_name)
         vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b, small)],
-            'actions': [(train, [preprocessed_data(b, small), model_name, b])],
+            'file_dep': [oversample_data_path],
+            'actions': [(train, [oversample_data_path, model_name, b])],
             'targets': [vae_path],
             # 'uptodate': [True]
         }

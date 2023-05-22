@@ -3,12 +3,12 @@ import pandas as pd
 import pytest
 from tensorflow import keras
 
-from dodo import analyze_training, preprocessed_data, do_embeddings, models
+from dodo import analyze_training, do_embeddings, models
 from model.colab_tension_vae.params import init
 from model.embeddings.embeddings import obtain_embeddings
 from model.embeddings.style import Style
 from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models, get_embedding_path, \
-    get_reconstruction_path, get_characteristics_path, get_emb_path, data_path, get_model_paths
+    get_reconstruction_path, get_characteristics_path, get_emb_path, data_path, get_model_paths, preprocessed_data
 from utils.plots_utils import plot_characteristics_distributions
 
 
