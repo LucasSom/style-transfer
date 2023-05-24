@@ -324,20 +324,20 @@ def analyze_training(df_path, model_name, b, targets):
     model_path, vae_dir, _ = get_model_paths(model_name)
     model = load_model(vae_dir)
     model_name = os.path.basename(model_name)
-    plots_path = os.path.join(data_path, model_path, "plots")
+    # plots_path = os.path.join(data_path, model_path, "plots")
     audios_path = get_audios_path(model_name)
     df = load_pickle(df_path)
 
     df_emb, styles = obtain_characteristics(df, model)
     df_interpolation = interpolate_centroids(styles.values(), model, audios_path + 'interpolation/')
     save_pickle(df_interpolation, targets[0] + '-interpolation')
-    tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
+    # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
-    plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
-    plot_tsne(df_emb, tsne_emb, plots_path)
-
-    df_reconstructed = get_reconstruction(df, model, model_name, 500, inplace=False)
-    save_pickle(df_reconstructed, targets[0] + '-reconstructed')
+    # plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
+    # plot_tsne(df_emb, tsne_emb, plots_path)
+    #
+    # df_reconstructed = get_reconstruction(df, model, model_name, 500, inplace=False)
+    # save_pickle(df_reconstructed, targets[0] + '-reconstructed')
 
 
 def task_test():
@@ -534,7 +534,7 @@ def task_overall_evaluation():
             'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                         for s1, s2 in styles_names(model_name)
                         ],
-            'actions': [(do_overall_evaluation, [eval_dir, eval_path, b])],
+            'actions': [(do_overall_evaluation, [[eval_dir], eval_path, b])],
             'targets': [],
             'verbosity': 2,
             'uptodate': [False]
