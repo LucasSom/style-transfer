@@ -26,7 +26,7 @@ from preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.files_utils import preprocessed_data
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings
+from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, plot_accuracies
 from utils.utils import show_sheets
 from utils.sampling_utils import sample_uniformly, balanced_sampling
 
@@ -326,11 +326,15 @@ def analyze_training(df_path, model_name, b, targets):
     model_name = os.path.basename(model_name)
     # plots_path = os.path.join(data_path, model_path, "plots")
     audios_path = get_audios_path(model_name)
+    logs_path = get_logs_path(model_name)
     df = load_pickle(df_path)
 
-    df_emb, styles = obtain_characteristics(df, model)
-    df_interpolation = interpolate_centroids(styles.values(), model, audios_path + 'interpolation/')
-    save_pickle(df_interpolation, targets[0] + '-interpolation')
+    plot_accuracies(df, model, logs_path)
+
+    # df_emb, styles = obtain_characteristics(df, model)
+    # df_interpolation = interpolate_centroids(styles.values(), model, audios_path + 'interpolation/')
+    # save_pickle(df_interpolation, targets[0] + '-interpolation')
+
     # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
     # plot_tsnes_comparison(df_emb, tsne_emb, plots_path)

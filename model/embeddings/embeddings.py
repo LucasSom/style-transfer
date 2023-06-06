@@ -34,8 +34,8 @@ def obtain_embeddings(df: pd.DataFrame, vae, samples=500, inplace=False) -> pd.D
     return df_emb
 
 
-def decode_embeddings(embedding, vae):
-    decoder = vae.get_layer(name='decoder')
+def decode_embeddings(embedding, model):
+    decoder = model.get_layer(name='decoder')
     return [decoder((np.expand_dims(e, 0))) for e in embedding]
 
 
@@ -58,8 +58,8 @@ def transform_embeddings(df, characteristics: dict, original: str, target: str, 
 
 
 @dfply.make_symbolic
-def embeddings_to_rolls(embeddings, roll_names, suffix, audio_path, vae, verbose=False) -> List[GuoRoll]:
-    decoded_matrices = decode_embeddings(embeddings, vae)
+def embeddings_to_rolls(embeddings, roll_names, suffix, audio_path, model, verbose=False) -> List[GuoRoll]:
+    decoded_matrices = decode_embeddings(embeddings, model)
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
     rolls = [GuoRoll(m, f"{r_name}-{suffix}", audio_path=audio_path, verbose=verbose) for m, r_name in zip(matrices, roll_names)]
@@ -67,7 +67,7 @@ def embeddings_to_rolls(embeddings, roll_names, suffix, audio_path, vae, verbose
     return rolls
 
 
-def get_embeddings_roll_df(df_in, vae, model_name: str, column='Embedding', inplace=False) -> pd.DataFrame:
+def get_embeddings_roll_df(df_in, model, model_name: str, column='Embedding', inplace=False) -> pd.DataFrame:
     name_new_column = "NewRoll"
 
     df = df_in if inplace else copy.deepcopy(df_in)
@@ -76,13 +76,13 @@ def get_embeddings_roll_df(df_in, vae, model_name: str, column='Embedding', inpl
         # TODO(march): esto pisa df constantemente, salvo que se haga inplace
         print("===== PASO POR EL IF DE get_embeddings_roll_df =====")
         for c, n in zip(column, name_new_column):
-            df = get_embeddings_roll_df(df_in, vae, model_name, column=c, inplace=inplace)
+            df = get_embeddings_roll_df(df_in, model, model_name, column=c, inplace=inplace)
         return df
 
     new_name_suffix = f"{column}-{name_new_column}"
     audio_path = get_audios_path(model_name)
     roll_names = [r.name for r in df['roll']]
-    rolls = embeddings_to_rolls(df[column], roll_names, new_name_suffix, audio_path, vae)
+    rolls = embeddings_to_rolls(df[column], roll_names, new_name_suffix, audio_path, model)
     df[name_new_column] = rolls
 
     return df
@@ -102,3 +102,15 @@ def get_reconstruction(df, model, model_name: str, samples, inplace=False):
     df_emb = obtain_embeddings(df, model, samples, inplace)
     get_embeddings_roll_df(df_emb, model, model_name, inplace=True)
     return df_emb
+
+
+def get_accuracy(x: List[np.array], y: List[np.array]) -> int:
+    n = len(x)
+    assert len(y) == n
+    acc = 0
+    N, M = x[0].shape
+
+    for x_i, y_i in zip(x, y):
+        acc += sum(sum(x_i == y_i))
+
+    return acc / (N * M * n)

@@ -68,7 +68,7 @@ def test_obtain_embeddings(brmf4_prep):
 
 
 def test_analyze_training():
-    model_name = 'brmf_4b'
+    model_name = 'brmf_4b_beta'
     analyze_training(df_path=preprocessed_data(4), model_name=model_name, b=4,
                      targets=get_reconstruction_path(model_name))
 

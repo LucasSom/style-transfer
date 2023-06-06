@@ -5,14 +5,15 @@ from typing import List, Union, Dict
 import dfply
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 import seaborn as sns
+from matplotlib import pyplot as plt
 from matplotlib.ticker import PercentFormatter
 from sklearn.manifold import TSNE
 
 import model.colab_tension_vae.params as params
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
 from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
+from model.embeddings.embeddings import decode_embeddings, matrix_sets_to_matrices, get_accuracy
 from model.embeddings.style import Style
 from utils.files_utils import data_path
 
@@ -45,6 +46,29 @@ def plot_metric(callbacks, final_epoch, metric: str, figsize=(20, 10)):
 def plot_train(callbacks, epoca_final, figsize=(20, 10)):
     plot_metric(callbacks, epoca_final, 'loss', figsize)
     plot_metric(callbacks, epoca_final, 'accuracy', figsize)
+
+
+def plot_accuracies(df, model, logs_path):
+    accuracies = {}
+    encode = model.get_layer(name='encoder')
+
+    for s in set(df["Style"]):
+        sub_df = df[df["Style"] == s]
+        original_matrices = [r.matrix for r in sub_df['roll']]
+        decoded_matrices = decode_embeddings(encode(np.stack(original_matrices)).numpy(), model)
+        reconstructed_matrices = matrix_sets_to_matrices(decoded_matrices)
+        # save_pickle(original_matrices, data_path + "orig_matrices_ragtime")
+        acc = get_accuracy(x=reconstructed_matrices, y=original_matrices)
+        # metrics = model.evaluate(x=reconstructed_matrices, y=original_matrices, workers=-1, use_multiprocessing=True)
+        # model.metrics_names
+        # accuracies[s] = metrics[1]
+        accuracies[s] = acc
+
+    y_pos = np.arange(len(accuracies))
+    plt.bar(y_pos, accuracies.values())
+    plt.xticks(y_pos, accuracies.keys())
+
+    save_plot(logs_path, "style_accuracy", "Accuracy by style")
 
 
 def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2) -> List[TSNE]:
