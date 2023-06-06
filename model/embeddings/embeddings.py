@@ -5,7 +5,7 @@ import dfply
 import numpy as np
 import pandas as pd
 
-from model.colab_tension_vae import util
+from model.colab_tension_vae import util, params
 from roll.guoroll import GuoRoll
 from utils.files_utils import get_audios_path
 
@@ -114,3 +114,28 @@ def get_accuracy(x: List[np.array], y: List[np.array]) -> int:
         acc += sum(sum(x_i == y_i))
 
     return acc / (N * M * n)
+
+
+def get_accuracies(x: List[np.array], y: List[np.array]):
+    n = len(x)
+    assert len(y) == n
+    mel_acc, mel_rhythm_acc, bass_acc, bass_rhythm_acc = 0, 0, 0, 0
+    N, M = x[0].shape
+
+    for x_i, y_i in zip(x, y):
+        x_mel_notes = x_i[:, :params.config.melody_dim]
+        x_mel_rhythm = x_i[:, params.config.melody_dim]
+        x_bass_notes = x_i[:, params.config.melody_dim + 1 : -1]
+        x_bass_rhythm = x_i[:, -1]
+        y_mel_notes = y_i[:, :params.config.melody_dim]
+        y_mel_rhythm = y_i[:, params.config.melody_dim]
+        y_bass_notes = y_i[:, params.config.melody_dim + 1: -1]
+        y_bass_rhythm = y_i[:, -1]
+
+        mel_acc += sum(sum(x_mel_notes == y_mel_notes))
+        mel_rhythm_acc += sum(x_mel_rhythm == y_mel_rhythm)
+        bass_acc += sum(sum(x_bass_notes == y_bass_notes))
+        bass_rhythm_acc += sum(x_bass_rhythm == y_bass_rhythm)
+
+    return mel_acc / (N * params.config.melody_dim * n), mel_rhythm_acc / (N * n),\
+        bass_acc / (N * params.config.bass_dim * n), bass_rhythm_acc / (N * n)

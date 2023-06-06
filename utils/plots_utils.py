@@ -13,7 +13,7 @@ from sklearn.manifold import TSNE
 import model.colab_tension_vae.params as params
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
 from evaluation.metrics.rhythmic_bigrams import matrix_of_adjacent_rhythmic_bigrams
-from model.embeddings.embeddings import decode_embeddings, matrix_sets_to_matrices, get_accuracy
+from model.embeddings.embeddings import decode_embeddings, matrix_sets_to_matrices, get_accuracy, get_accuracies
 from model.embeddings.style import Style
 from utils.files_utils import data_path
 
@@ -58,17 +58,33 @@ def plot_accuracies(df, model, logs_path):
         decoded_matrices = decode_embeddings(encode(np.stack(original_matrices)).numpy(), model)
         reconstructed_matrices = matrix_sets_to_matrices(decoded_matrices)
         # save_pickle(original_matrices, data_path + "orig_matrices_ragtime")
-        acc = get_accuracy(x=reconstructed_matrices, y=original_matrices)
+        mel_acc, mel_rhythm_acc, bass_acc, bass_rhythm_acc = get_accuracies(x=reconstructed_matrices, y=original_matrices)
         # metrics = model.evaluate(x=reconstructed_matrices, y=original_matrices, workers=-1, use_multiprocessing=True)
         # model.metrics_names
         # accuracies[s] = metrics[1]
-        accuracies[s] = acc
+        accuracies[s] = mel_acc, mel_rhythm_acc, bass_acc, bass_rhythm_acc
 
-    y_pos = np.arange(len(accuracies))
-    plt.bar(y_pos, accuracies.values())
-    plt.xticks(y_pos, accuracies.keys())
+    x = np.arange(len(accuracies))  # the label locations
+    width = 0.2  # the width of the bars
+    multiplier = 0
 
-    save_plot(logs_path, "style_accuracy", "Accuracy by style")
+    fig, ax = plt.subplots()#layout='constrained')
+
+    for attribute, measurement in accuracies.items():
+        offset = width * multiplier
+        rects = ax.bar(x + offset, measurement, width, label=attribute)
+        ax.bar_label(rects, padding=3)
+        multiplier += 1
+
+    ax.set_ylabel('Accuracy')
+    ax.set_xticks(x + width, ["melody_pitch", "melody_rhythm", "bass_pitch", "bass_rhythm"])
+    ax.legend(loc='upper left', ncols=4)
+
+    # y_pos = np.arange(len(accuracies))
+    # plt.bar(y_pos, accuracies.values())
+    # plt.xticks(y_pos, accuracies.keys())
+
+    save_plot(logs_path, "style_accuracy", "Reconstruction accuracies for each style")
 
 
 def calculate_TSNEs(df, column_discriminator=None, space_column='Embedding', n_components=2) -> List[TSNE]:
