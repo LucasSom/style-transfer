@@ -21,7 +21,6 @@ class kl_beta(tf.keras.layers.Layer):
         self.beta = tf.Variable(0.0, trainable=False, dtype=tf.float32)
 
     def call(self, inputs, **kwargs):
-        # your mul operation goes here
         return -self.beta * inputs
 
     def get_config(self):
@@ -71,8 +70,8 @@ def build_model():
     kl_loss = 0.5 * kl_loss
 
     kl_loss = beta(kl_loss)
-    tensile_middle_output = TimeDistributed(Dense(params.config.tension_middle_dim, activation='elu'),
-                                            name='tensile_strain_dense1')(rnn2_output)
+    # tensile_middle_output = TimeDistributed(Dense(params.config.tension_middle_dim, activation='elu'),
+    #                                         name='tensile_strain_dense1')(rnn2_output)
 
     # tensile_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
     #                                 name='tensile_strain_dense2')(tensile_middle_output)

@@ -95,7 +95,8 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, ver
     )
 
     if ckpt == 0: ckpt = final_epoch
-    kl_beta = float(vae.get_layer('kl_beta').variables[0])
+    kl_beta = 3
+    learning_rate_debug = 0
     for i in range(initial_epoch, final_epoch + 1, ckpt):
         vae.get_layer('kl_beta').variables[0].assign(kl_beta)
         kl_beta += 5e-7
@@ -110,6 +111,9 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, ver
             callbacks=[tensorboard_callback, checkpoint]
         )
 
+        if learning_rate_debug != vae.optimizer.learning_rate.numpy():
+            print("----------------------------- CAMBIÓ LEARNING RATE -----------------------------")
+            print("Learning rate:", vae.optimizer.learning_rate.numpy())
         # vae.save(path_to_save)
 
         with open(f'{vae_dir}/initial_epoch', 'w') as f:
