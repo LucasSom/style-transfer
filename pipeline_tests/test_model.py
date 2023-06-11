@@ -114,7 +114,7 @@ def test_new_model_5_epochs_4bars(sonata15_mapleleaf_prep_4):
     epochs = 5
     model_name = "test_new_model-4"
     train_new_model(sonata15_mapleleaf_prep_4, model_name, epochs, 0.01, ckpt=2)
-    callbacks = pd.read_csv(get_logs_path(model_name) + f"{model_name}_0.csv")
+    callbacks = pd.read_csv(get_logs_path(model_name) + "_0.csv")
 
     for c in cols:
         assert c in set(callbacks.columns)
@@ -125,7 +125,7 @@ def test_new_model_1_epoch_pkl_4bars(sonata15_mapleleaf_prep_4, model_name="test
     init("4bar")
     epochs = 1
     train_new_model(sonata15_mapleleaf_prep_4, model_name, epochs, 0.01, ckpt=1)
-    callbacks = pd.read_csv(get_logs_path(model_name) + f"{model_name}_0.csv")
+    callbacks = pd.read_csv(get_logs_path(model_name) + "_0.csv")
 
     for c in cols:
         assert c in set(callbacks.columns)

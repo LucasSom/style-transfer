@@ -8,7 +8,7 @@ from typing import List, Union
 import numpy as np
 import pandas as pd
 
-from model.custom_callbacks import PrintLearningRate, IncrementKLBeta
+from model.custom_callbacks import PrintLearningRate, IncrementKLBeta, LossHistory
 
 try:
     from keras.callbacks import ModelCheckpoint
@@ -99,7 +99,8 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, ver
     if ckpt == 0: ckpt = final_epoch
     initial_kl_beta = float(vae.get_layer('kl_beta').variables[0])
     kl_increment_ratio = 5e-7
-    for i in range(initial_epoch, final_epoch + 1, ckpt):
+    callbacks_path = f"{get_logs_path(model_name)}_{initial_epoch}.csv"
+    for i in range(initial_epoch, final_epoch, ckpt):
 
         callbacks = vae.fit(
             x=ds,
@@ -108,32 +109,18 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, ver
             workers=8,
             initial_epoch=i,
             epochs=i + ckpt,
-            callbacks=[tensorboard_callback, checkpoint, PrintLearningRate(), IncrementKLBeta(initial_kl_beta, kl_increment_ratio)]
+            callbacks=[tensorboard_callback, checkpoint,
+                       PrintLearningRate(),
+                       IncrementKLBeta(initial_kl_beta, kl_increment_ratio),
+                       LossHistory(callbacks_path)]
         )
 
         with open(f'{vae_dir}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
         print(f"Guardado initial_epoch hasta {i + ckpt}!!")
 
-        callbacks_history = callbacks.history
-        callbacks_history['epoch'] = list(np.arange(i, i + ckpt))
-        assert len(callbacks_history['epoch']) == len(callbacks_history['loss'])
-        callbacks_df = pd.DataFrame(callbacks_history)
-
-        callbacks_path = f"{get_logs_path(model_name)}_{initial_epoch}.csv"
-        if os.path.isfile(callbacks_path):
-            prev_callbacks = pd.read_csv(callbacks_path)
-        else:
-            prev_callbacks = pd.DataFrame()
-            with open(callbacks_path, 'w'):
-                pass
-
-        new_callbacks = pd.concat([prev_callbacks, callbacks_df])
-        new_callbacks.to_csv(callbacks_path)
-        print("Guardado el csv!!")
-
-        if callbacks_history['loss'][-1] < loss_thold:
-            break
+        # if callbacks_history['loss'][-1] < loss_thold:
+        #     break
 
     return vae
 
