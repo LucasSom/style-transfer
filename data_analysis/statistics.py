@@ -25,9 +25,10 @@ def styles_bigrams_entropy(df) -> DataFrame:
     return pd.DataFrame(d)
 
 
-def stratified_split(df, n_splits=1):
-    strat_split = StratifiedShuffleSplit(n_splits=n_splits, test_size=0.2, random_state=42)
+def stratified_split(df, n_splits=1, test_size=0.2):
+    strat_split = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=42)
 
+    df = df.reset_index()
     train_dfs = [df.loc[train_index] for train_index, _ in strat_split.split(df, df["Style"])]
     test_dfs = [df.loc[test_index] for _, test_index in strat_split.split(df, df["Style"])]
 

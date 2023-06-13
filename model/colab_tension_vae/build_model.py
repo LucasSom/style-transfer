@@ -120,7 +120,7 @@ def build_model():
 
     vae.add_metric(kl_loss, name='kl_loss', aggregation='mean')
 
-    optimizer = keras.optimizers.Adam()
+    optimizer = keras.optimizers.Adam(amsgrad=True)
 
     vae.compile(optimizer=optimizer,
                 loss=['categorical_crossentropy', 'binary_crossentropy',

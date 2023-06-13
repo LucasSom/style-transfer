@@ -29,13 +29,15 @@ class IncrementKLBeta(keras.callbacks.Callback):
         ratio: ratio to increment
     """
 
-    def __init__(self, initial, ratio):
+    def __init__(self, initial, ratio, threshold):
         super().__init__()
         self.kl_beta = initial
         self.ratio = ratio
+        self.threshold = threshold
 
     def on_epoch_begin(self, epoch, logs=None):
-        self.model.get_layer('kl_beta').variables[0].assign(self.kl_beta)
+        if self.kl_beta < self.threshold:
+            self.model.get_layer('kl_beta').variables[0].assign(self.kl_beta)
 
     def on_epoch_end(self, epoch, logs=None):
         self.kl_beta += self.ratio

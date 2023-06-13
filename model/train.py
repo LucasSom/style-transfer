@@ -29,7 +29,8 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
     return [i0, i1, i2, i3]
 
 
-def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch=None, ckpt=None, loss_thold=None, verbose=2):
+def train_model(df: Union[pd.DataFrame, str], test_data, model_name: str, final_epoch=None, ckpt=None, loss_thold=None,
+                verbose=2):
     base_path, vae_dir, _ = get_model_paths(model_name)
     if final_epoch is None:
         final_epoch = int(input("Until how many epochs do you want to train? "))
@@ -41,21 +42,23 @@ def train_model(df: Union[pd.DataFrame, str], model_name: str, final_epoch=None,
         df = load_pickle(file_name=df, verbose=verbose)
 
     if os.path.isfile(f"{vae_dir}/initial_epoch"):
-        return continue_training(df=df, model_name=model_name, final_epoch=final_epoch, loss_thold=loss_thold, ckpt=ckpt,
-                                 verbose=verbose)
+        return continue_training(df=df, test_data=test_data, model_name=model_name, final_epoch=final_epoch,
+                                 loss_thold=loss_thold, ckpt=ckpt, verbose=verbose)
     else:
-        return train_new_model(df=df, model_name=model_name, final_epoch=final_epoch, loss_thold=loss_thold, ckpt=ckpt,
-                               verbose=verbose)
+        return train_new_model(df=df, test_data=test_data, model_name=model_name, final_epoch=final_epoch,
+                               loss_thold=loss_thold, ckpt=ckpt, verbose=verbose)
 
 
-def train_new_model(df: pd.DataFrame, model_name: str, final_epoch: int, loss_thold, ckpt: int = 50, verbose=2):
+def train_new_model(df: pd.DataFrame, test_data, model_name: str, final_epoch: int, loss_thold, ckpt: int = 50,
+                    verbose=2):
     if verbose: print("Training new model")
     vae = build_model.build_model()
 
-    return train(vae, df, model_name, 0, final_epoch, ckpt, loss_thold, verbose)
+    return train(vae, df, test_data, model_name, 0, final_epoch, ckpt, loss_thold, verbose)
 
 
-def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, loss_thold, ckpt: int = 50, verbose=2):
+def continue_training(df: pd.DataFrame, test_data, model_name: str, final_epoch: int, loss_thold, ckpt: int = 50,
+                      verbose=2):
     base_path, vae_dir, _ = get_model_paths(model_name)
 
     with open(f"{vae_dir}/initial_epoch", 'rt') as f:
@@ -69,10 +72,10 @@ def continue_training(df: pd.DataFrame, model_name: str, final_epoch: int, loss_
         print(f"Model not found in {vae_dir}. Trying {new_path}.")
         vae = keras.models.load_model(new_path, custom_objects=dict(kl_beta=build_model.kl_beta))
 
-    return train(vae, df, model_name, initial_epoch, final_epoch + initial_epoch, ckpt, loss_thold, verbose)
+    return train(vae, df, test_data, model_name, initial_epoch, final_epoch + initial_epoch, ckpt, loss_thold, verbose)
 
 
-def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, verbose=2):
+def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss_thold, verbose=2):
     print(f"Época inicial: {initial_epoch}. Época final: {final_epoch}")
     ds = np.stack([r.matrix for r in df['roll']])
     targets = get_targets(ds)
@@ -97,8 +100,9 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, ver
     )
 
     if ckpt == 0: ckpt = final_epoch
-    initial_kl_beta = float(vae.get_layer('kl_beta').variables[0])
+    initial_kl_beta = 0.0006
     kl_increment_ratio = 5e-7
+    kl_threshold = 0.006
     callbacks_path = f"{get_logs_path(model_name)}_{initial_epoch}.csv"
     for i in range(initial_epoch, final_epoch, ckpt):
 
@@ -111,8 +115,10 @@ def train(vae, df, model_name, initial_epoch, final_epoch, ckpt, loss_thold, ver
             epochs=i + ckpt,
             callbacks=[tensorboard_callback, checkpoint,
                        PrintLearningRate(),
-                       IncrementKLBeta(initial_kl_beta, kl_increment_ratio),
-                       LossHistory(callbacks_path)]
+                       IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
+                       LossHistory(callbacks_path)],
+            validation_data=test_data,
+            use_multiprocessing=True
         )
 
         with open(f'{vae_dir}/initial_epoch', 'w') as f:
@@ -199,4 +205,5 @@ if __name__ == "__main__":
               "Try writing a name of an existing file.")
         sys.exit(1)
 
-    train_model(df=df_preprocessed, model_name=model_name, final_epoch=epochs, ckpt=checkpt, verbose=verbose)
+    train_model(df=df_preprocessed, test_data=test_data, model_name=model_name, final_epoch=epochs, ckpt=checkpt,
+                verbose=verbose)

@@ -18,7 +18,6 @@ from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 from evaluation.overall_evaluation import overall_evaluation
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids
-from model.embeddings.embeddings import get_reconstruction
 from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
@@ -26,9 +25,9 @@ from preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.files_utils import preprocessed_data
-from utils.plots_utils import calculate_TSNEs, plot_tsne, plot_tsnes_comparison, plot_embeddings, plot_accuracies
-from utils.utils import show_sheets
+from utils.plots_utils import plot_embeddings, plot_accuracies
 from utils.sampling_utils import sample_uniformly, balanced_sampling
+from utils.utils import show_sheets
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
@@ -92,6 +91,35 @@ def task_preprocess():
         'targets': [preprocessed_data(4, True)],
         'uptodate': [os.path.isfile(preprocessed_data(4, True))]
     }
+
+
+def split(b, df_path, train_path, test_path, val_path):
+    init(b)
+
+    df = load_pickle(df_path)
+    dfs_train, dfs_test_val = stratified_split(df)
+    df_test_val = dfs_test_val[0]
+    dfs_test, dfs_val = stratified_split(df_test_val, test_size=0.5)
+
+    save_pickle(dfs_train[0], train_path)
+    save_pickle(dfs_test[0], test_path)
+    save_pickle(dfs_val[0], val_path)
+
+def task_split_dataset():
+    """Split the dataset into train, test and validation"""
+    for b in bars:
+        train_path = f"{preprocessed_data_path}{b}train.pkl"
+        test_path = f"{preprocessed_data_path}{b}test.pkl"
+        val_path = f"{preprocessed_data_path}{b}val.pkl"
+        df_path = preprocessed_data(b)
+        yield {
+            'file_dep': [df_path],
+            'name': f"{b}bars",
+            'actions': [(split, [b, df_path, train_path, test_path, val_path])],
+            'targets': [train_path, test_path, val_path],
+            'uptodate': [False],
+        }
+
 
 def prepare_data(df_path, eval_dir, b, cv):
     init(b)
@@ -280,24 +308,28 @@ def task_oversample():
     """Balances the minority classes"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        small = "small" in model_name
+        train_path = f"{preprocessed_data_path}{b}train.pkl"
         oversample_data_path = oversample_path(model_name)
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b, small)],
-            'actions': [(do_oversampling, [preprocessed_data(b, small), oversample_data_path, b])],
+            'file_dep': [train_path],
+            'actions': [(do_oversampling, [train_path, oversample_data_path, b])],
             'targets': [oversample_data_path],
             # 'uptodate': [True]
         }
 
-def train(df_path, model_name, b):
+def train(train_path, test_path, model_name, b):
     init(b)
     if_train = input("Do you want to train the model [Y/n]? ")
     if if_train in ['Y', 'y', 'S', 's']:
         styles = ["small_Bach", "small_ragtime"] if "small" in model_name else [styles_dict[a] for a in model_name[2:4]]
-        df = load_pickle(df_path)
+
+        df = load_pickle(train_path)
         df = df[df['Style'].isin(styles)]
-        train_model(df, model_name)
+        test_data = load_pickle(test_path)
+        test_data = test_data[test_data['Style'].isin(styles)]
+
+        train_model(df, test_data, model_name)
     elif if_train in ['N', 'n']:
         print("Skipping training")
     else:
@@ -309,17 +341,19 @@ def task_train():
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
         oversample_data_path = oversample_path(model_name)
+        test_path = f"{preprocessed_data_path}{b}test.pkl"
+
         vae_path = get_model_paths(model_name)[2]
         yield {
             'name': f"{model_name}",
-            'file_dep': [oversample_data_path],
-            'actions': [(train, [oversample_data_path, model_name, b])],
+            'file_dep': [oversample_data_path, test_path],
+            'actions': [(train, [oversample_data_path, test_path, model_name, b])],
             'targets': [vae_path],
             # 'uptodate': [True]
         }
 
 
-def analyze_training(df_path, model_name, b, targets):
+def analyze_training(train_path, val_path, model_name, b, targets):
     init(b)
     model_path, vae_dir, _ = get_model_paths(model_name)
     model = load_model(vae_dir)
@@ -327,20 +361,21 @@ def analyze_training(df_path, model_name, b, targets):
     # plots_path = os.path.join(data_path, model_path, "plots")
     audios_path = get_audios_path(model_name)
     logs_path = get_logs_path(model_name)
-    df = load_pickle(df_path)
+    train_df = load_pickle(train_path)
+    val_df = load_pickle(val_path)
 
-    plot_accuracies(df, model, logs_path)
+    plot_accuracies(val_df, model, logs_path)
 
-    # df_emb, styles = obtain_characteristics(df, model)
-    # df_interpolation = interpolate_centroids(styles.values(), model, audios_path + 'interpolation/')
-    # save_pickle(df_interpolation, targets[0] + '-interpolation')
+    df_emb, styles = obtain_characteristics(train_df, model)
+    df_interpolation = interpolate_centroids(styles.values(), model, audios_path + 'interpolation/')
+    save_pickle(df_interpolation, targets[0] + '-interpolation')
 
     # tsne_emb = calculate_TSNEs(df_emb, column_discriminator="Style")[0]
 
     # plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
     # plot_tsne(df_emb, tsne_emb, plots_path)
     #
-    # df_reconstructed = get_reconstruction(df, model, model_name, 500, inplace=False)
+    # df_reconstructed = get_reconstruction(train_df, model, model_name, 500, inplace=False)
     # save_pickle(df_reconstructed, targets[0] + '-reconstructed')
 
 
@@ -348,12 +383,13 @@ def task_test():
     """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        small = "small" in model_name
         vae_path = get_model_paths(model_name)[2]
+        train_path = f"{preprocessed_data_path}{b}train.pkl"
+        val_path = f"{preprocessed_data_path}{b}val.pkl"
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b, small), vae_path],
-            'actions': [(analyze_training, [preprocessed_data(b, small), model_name, b])],
+            'file_dep': [train_path, vae_path],
+            'actions': [(analyze_training, [train_path, val_path, model_name, b])],
             'targets': [get_reconstruction_path(model_name)],
             # 'uptodate': [False]
         }
@@ -382,13 +418,13 @@ def task_embeddings():
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
-        small = "small" in model_name
+        train_path = f"{preprocessed_data_path}{b}train.pkl"
 
         yield {
             'name': f"{model_name}",
-            'file_dep': [preprocessed_data(b, small), vae_path],
+            'file_dep': [train_path, vae_path],
             'actions': [(do_embeddings,
-                         [preprocessed_data(b, small),
+                         [train_path,
                           model_path,
                           vae_dir,
                           characteristics_path,
