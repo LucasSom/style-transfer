@@ -80,6 +80,9 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss
     ds = np.stack([r.matrix for r in df['roll']])
     targets = get_targets(ds)
 
+    ds_test = np.stack([r.matrix for r in test_data['roll']])
+    targets_test = get_targets(ds_test)
+
     vae_dir = get_model_paths(model_name)[1]
     log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -117,16 +120,13 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss
                        PrintLearningRate(),
                        IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
                        LossHistory(callbacks_path)],
-            validation_data=test_data,
+            validation_data=(ds_test, targets_test),
             use_multiprocessing=True
         )
 
         with open(f'{vae_dir}/initial_epoch', 'w') as f:
             f.write(str(i + ckpt))
         print(f"Guardado initial_epoch hasta {i + ckpt}!!")
-
-        # if callbacks_history['loss'][-1] < loss_thold:
-        #     break
 
     return vae
 
