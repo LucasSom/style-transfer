@@ -11,7 +11,7 @@ import pandas as pd
 from model.custom_callbacks import PrintLearningRate, IncrementKLBeta, LossHistory
 
 try:
-    from keras.callbacks import ModelCheckpoint
+    from keras.callbacks import ModelCheckpoint, EarlyStopping
 except ImportError:
     from tensorflow.keras.callbacks import ModelCheckpoint
 
@@ -107,9 +107,10 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss
     kl_increment_ratio = 5e-7
     kl_threshold = 0.006
     callbacks_path = f"{get_logs_path(model_name)}_{initial_epoch}.csv"
+
     for i in range(initial_epoch, final_epoch, ckpt):
 
-        callbacks = vae.fit(
+        vae.fit(
             x=ds,
             y=targets,
             verbose=verbose,
@@ -119,7 +120,8 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss
             callbacks=[tensorboard_callback, checkpoint,
                        PrintLearningRate(),
                        IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
-                       LossHistory(callbacks_path)],
+                       LossHistory(callbacks_path),
+                       EarlyStopping(monitor='val_loss', patience=3)],
             validation_data=(ds_test, targets_test),
             use_multiprocessing=True
         )

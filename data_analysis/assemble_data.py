@@ -42,39 +42,43 @@ def calculate_long_df(df, df_test, styles_train):
     return rolls_long_df
 
 
-def calculate_closest_styles(df_test, styles_train):
+def calculate_closest_styles(df_test, styles_train, only_ot=False, only_proba=False) -> pd.DataFrame:
     df_test = get_df_bigram_matrices(df_test)
 
-    df_test["Rhythmic closest style (linear)"] = df_test.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train), axis=1)
-    df_test["Rhythmic closest style (kl)"] = df_test.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='kl'), axis=1)
-    df_test["Rhythmic closest style (probability)"] = df_test.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='probability'), axis=1)
-    df_test["Rhythmic closest style (ot)"] = df_test.apply(
-        lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='ot'), axis=1)
+    if not only_ot and not only_proba:
+        df_test["Rhythmic closest style (linear)"] = df_test.apply(
+            lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train), axis=1)
+        df_test["Melodic closest style (linear)"] = df_test.apply(
+            lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train), axis=1)
+        df_test["Joined closest style (linear)"] = df_test.apply(
+            lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train),
+            axis=1)
 
-    df_test["Melodic closest style (linear)"] = df_test.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train), axis=1)
-    df_test["Melodic closest style (kl)"] = df_test.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='kl'), axis=1)
-    df_test["Melodic closest style (probability)"] = df_test.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='probability'), axis=1)
-    df_test["Melodic closest style (ot)"] = df_test.apply(
-        lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='ot'), axis=1)
+        df_test["Rhythmic closest style (kl)"] = df_test.apply(
+            lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='kl'), axis=1)
+        df_test["Melodic closest style (kl)"] = df_test.apply(
+            lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='kl'), axis=1)
+        df_test["Joined closest style (kl)"] = df_test.apply(
+            lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train,
+                                             method='kl'), axis=1)
+    if not only_ot:
+        df_test["Rhythmic closest style (probability)"] = df_test.apply(
+            lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='probability'), axis=1)
+        df_test["Melodic closest style (probability)"] = df_test.apply(
+            lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='probability'), axis=1)
+        df_test["Joined closest style (probability)"] = df_test.apply(
+            lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train,
+                                             method='probability'), axis=1)
 
-    df_test["Joined closest style (linear)"] = df_test.apply(
-        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train),
-        axis=1)
-    df_test["Joined closest style (kl)"] = df_test.apply(
-        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train,
-                                         method='kl'), axis=1)
-    df_test["Joined closest style (probability)"] = df_test.apply(
-        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train,
-                                         method='probability'), axis=1)
-    df_test["Joined closest style (ot)"] = df_test.apply(
-        lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train,
-                                         method='ot'), axis=1)
+    if not only_proba:
+        df_test["Rhythmic closest style (ot)"] = df_test.apply(
+            lambda row: rhythmic_closest_style(row["Rhythmic bigram matrix"], styles_train, method='ot'), axis=1)
+        df_test["Melodic closest style (ot)"] = df_test.apply(
+            lambda row: melodic_closest_style(row["Melodic bigram matrix"], styles_train, method='ot'), axis=1)
+        df_test["Joined closest style (ot)"] = df_test.apply(
+            lambda row: joined_closest_style(row["Melodic bigram matrix"], row["Rhythmic bigram matrix"], styles_train,
+                                             method='ot'), axis=1)
+
 
     return df_test
 

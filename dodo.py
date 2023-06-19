@@ -117,7 +117,7 @@ def task_split_dataset():
             'name': f"{b}bars",
             'actions': [(split, [b, df_path, train_path, test_path, val_path])],
             'targets': [train_path, test_path, val_path],
-            'uptodate': [False],
+            # 'uptodate': [False],
         }
 
 
@@ -148,6 +148,8 @@ def prepare_data(df_path, eval_dir, b, cv):
             save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution_{i}')
     else:
         df_to_analyze = get_df_bigram_matrices(df)
+        styles_train = {name: Style(name, None, dfs_80[0]) for name in styles}
+        df_to_analyze = calculate_closest_styles(df_to_analyze, styles_train, only_ot=True)
         save_pickle(df_to_analyze, f'{eval_dir}/df_to_analyze')
 
         print("Calculating musicality distributions")
@@ -161,29 +163,28 @@ def prepare_data(df_path, eval_dir, b, cv):
 def task_assemble_data_to_analyze():
     """Prepare the data for analysis"""
     for b in bars:
-        for model in models:
-            eval_dir = f"{data_path}{model}/Evaluation"
-            yield {
-                'name': f"{model}",
-                'file_dep': [preprocessed_data(b)],
-                'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
-                'targets': [eval_dir + '/df_to_analyze.pkl',
-                            eval_dir + '/melodic_distribution.pkl',
-                            eval_dir + '/rhythmic_distribution.pkl'],
-                # 'uptodate': [False]
-            }
+        eval_dir = f"{data_path}/data_analysis"
+        yield {
+            'name': "not_cv",
+            'file_dep': [preprocessed_data(b)],
+            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
+            'targets': [eval_dir + '/df_to_analyze.pkl',
+                        eval_dir + '/melodic_distribution.pkl',
+                        eval_dir + '/rhythmic_distribution.pkl'],
+            # 'uptodate': [False]
+        }
 
-            eval_dir = f"{data_path}{model}/Evaluation/cross_val"
-            yield {
-                'name': f"{model}-cv",
-                'file_dep': [preprocessed_data(b)],
-                'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, True])],
-                'targets': [eval_dir + '/df_80_indexes_0.pkl',
-                            eval_dir + '/rolls_long_df_test_0.csv',
-                            eval_dir + '/rolls_long_df_test_0.pkl',
-                            eval_dir + '/melodic_distribution_0.pkl',
-                            eval_dir + '/rhythmic_distribution_0.pkl'],
-            }
+        eval_dir = f"{data_path}/data_analysis/cross_val"
+        yield {
+            'name': f"cv",
+            'file_dep': [preprocessed_data(b)],
+            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, True])],
+            'targets': [eval_dir + '/df_80_indexes_0.pkl',
+                        eval_dir + '/rolls_long_df_test_0.csv',
+                        eval_dir + '/rolls_long_df_test_0.pkl',
+                        eval_dir + '/melodic_distribution_0.pkl',
+                        eval_dir + '/rhythmic_distribution_0.pkl'],
+        }
 
 def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analysis, cv):
     init(b)
@@ -258,7 +259,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
         elif analysis == 'entropies':
             entropies = styles_bigrams_entropy(df)
-            plot_styles_bigrams_entropy(entropies, eval_dir)
+            plot_styles_bigrams_entropy(entropies, eval_dir, english=False)
 
         elif analysis == 'style_confusion_matrix':
             rolls_diff_df = load_pickle(eval_dir + '/rolls_diff_df')
@@ -272,30 +273,29 @@ def task_analyze_data():
         for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality',
                          'style_histograms', 'confusion_matrix', 'style_confusion_matrix']:
             for cv in [True, False]:
-                for model in old_models:
-                    eval_dir = f"{data_path}{model}/Evaluation"
-                    df_80_indexes_path = eval_dir + '/cross_val/df_80_indexes_'
-                    df_test_path = eval_dir + '/cross_val/rolls_long_df_test_'
-                    yield {
-                        'name': f"{model}-{analysis}{'-cv' if cv else ''}",
-                        'file_dep': [eval_dir + '/df_to_analyze.pkl',
-                                     eval_dir + f"/cross_val/df_80_indexes{'_0' if cv else ''}.pkl",
-                                     # eval_dir + f"/cross_val/rolls_long_df_test{'_0' if cv else ''}.pkl",
-                                     eval_dir + f"/cross_val/melodic_distribution{'_0' if cv else ''}.pkl",
-                                     eval_dir + f"/cross_val/rhythmic_distribution{'_0' if cv else ''}.pkl"
-                                     ],
-                        'actions': [(data_analysis, [f'{eval_dir}/df_to_analyze',
-                                                     df_80_indexes_path,
-                                                     df_test_path,
-                                                     eval_dir,
-                                                     b,
-                                                     analysis,
-                                                     cv])],
-                        'targets': [eval_dir + '/style_histograms.pkl'
-                                    if analysis == 'style_differences' and not cv
-                                    else f'{eval_dir}/{analysis}{cv}'],
-                        # 'uptodate': [False]
-                    }
+                eval_dir = f"{data_path}data_analysis"
+                df_80_indexes_path = eval_dir + '/cross_val/df_80_indexes_'
+                df_test_path = eval_dir + '/cross_val/rolls_long_df_test_'
+                yield {
+                    'name': f"{analysis}{'-cv' if cv else ''}",
+                    'file_dep': [eval_dir + '/df_to_analyze.pkl',
+                                 eval_dir + f"/cross_val/df_80_indexes{'_0' if cv else ''}.pkl",
+                                 # eval_dir + f"/cross_val/rolls_long_df_test{'_0' if cv else ''}.pkl",
+                                 eval_dir + f"/cross_val/melodic_distribution{'_0' if cv else ''}.pkl",
+                                 eval_dir + f"/cross_val/rhythmic_distribution{'_0' if cv else ''}.pkl"
+                                 ],
+                    'actions': [(data_analysis, [f'{eval_dir}/df_to_analyze',
+                                                 df_80_indexes_path,
+                                                 df_test_path,
+                                                 eval_dir,
+                                                 b,
+                                                 analysis,
+                                                 cv])],
+                    'targets': [eval_dir + '/style_histograms.pkl'
+                                if analysis == 'style_differences' and not cv
+                                else f'{eval_dir}/{analysis}{cv}'],
+                    # 'uptodate': [False]
+                }
 
 
 def do_oversampling(path_in, path_out, b):

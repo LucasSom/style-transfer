@@ -16,9 +16,15 @@ from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_sum
 from utils.plots_utils import save_plot
 
 
-def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexity"):
-    sns.scatterplot(data=entropies, x="Melodic entropy", y="Rhythmic entropy", hue="Style")
-    save_plot(plot_dir, plot_name, "Styles entropies for melody and rhythm")
+def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexity", english=True):
+    if not english:
+        entropies = entropies.rename(columns={"Melodic entropy": "Entropía melódica", "Rhythmic entropy": "Entropía rítmica"})
+    x_label = "Melodic entropy" if english else "Entropía melódica"
+    y_label = "Rhythmic entropy" if english else "Entropía rítmica"
+    title = "Styles entropies for melody and rhythm" if english else "Entropías de melodía y ritmo para cada estilo"
+
+    sns.scatterplot(data=entropies, x=x_label, y=y_label, hue="Style")
+    save_plot(plot_dir, plot_name, title)
 
 
 def plot_styles_heatmaps_and_get_histograms(df, plot_dir):
@@ -69,10 +75,13 @@ def heatmap_style_differences(diff_table, plot_dir):
     save_plot(plot_dir, 'melodic_diff')
 
 
-def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=False):
-    fig = plt.figure(figsize=(24, 18))
+def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=False, english=False):
+    fig = plt.figure(figsize=(10, 10))
     sns.set_theme(context)
-    title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
+    if english:
+        title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
+    else:
+        title = f"Estilos más cercanos de los fragmentos de estilo {orig}" if dest == 'nothing' else f"Estilos más cercanos de los fragmentos de estilo {orig} a {dest}"
     fig.suptitle(title)
 
     if only_joined_ot:
@@ -88,7 +97,7 @@ def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=Fal
                 ax.title.set_text(f"{kind} closest style ({method})")
                 i += 1
 
-    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", "Joined closest style (ot)")
+    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", " ")
     plt.close()
 
 
@@ -192,9 +201,13 @@ def plot_distances_distribution(df, eval_path, context='talk', by_style=True, si
 
 
 def plot_accuracy(df, eval_path):
-    df = df[df["method"] == 'optimal_transport']
-    df = df[df["part"] == 'Joined']
-    df = df[df["Style"] == df["target"]]
+    sns.set_theme(context='talk')
+    if "method" in df.columns:
+        df = df[df["method"] == 'optimal_transport']
+    if "part" in df.columns:
+        df = df[df["part"] == 'Joined']
+    if "target" in df.columns:
+        df = df[df["Style"] == df["target"]]
 
     d = {}
     for s in set(df["Style"]):

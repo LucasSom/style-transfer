@@ -1,4 +1,5 @@
 import copy
+from collections import Counter
 from typing import List
 
 import dfply
@@ -20,6 +21,7 @@ def obtain_embeddings(df: pd.DataFrame, vae, samples=500, inplace=False) -> pd.D
     :param inplace: if True, perform operation in-place.
     :return: the input DataFrame with a new column 'Embedding' with the result of the encoding (ndarrays of shape (96,))
     """
+    samples = min(samples, min(Counter(df["Style"]).values()))
     if inplace:
         # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
         df = df.groupby('Style').sample(n=samples, random_state=42)
@@ -132,10 +134,9 @@ def get_accuracies(x: List[np.array], y: List[np.array]):
         y_bass_notes = y_i[:, params.config.melody_dim + 1: -1]
         y_bass_rhythm = y_i[:, -1]
 
-        mel_acc += sum(sum(x_mel_notes == y_mel_notes))
+        mel_acc += sum(sum((x_mel_notes == y_mel_notes).T) == (params.config.melody_dim * np.ones(params.config.time_step)))
         mel_rhythm_acc += sum(x_mel_rhythm == y_mel_rhythm)
-        bass_acc += sum(sum(x_bass_notes == y_bass_notes))
+        bass_acc += sum(sum((x_bass_notes == y_bass_notes).T) == (params.config.bass_dim * np.ones(params.config.time_step)))
         bass_rhythm_acc += sum(x_bass_rhythm == y_bass_rhythm)
 
-    return mel_acc / (N * params.config.melody_dim * n), mel_rhythm_acc / (N * n),\
-        bass_acc / (N * params.config.bass_dim * n), bass_rhythm_acc / (N * n)
+    return mel_acc / (N * n), mel_rhythm_acc / (N * n), bass_acc / (N * n), bass_rhythm_acc / (N * n)

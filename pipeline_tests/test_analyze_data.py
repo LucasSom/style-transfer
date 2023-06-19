@@ -14,8 +14,7 @@ def test_prepare_data():
 
 def test_closeness():
     b = 4
-    model = "brmf_4b"
-    eval_dir = f"{data_path}{model}/Evaluation"
+    eval_dir = f"{data_path}/data_analysis"
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 

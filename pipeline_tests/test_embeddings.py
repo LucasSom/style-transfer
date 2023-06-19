@@ -68,7 +68,9 @@ def test_obtain_embeddings(brmf4_prep):
 
 
 def test_analyze_training():
+    b = 4
     model_name = 'brmf_4b_beta'
+    val_path = f"{preprocessed_data_path}{b}val.pkl"
     analyze_training(train_path=preprocessed_data(4), val_path=val_path, model_name=model_name, b=4,
                      targets=get_reconstruction_path(model_name))
 
