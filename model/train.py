@@ -7,6 +7,7 @@ from typing import List, Union
 
 import numpy as np
 import pandas as pd
+from keras import backend
 
 from model.custom_callbacks import PrintLearningRate, IncrementKLBeta, LossHistory
 
@@ -100,6 +101,8 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, verbose=2)
     kl_increment_ratio = 5e-7
     kl_threshold = 0.006
     callbacks_path = f"{get_logs_path(model_name)}_{initial_epoch}.csv"
+
+    backend.set_value(vae.optimizer.learning_rate, 0.0001)
 
     vae.fit(
         x=ds,
