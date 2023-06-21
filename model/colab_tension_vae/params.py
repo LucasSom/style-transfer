@@ -1,5 +1,5 @@
 class VAEConfigBase:
-    def __init__(self, bars=None):
+    def __init__(self, bars=None, z=96):
         if bars is not None:
             self.bars = bars
 
@@ -23,7 +23,7 @@ class VAEConfigBase:
             self.tension_middle_dim = 128
             self.tension_output_dim = 1
 
-            self.z_dim = 96  # espacio latente
+            self.z_dim = z  # espacio latente
 
             self.TEMPO = 90
             self.melody_dim = self.melody_output_dim
@@ -36,18 +36,21 @@ class VAEConfigBase:
 config_name = ''
 config = VAEConfigBase()
 configs = {
-    '1bar': VAEConfigBase(1),
-    '4bar': VAEConfigBase(4),
-    '8bar': VAEConfigBase(8),
+    '1bar_z96': VAEConfigBase(1),
+    '4bar_z96': VAEConfigBase(4),
+    '8bar_z96': VAEConfigBase(8),
+    '1bar_z20': VAEConfigBase(1, 20),
+    '4bar_z20': VAEConfigBase(4, 20),
+    '8bar_z20': VAEConfigBase(8, 20),
 }
 
 
-def init(_config_name="8bar"):
+def init(bars, z=96):
     global config
     global config_name
 
-    if isinstance(_config_name, int) or len(_config_name) == 1:
-        _config_name = f"{_config_name}bar"
+    if isinstance(bars, int) or len(bars) == 1:
+        bars = f"{bars}bar_z{z}"
 
-    config_name = _config_name
+    config_name = bars
     config = configs[config_name]

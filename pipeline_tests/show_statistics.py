@@ -23,7 +23,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("No path passed to evaluate")
     else:
-        init()
+        init(4)
         params = sys.argv[1:]
         for p in params:
             if os.path.isdir(p):

@@ -18,6 +18,7 @@ from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 from evaluation.overall_evaluation import overall_evaluation
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids
+from model.embeddings.embeddings import get_reconstruction
 from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
@@ -33,10 +34,11 @@ subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
+z_dims = [20, 96]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
-old_models = ["brmf_4b", "brmf_4b_beta"]
-models = old_models + [f"{b}-{x}{y}" for b in bars for x in 'brmf' for y in 'brmf' if x < y] + ["4-small_br"]
+old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
+models = old_models + [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y] + ["4-small_br"]
 
 
 epochs = [200, 500, 1000]
@@ -318,8 +320,8 @@ def task_oversample():
             # 'uptodate': [True]
         }
 
-def train(train_path, test_path, model_name, b):
-    init(b)
+def train(train_path, test_path, model_name, b, z):
+    init(b, z)
     if_train = input("Do you want to train the model [Y/n]? ")
     if if_train in ['Y', 'y', 'S', 's']:
         styles = ["small_Bach", "small_ragtime"] if "small" in model_name else [styles_dict[a] for a in model_name[2:4]]
@@ -340,6 +342,7 @@ def task_train():
     """Trains the model"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
         oversample_data_path = oversample_path(model_name)
         test_path = f"{preprocessed_data_path}{b}test.pkl"
 
@@ -347,14 +350,14 @@ def task_train():
         yield {
             'name': f"{model_name}",
             'file_dep': [oversample_data_path, test_path],
-            'actions': [(train, [oversample_data_path, test_path, model_name, b])],
+            'actions': [(train, [oversample_data_path, test_path, model_name, b, z])],
             'targets': [vae_path],
             # 'uptodate': [True]
         }
 
 
-def analyze_training(train_path, val_path, model_name, b, targets):
-    init(b)
+def analyze_training(train_path, val_path, model_name, b, z, targets):
+    init(b, z)
     model_path, vae_dir, _ = get_model_paths(model_name)
     model = load_model(vae_dir)
     model_name = os.path.basename(model_name)
@@ -375,28 +378,29 @@ def analyze_training(train_path, val_path, model_name, b, targets):
     # plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
     # plot_tsne(df_emb, tsne_emb, plots_path)
     #
-    # df_reconstructed = get_reconstruction(train_df, model, model_name, 500, inplace=False)
-    # save_pickle(df_reconstructed, targets[0] + '-reconstructed')
+    df_reconstructed = get_reconstruction(train_df, model, model_name, 500, inplace=False)
+    save_pickle(df_reconstructed, targets[0] + '-reconstructed')
 
 
 def task_test():
     """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
         vae_path = get_model_paths(model_name)[2]
         train_path = f"{preprocessed_data_path}{b}train.pkl"
         val_path = f"{preprocessed_data_path}{b}val.pkl"
         yield {
             'name': f"{model_name}",
             'file_dep': [train_path, vae_path],
-            'actions': [(analyze_training, [train_path, val_path, model_name, b])],
+            'actions': [(analyze_training, [train_path, val_path, model_name, b, z])],
             'targets': [get_reconstruction_path(model_name)],
             # 'uptodate': [False]
         }
 
 
-def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, b):
-    init(b)
+def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, b, z):
+    init(b, z)
     model = load_model(os.path.abspath(vae_path))
     plots_dir = os.path.join(model_path, "plots")
     df = load_pickle(df_path)
@@ -415,6 +419,7 @@ def task_embeddings():
     """Calculate the embeddings for each author/style and song"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -428,7 +433,8 @@ def task_embeddings():
                           model_path,
                           vae_dir,
                           characteristics_path,
-                          emb_path, b]
+                          emb_path,
+                          b, z]
                          )],
             'targets': [characteristics_path, emb_path],
             'uptodate': [os.path.isfile(characteristics_path) and os.path.isfile(emb_path)]
@@ -436,8 +442,8 @@ def task_embeddings():
         }
 
 
-def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b=4):
-    init(b)
+def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b=4, z=96):
+    init(b, z)
     df_emb = load_pickle(df_emb)
     model = load_model(model_path)
     characteristics = load_pickle(characteristics)
@@ -452,6 +458,7 @@ def task_transfer_style():
     """Do the transference of style from a roll to another style"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -462,7 +469,7 @@ def task_transfer_style():
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [emb_path, vae_path, characteristics_path],
                 'actions': [(do_transfer,
-                             [emb_path, vae_dir, characteristics_path, transferred_path, s1, s2, b]
+                             [emb_path, vae_dir, characteristics_path, transferred_path, s1, s2, b, z]
                              )],
                 'targets': [transferred_path],
                 'verbosity': 2,
@@ -470,8 +477,8 @@ def task_transfer_style():
             }
 
 
-def calculate_metrics(trans_path, metrics_dir, s1, s2, b=4):
-    init(b)
+def calculate_metrics(trans_path, metrics_dir, s1, s2, b=4, z=96):
+    init(b, z)
     df_transferred = load_pickle(trans_path)
 
     metrics1 = obtain_metrics(df_transferred, s1, s2, 'plagiarism', 'intervals', 'rhythmic_bigrams')
@@ -482,6 +489,7 @@ def task_metrics():
     """Calculate different metrics for a produced dataset"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
 
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
@@ -489,15 +497,15 @@ def task_metrics():
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [transferred_path],
-                'actions': [(calculate_metrics, [transferred_path, metrics_path, s1, s2, b])],
+                'actions': [(calculate_metrics, [transferred_path, metrics_path, s1, s2, b, z])],
                 'targets': [f"{metrics_path}/metrics_{s1}_to_{s2}.pkl"],
                 'verbosity': 2,
                 # 'uptodate': [False]
             }
 
 
-def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, b=4):
-    init(b)
+def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, b=4, z=96):
+    init(b, z)
 
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(styles_path)
@@ -520,6 +528,7 @@ def task_evaluation():
     """Evaluate the model considering the calculated metrics"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             styles_path = get_characteristics_path(model_name)
@@ -532,7 +541,7 @@ def task_evaluation():
                              eval_dir + '/melodic_distribution.pkl',
                              eval_dir + '/rhythmic_distribution.pkl'
                              ],
-                'actions': [(do_evaluation, [transferred_path, styles_path, metrics_dir, eval_dir, s1, s2, b])],
+                'actions': [(do_evaluation, [transferred_path, styles_path, metrics_dir, eval_dir, s1, s2, b, z])],
                 'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
                             f"{eval_dir}/results-{s1}_to_{s2}.csv",
                             f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
@@ -542,31 +551,33 @@ def task_evaluation():
             }
 
 
-def do_overall_evaluation(overall_metric_dirs, eval_dir, b=4):
-    init(b)
+def do_overall_evaluation(overall_metric_dirs, eval_dir, b=4, z=96):
+    init(b, z)
     m = get_packed_metrics(overall_metric_dirs)
     overall_evaluation(m, eval_dir)
 
 
 def task_overall_evaluation():
     """Calculate the final metrics after evaluate the model"""
-    for b in bars:
-        ensamble = [m for m in models if len(m) == 4 and m[0] == str(b)]
-        overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
-        eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars"
-        yield {
-            'name': f"ensamble_{b}bars",
-            'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
-                         for eval_dir in overall_metric_dirs for s1, s2 in styles_names("brmf_4b")
-                         ],
-            'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b])],
-            'targets': [],
-            'verbosity': 2,
-            'uptodate': [False]
-        }
+    for z in z_dims:
+        for b in bars:
+            ensamble = [m for m in models if len(m) == 7 and m[0] == str(b) and m[-2:] == str(z)]
+            overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
+            eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars_{z}dim"
+            yield {
+                'name': f"ensamble_{b}bars",
+                'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
+                             for eval_dir in overall_metric_dirs for s1, s2 in styles_names("brmf_4b")
+                             ],
+                'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b, z])],
+                'targets': [],
+                'verbosity': 2,
+                'uptodate': [False]
+            }
 
     for model_name in old_models:
         b = model_name[5]
+        z = int(model_name[-2:])
         eval_dir = get_eval_dir(model_name)
         eval_path = f"{data_path}/overall_evaluation/{model_name}"
         yield {
@@ -574,7 +585,7 @@ def task_overall_evaluation():
             'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                         for s1, s2 in styles_names(model_name)
                         ],
-            'actions': [(do_overall_evaluation, [[eval_dir], eval_path, b])],
+            'actions': [(do_overall_evaluation, [[eval_dir], eval_path, b, z])],
             'targets': [],
             'verbosity': 2,
             'uptodate': [False]
@@ -582,8 +593,8 @@ def task_overall_evaluation():
 
 
 def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
-                     suffix=None, orig=None, dest=None, b=4):
-    init(b)
+                     suffix=None, orig=None, dest=None, b=4, z=96):
+    init(b, z)
     if succ_rolls_prefix is None:
         df_transferred = load_pickle(transferred_path)
         generate_audios(df_transferred, audios_path, suffix=suffix, verbose=1)
@@ -615,21 +626,23 @@ def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
 def task_sample_audios():
     """Produce the midis generated by the style transfer"""
     for model_name in models:
-        recon_path = get_reconstruction_path(model_name)
+        # recon_path = get_reconstruction_path(model_name)
         audios_path = get_audios_path(model_name)
+        b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
 
-        yield {
-            'name': f'{model_name}-orig',
-            'file_dep': [recon_path],
-            'actions': [(audio_generation, [recon_path, audios_path], dict(suffix="orig", column="roll"))],
-            # 'uptodate': [False]
-        }
-        yield {
-            'name': f'{model_name}-reconstruction',
-            'file_dep': [recon_path],
-            'actions': [(audio_generation, [recon_path, audios_path], dict(suffix='recon', column='NewRoll'))],
-            # 'uptodate': [False]
-        }
+        # yield {
+        #     'name': f'{model_name}-orig',
+        #     'file_dep': [recon_path],
+        #     'actions': [(audio_generation, [recon_path, audios_path], dict(suffix="orig", column="roll"))],
+        #     # 'uptodate': [False]
+        # }
+        # yield {
+        #     'name': f'{model_name}-reconstruction',
+        #     'file_dep': [recon_path],
+        #     'actions': [(audio_generation, [recon_path, audios_path], dict(suffix='recon', column='NewRoll'))],
+        #     # 'uptodate': [False]
+        # }
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             eval_dir = get_eval_dir(model_name)
@@ -640,14 +653,15 @@ def task_sample_audios():
                 'file_dep': [f"{successful_rolls_prefix}{suffix}.pkl"],
                 'actions': [(audio_generation,
                              [transferred_path, audios_path, successful_rolls_prefix],
-                             dict(suffix=suffix, orig=s1, dest=s2)
+                             dict(suffix=suffix, orig=s1, dest=s2, b=b, z=z)
                              )],
                 'verbosity': 2,
                 'uptodate': [False]
             }
 
 
-def sheets_generation(transferred_path, sheets_path, suffix=None, column=None, succ_rolls_prefix=None):
+def sheets_generation(transferred_path, sheets_path, suffix=None, column=None, succ_rolls_prefix=None, b=4, z=96):
+    init(b, z)
     if succ_rolls_prefix is None:
         df_transferred = load_pickle(transferred_path)
         column = column if column is not None else df_transferred.columns[-1]
@@ -659,21 +673,23 @@ def sheets_generation(transferred_path, sheets_path, suffix=None, column=None, s
 
 
 def task_sample_sheets():
-    """Produce the sheets generated by the style transference"""
+    """Produce the sheets generated by the style transfer"""
     for model_name in models:
         recon_path = get_reconstruction_path(model_name)
         sheets_path = get_sheets_path(model_name, orig=True)
+        b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name[-2:])
         yield {
             'name': f'{model_name}-orig',
             'file_dep': [recon_path],
-            'actions': [(sheets_generation, (recon_path, sheets_path, 'orig', 'roll'))],
+            'actions': [(sheets_generation, (recon_path, sheets_path, 'orig', 'roll'), dict(b=b, z=z))],
             'uptodate': [False]
         }
         sheets_path = get_sheets_path(model_name, orig=False)
         yield {
             'name': f'{model_name}-reconstruction',
             'file_dep': [recon_path],
-            'actions': [(sheets_generation, (recon_path, sheets_path, 'recon'))],
+            'actions': [(sheets_generation, (recon_path, sheets_path, 'recon'), dict(b=b, z=z))],
             'uptodate': [False]
         }
 
@@ -688,7 +704,7 @@ def task_sample_sheets():
                 'file_dep': [f"{successful_rolls_prefix}{suffix}.pkl"],
                 'actions': [(sheets_generation,
                              [transferred_path, sheets_path, suffix],
-                             dict(succ_rolls_prefix=successful_rolls_prefix)
+                             dict(succ_rolls_prefix=successful_rolls_prefix, b=b, z=z)
                              )],
                 'verbosity': 2,
                 # 'uptodate': [False]
