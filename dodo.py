@@ -34,7 +34,7 @@ subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
-z_dims = [20, 96]
+z_dims = [20, 96, 192]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
 old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
@@ -342,7 +342,7 @@ def task_train():
     """Trains the model"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
         oversample_data_path = oversample_path(model_name)
         test_path = f"{preprocessed_data_path}{b}test.pkl"
 
@@ -386,7 +386,7 @@ def task_test():
     """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
         vae_path = get_model_paths(model_name)[2]
         train_path = f"{preprocessed_data_path}{b}train.pkl"
         val_path = f"{preprocessed_data_path}{b}val.pkl"
@@ -419,7 +419,7 @@ def task_embeddings():
     """Calculate the embeddings for each author/style and song"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -458,7 +458,7 @@ def task_transfer_style():
     """Do the transference of style from a roll to another style"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -489,7 +489,7 @@ def task_metrics():
     """Calculate different metrics for a produced dataset"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
 
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
@@ -528,7 +528,7 @@ def task_evaluation():
     """Evaluate the model considering the calculated metrics"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             styles_path = get_characteristics_path(model_name)
@@ -561,7 +561,7 @@ def task_overall_evaluation():
     """Calculate the final metrics after evaluate the model"""
     for z in z_dims:
         for b in bars:
-            ensamble = [m for m in models if len(m) == 7 and m[0] == str(b) and m[-2:] == str(z)]
+            ensamble = [m for m in models if len(m) == 7 and m[0] == str(b) and m.split("-")[-1] == str(z)]
             overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
             eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars_{z}dim"
             yield {
@@ -577,7 +577,7 @@ def task_overall_evaluation():
 
     for model_name in old_models:
         b = model_name[5]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
         eval_dir = get_eval_dir(model_name)
         eval_path = f"{data_path}/overall_evaluation/{model_name}"
         yield {
@@ -629,7 +629,7 @@ def task_sample_audios():
         # recon_path = get_reconstruction_path(model_name)
         audios_path = get_audios_path(model_name)
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
 
         # yield {
         #     'name': f'{model_name}-orig',
@@ -678,7 +678,7 @@ def task_sample_sheets():
         recon_path = get_reconstruction_path(model_name)
         sheets_path = get_sheets_path(model_name, orig=True)
         b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name[-2:])
+        z = int(model_name.split("-")[-1])
         yield {
             'name': f'{model_name}-orig',
             'file_dep': [recon_path],

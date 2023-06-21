@@ -42,6 +42,9 @@ configs = {
     '1bar_z20': VAEConfigBase(1, 20),
     '4bar_z20': VAEConfigBase(4, 20),
     '8bar_z20': VAEConfigBase(8, 20),
+    '1bar_z192': VAEConfigBase(1, 192),
+    '4bar_z192': VAEConfigBase(4, 192),
+    '8bar_z192': VAEConfigBase(8, 192),
 }
 
 
