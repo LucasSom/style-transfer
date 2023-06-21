@@ -38,7 +38,7 @@ z_dims = [20, 96]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
 old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
-models = old_models + [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y] + ["4-small_br"]
+models = old_models + [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y] + ["4-small_br-96"]
 
 
 epochs = [200, 500, 1000]
@@ -565,7 +565,7 @@ def task_overall_evaluation():
             overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
             eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars_{z}dim"
             yield {
-                'name': f"ensamble_{b}bars",
+                'name': f"ensamble_{b}bars_{z}dim",
                 'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
                              for eval_dir in overall_metric_dirs for s1, s2 in styles_names("brmf_4b")
                              ],
