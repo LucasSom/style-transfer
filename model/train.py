@@ -29,36 +29,29 @@ def get_targets(ds: np.ndarray) -> List[np.ndarray]:
     return [i0, i1, i2, i3]
 
 
-def train_model(df: Union[pd.DataFrame, str], test_data, model_name: str, final_epoch=None, ckpt=None, loss_thold=None,
-                verbose=2):
+def train_model(df: Union[pd.DataFrame, str], test_data, model_name: str, final_epoch=None, verbose=2):
     base_path, vae_dir, _ = get_model_paths(model_name)
     if final_epoch is None:
         final_epoch = int(input("Until how many epochs do you want to train? "))
-    if ckpt is None:
-        ckpt = int(input("How many epochs do you want to run until each automatic checkpoint? "))
-    if loss_thold is None:
-        loss_thold = float(input("With which loss do you want to stop training? "))
     if isinstance(df, str):
         df = load_pickle(file_name=df, verbose=verbose)
 
     if os.path.isfile(f"{vae_dir}/initial_epoch"):
         return continue_training(df=df, test_data=test_data, model_name=model_name, final_epoch=final_epoch,
-                                 loss_thold=loss_thold, ckpt=ckpt, verbose=verbose)
+                                 verbose=verbose)
     else:
         return train_new_model(df=df, test_data=test_data, model_name=model_name, final_epoch=final_epoch,
-                               loss_thold=loss_thold, ckpt=ckpt, verbose=verbose)
+                               verbose=verbose)
 
 
-def train_new_model(df: pd.DataFrame, test_data, model_name: str, final_epoch: int, loss_thold, ckpt: int = 50,
-                    verbose=2):
+def train_new_model(df: pd.DataFrame, test_data, model_name: str, final_epoch: int, verbose=2):
     if verbose: print("Training new model")
     vae = build_model.build_model()
 
-    return train(vae, df, test_data, model_name, 0, final_epoch, ckpt, loss_thold, verbose)
+    return train(vae, df, test_data, model_name, 0, final_epoch, verbose)
 
 
-def continue_training(df: pd.DataFrame, test_data, model_name: str, final_epoch: int, loss_thold, ckpt: int = 50,
-                      verbose=2):
+def continue_training(df: pd.DataFrame, test_data, model_name: str, final_epoch: int, verbose=2):
     base_path, vae_dir, _ = get_model_paths(model_name)
 
     with open(f"{vae_dir}/initial_epoch", 'rt') as f:
@@ -72,10 +65,10 @@ def continue_training(df: pd.DataFrame, test_data, model_name: str, final_epoch:
         print(f"Model not found in {vae_dir}. Trying {new_path}.")
         vae = keras.models.load_model(new_path, custom_objects=dict(kl_beta=build_model.kl_beta))
 
-    return train(vae, df, test_data, model_name, initial_epoch, final_epoch + initial_epoch, ckpt, loss_thold, verbose)
+    return train(vae, df, test_data, model_name, initial_epoch, final_epoch + initial_epoch, verbose)
 
 
-def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss_thold, verbose=2):
+def train(vae, df, test_data, model_name, initial_epoch, final_epoch, verbose=2):
     print(f"Época inicial: {initial_epoch}. Época final: {final_epoch}")
     ds = np.stack([r.matrix for r in df['roll']])
     targets = get_targets(ds)
@@ -87,7 +80,7 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss
     log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
-    path_to_save = f"{vae_dir}/ckpt/" if ckpt > 0 else f"{vae_dir}/"
+    path_to_save = f"{vae_dir}/"
     if os.path.isdir(path_to_save):
         shutil.rmtree(path_to_save)
     else:
@@ -101,34 +94,33 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, ckpt, loss
         save_best_only=True,
         mode='min',
     )
+    early_stopping = EarlyStopping(monitor='val_loss', patience=3)
 
-    if ckpt == 0: ckpt = final_epoch
     initial_kl_beta = 0.0006
     kl_increment_ratio = 5e-7
     kl_threshold = 0.006
     callbacks_path = f"{get_logs_path(model_name)}_{initial_epoch}.csv"
 
-    for i in range(initial_epoch, final_epoch, ckpt):
+    vae.fit(
+        x=ds,
+        y=targets,
+        verbose=verbose,
+        workers=8,
+        initial_epoch=initial_epoch,
+        epochs=initial_epoch + final_epoch,
+        callbacks=[tensorboard_callback,
+                   checkpoint,
+                   PrintLearningRate(),
+                   IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
+                   LossHistory(callbacks_path),
+                   early_stopping],
+        validation_data=(ds_test, targets_test),
+        use_multiprocessing=True
+    )
 
-        vae.fit(
-            x=ds,
-            y=targets,
-            verbose=verbose,
-            workers=8,
-            initial_epoch=i,
-            epochs=i + ckpt,
-            callbacks=[tensorboard_callback, checkpoint,
-                       PrintLearningRate(),
-                       IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
-                       LossHistory(callbacks_path),
-                       EarlyStopping(monitor='val_loss', patience=3)],
-            validation_data=(ds_test, targets_test),
-            use_multiprocessing=True
-        )
-
-        with open(f'{vae_dir}/initial_epoch', 'w') as f:
-            f.write(str(i + ckpt))
-        print(f"Guardado initial_epoch hasta {i + ckpt}!!")
+    with open(f'{vae_dir}/initial_epoch', 'w') as f:
+        f.write(str(early_stopping.stopped_epoch))
+    print(f"Saved initial_epoch until {early_stopping.stopped_epoch}!!")
 
     return vae
 
@@ -207,5 +199,4 @@ if __name__ == "__main__":
               "Try writing a name of an existing file.")
         sys.exit(1)
 
-    train_model(df=df_preprocessed, test_data=test_data, model_name=model_name, final_epoch=epochs, ckpt=checkpt,
-                verbose=verbose)
+    train_model(df=df_preprocessed, test_data=test_data, model_name=model_name, final_epoch=epochs, verbose=verbose)
