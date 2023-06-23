@@ -34,7 +34,7 @@ subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
-z_dims = [20, 96, 192]
+z_dims = [20, 96, 192, 512]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
 old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
