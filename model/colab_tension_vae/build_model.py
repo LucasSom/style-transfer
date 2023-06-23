@@ -1,3 +1,4 @@
+from keras.layers import Dropout
 from tensorflow.keras.layers import Dense, \
     GRU, Input, Bidirectional, RepeatVector, \
     TimeDistributed, Lambda
@@ -82,33 +83,30 @@ def build_model():
     # diameter_output = TimeDistributed(Dense(tension_output_dim, activation='elu'),
     #                                  name='diameter_strain_dense2')(diameter_middle_output)
 
+    # Agregamos Dropout
+    # droput_decoder = Dropout(rate=0.1, name='droput_decoder')(rnn2_output)
+
     melody_rhythm_1 = TimeDistributed(Dense(params.config.start_middle_dim, activation='elu'),
                                       name='melody_start_dense1')(rnn2_output)
     melody_rhythm_output = TimeDistributed(Dense(params.config.melody_note_start_dim, activation='sigmoid'),
-                                           name='melody_start_dense2')(
-        melody_rhythm_1)
+                                           name='melody_start_dense2')(melody_rhythm_1)
 
     melody_pitch_1 = TimeDistributed(Dense(params.config.melody_bass_dense_1_dim, activation='elu'),
                                      name='melody_pitch_dense1')(rnn2_output)
-
     melody_pitch_output = TimeDistributed(Dense(params.config.melody_output_dim, activation='softmax'),
                                           name='melody_pitch_dense2')(melody_pitch_1)
 
     bass_rhythm_1 = TimeDistributed(Dense(params.config.start_middle_dim, activation='elu'),
                                     name='bass_start_dense1')(rnn2_output)
-
     bass_rhythm_output = TimeDistributed(Dense(params.config.bass_note_start_dim, activation='sigmoid'),
-                                         name='bass_start_dense2')(
-        bass_rhythm_1)
+                                         name='bass_start_dense2')(bass_rhythm_1)
 
     bass_pitch_1 = TimeDistributed(Dense(params.config.melody_bass_dense_1_dim, activation='elu'),
                                    name='bass_pitch_dense1')(rnn2_output)
     bass_pitch_output = TimeDistributed(Dense(params.config.bass_output_dim, activation='softmax'),
                                         name='bass_pitch_dense2')(bass_pitch_1)
 
-    decoder_output = [melody_pitch_output, melody_rhythm_output, bass_pitch_output, bass_rhythm_output,
-                      # tensile_output, diameter_output
-                      ]
+    decoder_output = [melody_pitch_output, melody_rhythm_output, bass_pitch_output, bass_rhythm_output]
 
     decoder = Model(decoder_latent_input, decoder_output, name='decoder')
 
@@ -120,7 +118,7 @@ def build_model():
 
     vae.add_metric(kl_loss, name='kl_loss', aggregation='mean')
 
-    optimizer = keras.optimizers.Adam(amsgrad=True)
+    optimizer = keras.optimizers.Adam(amsgrad=True, clipnorm=1)
 
     vae.compile(optimizer=optimizer,
                 loss=['categorical_crossentropy', 'binary_crossentropy',
