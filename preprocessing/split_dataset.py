@@ -1,3 +1,8 @@
+"""
+This script is not included in the pipeline because is for specific purposes of the Lakh Midi Dataset only.
+Run it if you want to parallelize preprocessing (after being run Guo's Midi Miner)
+"""
+
 import os
 
 from utils.files_utils import datasets_path
