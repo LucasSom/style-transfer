@@ -66,7 +66,7 @@ def preprocessed_data_path(b, lmd, small=False):
     if small:
         return f"{preprocessed_data_dir}{b}-small_br.pkl"
     if lmd:
-        return f"{preprocessed_data_dir}lmd-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+        return f"{preprocessed_data_dir}lmd_{lmd}-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
     return f"{preprocessed_data_dir}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
 
 

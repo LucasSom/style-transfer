@@ -91,7 +91,7 @@ def task_preprocess():
             yield {
                 'name': f"{b}bars_lmd-{i}",
                 'actions': [(preprocess, [b], {'folders': f'{subdataset_lmd}/{i}'})],
-                'targets': [preprocessed_data_path(b, True)],
+                'targets': [preprocessed_data_path(b, i+1)],
                 'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
             }
     yield {
