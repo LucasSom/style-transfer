@@ -13,7 +13,7 @@ import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from roll.song import Song
 from utils import files_utils
-from utils.files_utils import datasets_path, save_pickle, preprocessed_data_path, root_file_name, \
+from utils.files_utils import datasets_path, save_pickle, preprocessed_data_dir, root_file_name, \
     original_audios_path, data_path
 
 
@@ -102,8 +102,8 @@ if __name__ == "__main__":
 
     if file_name is None:
         file_name = "prep"
-        print(f"Using default output file name, ie, {preprocessed_data_path + file_name}-{params.config.bars}")
-        file_name = f"{preprocessed_data_path + file_name}-{params.config.bars}"
+        print(f"Using default output file name, ie, {preprocessed_data_dir + file_name}-{params.config.bars}")
+        file_name = f"{preprocessed_data_dir + file_name}-{params.config.bars}"
     else:
         file_name = f"{file_name}-{params.config.bars}"
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         songs = {folder: [f"{folder}/{song}" for song in os.listdir(_data_path + folder)] for folder in args}
 
         df = preprocess_data(songs, verbose=verbose)
-        save_pickle(df, file_name=preprocessed_data_path+file_name, verbose=verbose)
+        save_pickle(df, file_name=preprocessed_data_dir + file_name, verbose=verbose)
         print("=================================================================================\n",
               f"Saved dataset preprocessed in {file_name}.pkl",
               "=================================================================================")

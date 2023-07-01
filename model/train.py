@@ -19,7 +19,7 @@ except ImportError:
 from tensorflow import keras
 
 from model.colab_tension_vae import build_model, params
-from utils.files_utils import load_pickle, data_path, preprocessed_data_path, get_logs_path, get_model_paths
+from utils.files_utils import load_pickle, data_path, preprocessed_data_dir, get_logs_path, get_model_paths
 
 
 def get_targets(ds: np.ndarray) -> List[np.ndarray]:
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     params.init(config_name)
 
     if file_name is None:
-        file_name = input(f"Insert path of file with the preprocessed data from {preprocessed_data_path}: ")
+        file_name = input(f"Insert path of file with the preprocessed data from {preprocessed_data_dir}: ")
     if model_name is None:
         model_name = file_name
         print(f"Using default model name, ie, file name: {file_name}-{params.config.bars}")
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     songs = {folder: [song for song in os.listdir(data_path + folder)] for folder in args}
 
     try:
-        df_preprocessed = load_pickle(file_name=f"{preprocessed_data_path}{file_name}", verbose=verbose)
+        df_preprocessed = load_pickle(file_name=f"{preprocessed_data_dir}{file_name}", verbose=verbose)
     except getopt.GetoptError as err:
         print(err)
         print("The program experimented problems loading the preprocessed dataset. "

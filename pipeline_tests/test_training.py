@@ -2,7 +2,7 @@ from keras.saving.save import load_model
 
 from model.embeddings.embeddings import get_reconstruction
 from utils.files_utils import load_pickle, data_path, save_pickle, get_reconstruction_path, get_model_paths, \
-    preprocessed_data
+    preprocessed_data_path
 
 
 def test_reconstruction():
@@ -15,7 +15,7 @@ def test_reconstruction():
     except:
         model_path, vae_dir, _ = get_model_paths(model_name)
         model = load_model(vae_dir)
-        df = load_pickle(preprocessed_data(4, False))
+        df = load_pickle(preprocessed_data_path(4, False, False))
         df_reconstructed = get_reconstruction(df, model, model_name, 500, inplace=inplace)
         save_pickle(df_reconstructed, get_reconstruction_path(model_name))
 

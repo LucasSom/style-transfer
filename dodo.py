@@ -22,15 +22,16 @@ from model.embeddings.embeddings import get_reconstruction
 from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
-from preprocessing import preprocess_data, oversample
+from preprocessing.preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios
 from utils.files_utils import *
-from utils.files_utils import preprocessed_data
+from utils.files_utils import preprocessed_data_path
 from utils.plots_utils import plot_embeddings, plot_accuracies
 from utils.sampling_utils import sample_uniformly, balanced_sampling
 from utils.utils import show_sheets
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
+subdataset_lmd = ["lmd_separated_tracks"]
 small_subdatasets = ["small_Bach", "small_ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
@@ -83,15 +84,22 @@ def task_preprocess():
             # 'file_dep': files,
             'name': f"{b}bars",
             'actions': [(preprocess, [b], {'folders': subdatasets})],
-            'targets': [preprocessed_data(b)],
-            'uptodate': [os.path.isfile(preprocessed_data(b))]
+            'targets': [preprocessed_data_path(b, False)],
+            'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
         }
+        for i in range(16):
+            yield {
+                'name': f"{b}bars_lmd-{i}",
+                'actions': [(preprocess, [b], {'folders': f'{subdataset_lmd}/{i}'})],
+                'targets': [preprocessed_data_path(b, True)],
+                'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
+            }
     yield {
         # 'file_dep': files,
         'name': f"small_4bars",
         'actions': [(preprocess, [4], {'folders': small_subdatasets})],
-        'targets': [preprocessed_data(4, True)],
-        'uptodate': [os.path.isfile(preprocessed_data(4, True))]
+        'targets': [preprocessed_data_path(4, False, True)],
+        'uptodate': [os.path.isfile(preprocessed_data_path(4, False, True))]
     }
 
 
@@ -110,10 +118,10 @@ def split(b, df_path, train_path, test_path, val_path):
 def task_split_dataset():
     """Split the dataset into train, test and validation"""
     for b in bars:
-        train_path = f"{preprocessed_data_path}{b}train.pkl"
-        test_path = f"{preprocessed_data_path}{b}test.pkl"
-        val_path = f"{preprocessed_data_path}{b}val.pkl"
-        df_path = preprocessed_data(b)
+        train_path = f"{preprocessed_data_dir}{b}train.pkl"
+        test_path = f"{preprocessed_data_dir}{b}test.pkl"
+        val_path = f"{preprocessed_data_dir}{b}val.pkl"
+        df_path = preprocessed_data_path(b, False)
         yield {
             'file_dep': [df_path],
             'name': f"{b}bars",
@@ -168,8 +176,8 @@ def task_assemble_data_to_analyze():
         eval_dir = f"{data_path}/data_analysis"
         yield {
             'name': "not_cv",
-            'file_dep': [preprocessed_data(b)],
-            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, False])],
+            'file_dep': [preprocessed_data_path(b, False)],
+            'actions': [(prepare_data, [preprocessed_data_path(b, False), eval_dir, b, False])],
             'targets': [eval_dir + '/df_to_analyze.pkl',
                         eval_dir + '/melodic_distribution.pkl',
                         eval_dir + '/rhythmic_distribution.pkl'],
@@ -179,8 +187,8 @@ def task_assemble_data_to_analyze():
         eval_dir = f"{data_path}/data_analysis/cross_val"
         yield {
             'name': f"cv",
-            'file_dep': [preprocessed_data(b)],
-            'actions': [(prepare_data, [preprocessed_data(b), eval_dir, b, True])],
+            'file_dep': [preprocessed_data_path(b, False)],
+            'actions': [(prepare_data, [preprocessed_data_path(b, False), eval_dir, b, True])],
             'targets': [eval_dir + '/df_80_indexes_0.pkl',
                         eval_dir + '/rolls_long_df_test_0.csv',
                         eval_dir + '/rolls_long_df_test_0.pkl',
@@ -310,7 +318,7 @@ def task_oversample():
     """Balances the minority classes"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        train_path = f"{preprocessed_data_path}{b}train.pkl"
+        train_path = f"{preprocessed_data_dir}{b}train.pkl"
         oversample_data_path = oversample_path(model_name)
         yield {
             'name': f"{model_name}",
@@ -344,7 +352,7 @@ def task_train():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
         oversample_data_path = oversample_path(model_name)
-        test_path = f"{preprocessed_data_path}{b}test.pkl"
+        test_path = f"{preprocessed_data_dir}{b}test.pkl"
 
         vae_path = get_model_paths(model_name)[2]
         yield {
@@ -388,8 +396,8 @@ def task_test():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
         vae_path = get_model_paths(model_name)[2]
-        train_path = f"{preprocessed_data_path}{b}train.pkl"
-        val_path = f"{preprocessed_data_path}{b}val.pkl"
+        train_path = f"{preprocessed_data_dir}{b}train.pkl"
+        val_path = f"{preprocessed_data_dir}{b}val.pkl"
         yield {
             'name': f"{model_name}",
             'file_dep': [train_path, vae_path],
@@ -423,7 +431,7 @@ def task_embeddings():
         model_path, vae_dir, vae_path = get_model_paths(model_name)
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
-        train_path = f"{preprocessed_data_path}{b}train.pkl"
+        train_path = f"{preprocessed_data_dir}{b}train.pkl"
 
         yield {
             'name': f"{model_name}",

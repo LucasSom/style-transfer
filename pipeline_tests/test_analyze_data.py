@@ -1,13 +1,13 @@
 import pytest
 
 from dodo import data_analysis, prepare_data
-from utils.files_utils import data_path, preprocessed_data
+from utils.files_utils import data_path, preprocessed_data_path
 
 
 def test_prepare_data():
     b = 4
     eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
-    df_path = preprocessed_data(b)
+    df_path = preprocessed_data_path(b, False)
 
     prepare_data(df_path, eval_dir, b, cv=False)
 

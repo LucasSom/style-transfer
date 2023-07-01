@@ -11,9 +11,9 @@ data_path = project_path + '/data/'
 datasets_path = os.path.join(data_path, 'datasets')
 datasets_debug_path = os.path.join(datasets_path, 'debug')
 data_tests_path = data_path + 'tests/'
-preprocessed_data_path = data_path + 'preprocessed_data/'
+preprocessed_data_dir = data_path + 'preprocessed_data_path/'
 path_saved_models = data_path + 'brmf_4b/vae/'
-original_audios_path = os.path.join(preprocessed_data_path, 'original/audios/')
+original_audios_path = os.path.join(preprocessed_data_dir, 'original/audios/')
 
 
 def root_file_name(p):
@@ -62,15 +62,16 @@ def datasets_name(ds):
     return composed_name
 
 
-def preprocessed_data(b, small=False):
+def preprocessed_data_path(b, lmd, small=False):
     if small:
-        return f"{preprocessed_data_path}{b}-small_br.pkl"
-    return f"{preprocessed_data_path}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+        return f"{preprocessed_data_dir}{b}-small_br.pkl"
+    if lmd:
+        return f"{preprocessed_data_dir}lmd-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+    return f"{preprocessed_data_dir}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
 
 
 def oversample_path(model_name):
-    return f"{preprocessed_data_path}{model_name}-balanced.pkl"
-
+    return f"{preprocessed_data_dir}{model_name}-balanced.pkl"
 
 
 def get_logs_path(model_name):
@@ -178,8 +179,8 @@ def get_packed_metrics(overall_metric_dirs: List[str]):
 
     # Packing musicality and plagiarism evaluation
     packed_metrics_aux = {"Style": {},
-                          "Musicality": {target: {orig:0 for orig in styles} for target in styles},
-                          "Plagiarism": {target: {orig:0 for orig in styles} for target in styles}}
+                          "Musicality": {target: {orig: 0 for orig in styles} for target in styles},
+                          "Plagiarism": {target: {orig: 0 for orig in styles} for target in styles}}
 
     for d in dicts_overall_metrics:
         packed_metrics_aux["Musicality"][d["target"]][d['orig']] = d['Musicality']

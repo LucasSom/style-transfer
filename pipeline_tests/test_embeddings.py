@@ -7,14 +7,14 @@ from dodo import analyze_training, do_embeddings, models
 from model.colab_tension_vae.params import init
 from model.embeddings.embeddings import obtain_embeddings
 from model.embeddings.style import Style
-from utils.files_utils import load_pickle, preprocessed_data_path, path_saved_models, get_embedding_path, \
-    get_reconstruction_path, get_characteristics_path, get_emb_path, data_path, get_model_paths, preprocessed_data
+from utils.files_utils import load_pickle, preprocessed_data_dir, path_saved_models, get_embedding_path, \
+    get_reconstruction_path, get_characteristics_path, get_emb_path, data_path, get_model_paths, preprocessed_data_path
 from utils.plots_utils import plot_characteristics_distributions
 
 
 @pytest.fixture
 def brmf4_prep():
-    return load_pickle(file_name=preprocessed_data_path+"bach-rag-moz-fres-4")
+    return load_pickle(file_name=preprocessed_data_dir + "bach-rag-moz-fres-4")
 
 
 
@@ -70,8 +70,8 @@ def test_obtain_embeddings(brmf4_prep):
 def test_analyze_training():
     b = 4
     model_name = 'brmf_4b_beta'
-    val_path = f"{preprocessed_data_path}{b}val.pkl"
-    analyze_training(train_path=preprocessed_data(4), val_path=val_path, model_name=model_name, b=4,
+    val_path = f"{preprocessed_data_dir}{b}val.pkl"
+    analyze_training(train_path=preprocessed_data_path(4, False), val_path=val_path, model_name=model_name, b=4,
                      targets=get_reconstruction_path(model_name))
 
 
@@ -84,7 +84,7 @@ def test_plot_distributions(characteristics):
 def test_characteristics():
     model_name = '4-small_br'
     model_path = data_path + f'/{model_name}/vae'
-    do_embeddings(preprocessed_data(4), model_path, model_path, get_characteristics_path(model_name),
+    do_embeddings(preprocessed_data_path(4, False), model_path, model_path, get_characteristics_path(model_name),
                   get_emb_path(model_name), 4)
 
 
@@ -97,14 +97,14 @@ def test_characteristics_beta():
     emb_path = get_emb_path(model_name)
     small = "small" in model_name
 
-    do_embeddings(preprocessed_data(b, small),
-                          model_path,
-                          vae_dir,
-                          characteristics_path,
-                          emb_path, b)
+    do_embeddings(preprocessed_data_path(b, False, small),
+                  model_path,
+                  vae_dir,
+                  characteristics_path,
+                  emb_path, b)
 
 def test_all_models_characteristics():
     for model_name in models:
         model_path = data_path + f'/{model_name}/vae'
-        do_embeddings(preprocessed_data(4), model_path, model_path, get_characteristics_path(model_name),
+        do_embeddings(preprocessed_data_path(4, False), model_path, model_path, get_characteristics_path(model_name),
                       get_emb_path(model_name), 4)

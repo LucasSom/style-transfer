@@ -12,7 +12,7 @@ ls data/brmf_4b/
 ls data/brmf_4b/vae
 ls data/datasets
 ls data/preprocessed_data/
-d = pd.read_pickle('./data/preprocessed_data/bach-rag-moz-fres-4.pkl')
+d = pd.read_pickle('./data/preprocessed_data_path/bach-rag-moz-fres-4.pkl')
 d
 d.iloc[0]['roll']
 r = d.iloc[0]['roll']

@@ -3,7 +3,7 @@ import pytest
 
 from model.colab_tension_vae.params import init
 from model.train import train_new_model, continue_training
-from utils.files_utils import load_pickle, preprocessed_data_path, get_logs_path
+from utils.files_utils import load_pickle, preprocessed_data_dir, get_logs_path
 from utils.plots_utils import plot_train
 
 cols = ['decoder_loss', 'decoder_1_loss', 'decoder_2_loss', 'decoder_3_loss', 'loss', 'epoch']
@@ -11,12 +11,12 @@ cols = ['decoder_loss', 'decoder_1_loss', 'decoder_2_loss', 'decoder_3_loss', 'l
 
 @pytest.fixture
 def sonata15_mapleleaf_prep_8():
-    return load_pickle(file_name=preprocessed_data_path+"sonata15_mapleleaf_ds-8")
+    return load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
 
 
 @pytest.fixture
 def sonata15_mapleleaf_prep_4():
-    return load_pickle(file_name=preprocessed_data_path+"sonata15_mapleleaf_ds-4")
+    return load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
 
 
 def test_new_model_1_epoch(sonata15_mapleleaf_prep_8):

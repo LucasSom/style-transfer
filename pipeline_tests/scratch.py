@@ -1,4 +1,4 @@
-# from dodo import train, preprocessed_data, models
+# from dodo import train, preprocessed_data_path, models
 # from model.colab_tension_vae.params import init
 #
 #
@@ -7,7 +7,7 @@
 #     b = model_name[0]
 #     init(b)
 #
-#     train(preprocessed_data(b), model_name)
+#     train(preprocessed_data_path(b), model_name)
 #     return 0
 #
 #

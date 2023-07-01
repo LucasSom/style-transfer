@@ -3,9 +3,9 @@ import os
 import model.colab_tension_vae.params as params
 from utils.debug_utils import pm_cmp
 from utils.audio_management import save_audios
-from utils.files_utils import save_pickle, load_pickle, data_path, preprocessed_data_path, datasets_path, \
+from utils.files_utils import save_pickle, load_pickle, data_path, preprocessed_data_dir, datasets_path, \
     original_audios_path
-from preprocessing import preprocess_data
+from preprocessing.preprocessing import preprocess_data
 import pytest
 
 from roll.guoroll import GuoRoll
@@ -25,10 +25,10 @@ def mapleleaf_ds():
 def test_mapleaf(mapleleaf_ds):
     params.init("8bar")
     try:
-        df = load_pickle(file_name=preprocessed_data_path + "mapleleaf_ds-8")
+        df = load_pickle(file_name=preprocessed_data_dir + "mapleleaf_ds-8")
     except:
         df = preprocess_data(mapleleaf_ds)
-        save_pickle(df, file_name=preprocessed_data_path + "mapleleaf_ds-8")
+        save_pickle(df, file_name=preprocessed_data_dir + "mapleleaf_ds-8")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
 
@@ -43,10 +43,10 @@ def test_mapleaf(mapleleaf_ds):
 def test_preprocess_data(sonata15_mapleleaf_ds):
     params.init("8bar")
     try:
-        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
+        df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
+        save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
 
@@ -64,10 +64,10 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
 def test_midis_from_df(sonata15_mapleleaf_ds):
     params.init("8bar")
     try:
-        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
+        df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-8")
+        save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
     save_audios([df["Title"][0], df["Title"][20]], [r0.midi, r20.midi], path=data_path + "/debug_outputs/audios/")
@@ -76,10 +76,10 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
 def test_mapleaf_4bars(mapleleaf_ds):
     params.init("4bar")
     try:
-        df = load_pickle(file_name=preprocessed_data_path + "mapleleaf_ds-4")
+        df = load_pickle(file_name=preprocessed_data_dir + "mapleleaf_ds-4")
     except:
         df = preprocess_data(mapleleaf_ds)
-        save_pickle(df, file_name=preprocessed_data_path + "mapleleaf_ds-4")
+        save_pickle(df, file_name=preprocessed_data_dir + "mapleleaf_ds-4")
 
     audio_path = original_audios_path
 
@@ -95,10 +95,10 @@ def test_mapleaf_4bars(mapleleaf_ds):
 def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
     params.init("4bar")
     try:
-        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
+        df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
+        save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
 
@@ -112,10 +112,10 @@ def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
 def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
     params.init("4bar")
     try:
-        df = load_pickle(file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
+        df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
     except:
         df = preprocess_data(sonata15_mapleleaf_ds)
-        save_pickle(df, file_name=preprocessed_data_path + "sonata15_mapleleaf_ds-4")
+        save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
 
