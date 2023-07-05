@@ -31,7 +31,7 @@ from utils.sampling_utils import sample_uniformly, balanced_sampling
 from utils.utils import show_sheets
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
-subdataset_lmd = ["lmd_separated_tracks"]
+subdataset_lmd = "sub_lmd"
 small_subdatasets = ["small_Bach", "small_ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
 
@@ -66,14 +66,16 @@ def styles_names(model_name):
 DOIT_CONFIG = {'verbosity': 2}
 
 
-def preprocess(b, folders, targets):
+def preprocess(b, folders, save_midis, targets):
     init(b)
     songs = {}
     for folder in folders:
         songs[folder] = [f"{folder}/{song}"
                          for song in os.listdir(f"{datasets_path}/{folder}")]
-    df = preprocess_data(songs)
-    save_pickle(df, targets[0])
+    df = preprocess_data(songs, save_midis)
+    print("DEBUG: df", df)
+    print("DEBUG: targets[0]", targets[0])
+    save_pickle(df, targets[0], verbose=True)
 
 
 def task_preprocess():
@@ -83,21 +85,21 @@ def task_preprocess():
         yield {
             # 'file_dep': files,
             'name': f"{b}bars",
-            'actions': [(preprocess, [b], {'folders': subdatasets})],
+            'actions': [(preprocess, [b], {'folders': subdatasets, 'save_midis': True})],
             'targets': [preprocessed_data_path(b, False)],
             'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
         }
-        for i in range(16):
+        for i in range(32):
             yield {
                 'name': f"{b}bars_lmd-{i}",
-                'actions': [(preprocess, [b], {'folders': f'{subdataset_lmd}/{i}'})],
+                'actions': [(preprocess, [b], {'folders': [f'{subdataset_lmd}/{i}'], 'save_midis': False})],
                 'targets': [preprocessed_data_path(b, i+1)],
                 'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
             }
     yield {
         # 'file_dep': files,
         'name': f"small_4bars",
-        'actions': [(preprocess, [4], {'folders': small_subdatasets})],
+        'actions': [(preprocess, [4], {'folders': small_subdatasets, 'save_midis': True})],
         'targets': [preprocessed_data_path(4, False, True)],
         'uptodate': [os.path.isfile(preprocessed_data_path(4, False, True))]
     }

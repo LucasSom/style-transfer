@@ -1,15 +1,14 @@
-import os
 import glob
+import os
 import random
 from typing import List
 
 import music21 as m21
-import numpy
 import numpy as np
 from IPython.core.display import display, Image
 
-from model.colab_tension_vae import util
 import model.colab_tension_vae.params as params
+from model.colab_tension_vae import util
 from utils.audio_management import save_audio, lily_conv
 from utils.files_utils import root_file_name, data_path
 
@@ -28,7 +27,7 @@ class GuoRoll:
 
     """
 
-    def __init__(self, matrix, name='', audio_path=data_path, song=None, verbose=False):
+    def __init__(self, matrix, name='', audio_path=data_path, song=None, save_midi=True, verbose=False):
         """
         :param matrix: matrix of `16*n x 89` with n=number of bars
         :param name: name of roll (used on the name of midi and sheet files)
@@ -40,14 +39,18 @@ class GuoRoll:
         self.name = name
         self.score = self._roll_to_score(verbose=verbose)
 
-        if song is None:
-            self.midi = self._roll_to_midi(audio_path, old_pm=None, verbose=verbose)
+        if save_midi:
+            if song is None:
+                self.midi = self._roll_to_midi(audio_path, old_pm=None, verbose=verbose)
+            else:
+                self.midi = self._roll_to_midi(audio_path, old_pm=song.old_pm, verbose=verbose)
+            if verbose: print(f"Created: {self.midi}")
         else:
-            self.midi = self._roll_to_midi(audio_path, old_pm=song.old_pm, verbose=verbose)
-        if verbose: print(f"Created: {self.midi}")
+            self.midi = None
 
     def _roll_to_midi(self, path, old_pm=None, verbose=False):
-        return save_audio(self.name, util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose), path, verbose)
+        return save_audio(self.name, util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose), path, False,
+                          verbose)
 
     def _roll_to_score(self, verbose=False):
         def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24, verbose=False):

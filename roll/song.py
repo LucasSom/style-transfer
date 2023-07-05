@@ -7,18 +7,19 @@ from roll.guoroll import GuoRoll
 
 
 class Song:
-    def __init__(self, midi_file: str, nombre: str, audio_path: str, pulso="negra", granularity="semicorchea",
-                 verbose=False):
+    def __init__(self, midi_file: str, nombre: str, audio_path: str, save_midi=True, pulso="negra",
+                 granularity="semicorchea", verbose=False):
         self.name = nombre
         self.bars = params.config.bars
         self.pulso = pulso
         self.granularity = granularity
 
         matrices, _, old_pm, bars_skipped = preprocess_midi_wrapper(midi_file, verbose=verbose)
-        self.old_pm = old_pm
+        self.old_pm = old_pm if save_midi else None
         self.bars_skipped = bars_skipped
         self.rolls = [
-            GuoRoll(m, f"{nombre}_{i}", os.path.join(audio_path, f"{self.bars}bars"), song=self, verbose=verbose)
+            GuoRoll(m, f"{nombre}_{i}", os.path.join(audio_path, f"{self.bars}bars"), song=self, save_midi=save_midi,
+                    verbose=verbose)
             for i, m in enumerate(matrices)
         ]
 

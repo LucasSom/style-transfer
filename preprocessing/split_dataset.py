@@ -8,7 +8,7 @@ import os
 from utils.files_utils import datasets_path
 
 if __name__ == '__main__':
-    n = 16  # amount of folders where the midis will be split
+    n = 64  # amount of folders where the midis will be split
     input_path = os.path.join(datasets_path, 'lmd_separated_tracks')
     ls = os.listdir(input_path)
     subdatasets = []
