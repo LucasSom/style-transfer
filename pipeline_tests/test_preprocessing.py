@@ -28,7 +28,7 @@ def test_mapleaf(mapleleaf_ds):
     try:
         df = load_pickle(file_name=preprocessed_data_dir + "mapleleaf_ds-8")
     except:
-        df = preprocess_data(mapleleaf_ds, False)
+        df = preprocess_data(mapleleaf_ds, False, False)
         save_pickle(df, file_name=preprocessed_data_dir + "mapleleaf_ds-8")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
@@ -46,7 +46,7 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
     try:
         df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
     except:
-        df = preprocess_data(sonata15_mapleleaf_ds, False)
+        df = preprocess_data(sonata15_mapleleaf_ds, False, False)
         save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
@@ -67,7 +67,7 @@ def test_midis_from_df(sonata15_mapleleaf_ds):
     try:
         df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
     except:
-        df = preprocess_data(sonata15_mapleleaf_ds, False)
+        df = preprocess_data(sonata15_mapleleaf_ds, False, False)
         save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-8")
     r0 = df["roll"][0]
     r20 = df["roll"][20]
@@ -79,7 +79,7 @@ def test_mapleaf_4bars(mapleleaf_ds):
     try:
         df = load_pickle(file_name=preprocessed_data_dir + "mapleleaf_ds-4")
     except:
-        df = preprocess_data(mapleleaf_ds, False)
+        df = preprocess_data(mapleleaf_ds, False, False)
         save_pickle(df, file_name=preprocessed_data_dir + "mapleleaf_ds-4")
 
     audio_path = original_audios_path
@@ -98,7 +98,7 @@ def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
     try:
         df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
     except:
-        df = preprocess_data(sonata15_mapleleaf_ds, False)
+        df = preprocess_data(sonata15_mapleleaf_ds, False, False)
         save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
@@ -115,7 +115,7 @@ def test_midis_from_df_4bars(sonata15_mapleleaf_ds):
     try:
         df = load_pickle(file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
     except:
-        df = preprocess_data(sonata15_mapleleaf_ds, False)
+        df = preprocess_data(sonata15_mapleleaf_ds, False, False)
         save_pickle(df, file_name=preprocessed_data_dir + "sonata15_mapleleaf_ds-4")
 
     audio_path = os.path.join(data_path, "debug_outputs/audios/")
@@ -131,4 +131,4 @@ def test_task_preprocess():
     params.init(b)
     targets = [preprocessed_data_path(b, i+1)]
     folders = [f'{subdataset_lmd}/{i}']
-    preprocess(b, folders, save_midis=False, targets=targets)
+    preprocess(b, folders, save_midis=False, sparse=True, targets=targets)

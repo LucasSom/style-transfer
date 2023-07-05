@@ -66,15 +66,14 @@ def styles_names(model_name):
 DOIT_CONFIG = {'verbosity': 2}
 
 
-def preprocess(b, folders, save_midis, targets):
+def preprocess(b, folders, save_midis, sparse, targets):
     init(b)
     songs = {}
     for folder in folders:
         songs[folder] = [f"{folder}/{song}"
                          for song in os.listdir(f"{datasets_path}/{folder}")]
-    df = preprocess_data(songs, save_midis)
-    print("DEBUG: df", df)
-    print("DEBUG: targets[0]", targets[0])
+    df = preprocess_data(songs, save_midis, sparse=sparse)
+    print("Saving pickle on:", targets[0])
     save_pickle(df, targets[0], verbose=True)
 
 
@@ -85,21 +84,21 @@ def task_preprocess():
         yield {
             # 'file_dep': files,
             'name': f"{b}bars",
-            'actions': [(preprocess, [b], {'folders': subdatasets, 'save_midis': True})],
+            'actions': [(preprocess, [b], {'folders': subdatasets, 'save_midis': True, 'sparse': False})],
             'targets': [preprocessed_data_path(b, False)],
             'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
         }
         for i in range(32):
             yield {
                 'name': f"{b}bars_lmd-{i}",
-                'actions': [(preprocess, [b], {'folders': [f'{subdataset_lmd}/{i}'], 'save_midis': False})],
+                'actions': [(preprocess, [b, [f'{subdataset_lmd}/{i}'], False, True])],
                 'targets': [preprocessed_data_path(b, i+1)],
                 'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
             }
     yield {
         # 'file_dep': files,
         'name': f"small_4bars",
-        'actions': [(preprocess, [4], {'folders': small_subdatasets, 'save_midis': True})],
+        'actions': [(preprocess, [4], {'folders': small_subdatasets, 'save_midis': True, 'sparse': True})],
         'targets': [preprocessed_data_path(4, False, True)],
         'uptodate': [os.path.isfile(preprocessed_data_path(4, False, True))]
     }

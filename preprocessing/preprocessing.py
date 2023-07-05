@@ -22,12 +22,13 @@ def df_roll_to_pm(matrices, pms, verbose=False):
     return [util.roll_to_pretty_midi(m, pm, verbose=verbose) for m, pm in zip(matrices, pms)]
 
 
-def preprocess_data(songs_dict: Dict[str, List[str]], save_midis: bool, verbose=False) -> pd.DataFrame:
+def preprocess_data(songs_dict: Dict[str, List[str]], save_midis: bool, sparse: bool, verbose=False) -> pd.DataFrame:
     """
     Preprocess subdatasets of midi files, creating a DataFrame of rolls prepared to use as dataset to train the model.
 
     :param songs_dict: Dictionary of sub-datasets. Key: name of sub-dataset. Value: name of each midi file.
     :param save_midis: whether to save midi files when building GuoRolls
+    :param sparse: whether to save sparse matrices or dense matrices
     :param verbose: Whether to print intermediate messages.
     :return: DataFrame with 3 columns: 'Style', 'Title' and 'roll' (the GuoRolls of each song).
     """
@@ -37,7 +38,7 @@ def preprocess_data(songs_dict: Dict[str, List[str]], save_midis: bool, verbose=
 
     def f(author, title, path):
         song = Song(midi_file=os.path.join(datasets_path, path), nombre=os.path.basename(path),
-                    audio_path=original_audios_path, save_midi=save_midis, verbose=verbose)
+                    audio_path=original_audios_path, save_midi=save_midis, sparse=sparse, verbose=verbose)
         return author, title, song
 
     rolls_list = []
@@ -45,7 +46,6 @@ def preprocess_data(songs_dict: Dict[str, List[str]], save_midis: bool, verbose=
         rolls_list.append(f(a, t, p))
         print(f"Roll: {i}/{len(paths)} - {i/len(paths)*100}%")
     # rolls_list = p_tqdm.p_map(f, *zip(*paths))
-    print("DEBUG: rolls_list", rolls_list)
     data = [{'Style': author,
              'Title': root_file_name(title),
              'roll_id': i,
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     else:
         songs = {folder: [f"{folder}/{song}" for song in os.listdir(_data_path + folder)] for folder in args}
 
-        df = preprocess_data(songs, False, verbose=verbose)
+        df = preprocess_data(songs, False, False, verbose=verbose)
         save_pickle(df, file_name=preprocessed_data_dir + file_name, verbose=verbose)
         print("=================================================================================\n",
               f"Saved dataset preprocessed in {file_name}.pkl",

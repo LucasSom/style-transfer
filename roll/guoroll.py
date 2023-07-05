@@ -3,6 +3,7 @@ import os
 import random
 from typing import List
 
+from scipy.sparse import csr_matrix
 import music21 as m21
 import numpy as np
 from IPython.core.display import display, Image
@@ -27,14 +28,15 @@ class GuoRoll:
 
     """
 
-    def __init__(self, matrix, name='', audio_path=data_path, song=None, save_midi=True, verbose=False):
+    def __init__(self, matrix, name='', audio_path=data_path, song=None, save_midi=True, sparse=True, verbose=False):
         """
         :param matrix: matrix of `16*n x 89` with n=number of bars
         :param name: name of roll (used on the name of midi and sheet files)
         :param song: reference to the object `song` to which it belongs or `None` if it was obtained from the embedding
         """
         self.bars = params.config.bars
-        self.matrix = matrix
+        self.matrix = csr_matrix(matrix) if sparse else matrix
+        self.sparse = sparse
         self.song = song
         self.name = name
         self.score = self._roll_to_score(verbose=verbose)
@@ -57,6 +59,8 @@ class GuoRoll:
             n_part = m21.stream.Part()
 
             t = 0
+            if self.sparse:
+                rhythm_roll = rhythm_roll.toarray()[0]
             while t < rhythm_roll.shape[0]:
                 if rhythm_roll[t] == 1:  # not rest
                     pitch = np.nonzero(pitch_roll[:, t])[0][0]
@@ -107,7 +111,6 @@ class GuoRoll:
         if voice == 'bass':
             return get_intervals(self.get_bass(), self.get_bass_changes())
 
-
     def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
         if voice == 'melody':
             return get_rp(self.get_melody_changes())
@@ -129,20 +132,19 @@ class GuoRoll:
         print("File saved in ", os.path.abspath(lily))
         return lily
 
-
     def _get_permutation(self, changes, permutation, voice, idx_change):
         durations = []
         for i, c in enumerate(changes):
             if i == changes.shape[0] - 1:
                 durations.append((c, self.matrix.shape[0] - c))
             else:
-                durations.append((c, changes[i+1] - c))
+                durations.append((c, changes[i + 1] - c))
 
         random.shuffle(durations)
 
         i = 0
         for start, duration in durations:
-            for j in range(i, i+duration):
+            for j in range(i, i + duration):
                 permutation[j] += voice[start]
             permutation[i][idx_change] = 1
             i += duration
@@ -152,10 +154,10 @@ class GuoRoll:
     def permute(self, melody_changes, bass_changes):
         permutation = np.zeros(self.matrix.shape)
 
-        voice = np.concatenate((self.get_melody(),                                  # matrix of 64 x 74 (in 4 bars)
-                                np.zeros((self.matrix.shape[0],                     # matrix of 64 x 15 (in 4 bars)
+        voice = np.concatenate((self.get_melody(),  # matrix of 64 x 74 (in 4 bars)
+                                np.zeros((self.matrix.shape[0],  # matrix of 64 x 15 (in 4 bars)
                                           self.matrix.shape[1] - self.get_melody().shape[1]))),
-                               axis=1)                                              # result: matrix of 64 x 89
+                               axis=1)  # result: matrix of 64 x 89
         permutation = self._get_permutation(melody_changes, permutation, voice, params.config.melody_dim)
 
         voice = np.concatenate((np.zeros((self.get_melody().shape[0], self.get_melody().shape[1] + 1)),
