@@ -39,7 +39,7 @@ class GuoRoll:
         self.sparse = sparse
         self.song = song
         self.name = name
-        self.score = self._roll_to_score(verbose=verbose)
+        self.score = self._roll_to_score(verbose=verbose) if save_midi else None
 
         if save_midi:
             if song is None:

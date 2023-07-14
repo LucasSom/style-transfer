@@ -22,18 +22,18 @@ from model.colab_tension_vae import build_model, params
 from utils.files_utils import load_pickle, data_path, preprocessed_data_dir, get_logs_path, get_model_paths
 
 
-def get_targets(ds: np.ndarray) -> List[np.ndarray]:
-    i0 = ds[:, :, :74]
-    i1 = ds[:, :, 74:75]
-    i2 = ds[:, :, 75:-1]
-    i3 = ds[:, :, -1:]
+def get_targets(ds: np.ndarray, sparse: bool) -> List[np.ndarray]:
+    i0 = ds[:, :, :74] if not sparse else [m[:, :74] for m in ds]
+    i1 = ds[:, :, 74:75] if not sparse else [m[:, 74:75] for m in ds]
+    i2 = ds[:, :, 75:-1] if not sparse else [m[:, 75:-1] for m in ds]
+    i3 = ds[:, :, -1:] if not sparse else [m[:, -1:] for m in ds]
     return [i0, i1, i2, i3]
 
 
-def train_model(df: Union[pd.DataFrame, str], test_data, model_name: str, final_epoch=None, verbose=2):
+def train_model(df: Union[pd.DataFrame, str], test_data, model_name: str, final_epoch=None, verbose=2, debug=False):
     base_path, vae_dir, _ = get_model_paths(model_name)
     if final_epoch is None:
-        final_epoch = int(input("Until how many epochs do you want to train? "))
+        final_epoch = int(input("Until how many epochs do you want to train? ")) if not debug else 1
     if isinstance(df, str):
         df = load_pickle(file_name=df, verbose=verbose)
 
@@ -49,7 +49,7 @@ def train_new_model(df: pd.DataFrame, test_data, model_name: str, final_epoch: i
     if verbose: print("Training new model")
     vae = build_model.build_model()
 
-    return train(vae, df, test_data, model_name, 0, final_epoch, verbose)
+    return train(vae, df, test_data, model_name, 0, final_epoch, verbose=verbose)
 
 
 def continue_training(df: pd.DataFrame, test_data, model_name: str, final_epoch: int, verbose=2):
@@ -66,20 +66,21 @@ def continue_training(df: pd.DataFrame, test_data, model_name: str, final_epoch:
         print(f"Model not found in {vae_dir}. Trying {new_path}.")
         vae = keras.models.load_model(new_path, custom_objects=dict(kl_beta=build_model.kl_beta))
 
-    return train(vae, df, test_data, model_name, initial_epoch, final_epoch + initial_epoch, verbose)
+    return train(vae, df, test_data, model_name, initial_epoch, final_epoch + initial_epoch, verbose=verbose)
 
 
-def train(vae, df, test_data, model_name, initial_epoch, final_epoch, verbose=2):
+def train(vae, df, test_data, model_name, initial_epoch, final_epoch, batch_size=32, verbose=2):
     print(f"Época inicial: {initial_epoch}. Época final: {final_epoch}")
+    sparse = list(df['roll'].head())[0].sparse
+
     ds = np.stack([r.matrix for r in df['roll']])
-    targets = get_targets(ds)
+    targets = get_targets(ds, sparse)
 
     ds_test = np.stack([r.matrix for r in test_data['roll']])
-    targets_test = get_targets(ds_test)
+    targets_test = get_targets(ds_test, sparse)
 
     vae_dir = get_model_paths(model_name)[1]
     log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-
 
     path_to_save = f"{vae_dir}/"
     if os.path.isdir(path_to_save):
@@ -104,22 +105,49 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, verbose=2)
 
     backend.set_value(vae.optimizer.learning_rate, 0.0001)
 
-    vae.fit(
-        x=ds,
-        y=targets,
-        verbose=verbose,
-        workers=8,
-        initial_epoch=initial_epoch,
-        epochs=initial_epoch + final_epoch,
-        callbacks=[tensorboard_callback,
-                   checkpoint,
-                   PrintLearningRate(),
-                   IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
-                   LossHistory(callbacks_path),
-                   early_stopping],
-        validation_data=(ds_test, targets_test),
-        use_multiprocessing=True
-    )
+    def batch_generator(X, y, batch_size):
+        samples_per_epoch = len(X) if type(X) is list else X.shape[0]
+        number_of_batches = int(samples_per_epoch / batch_size)
+
+        for i in range(number_of_batches):
+            for b in range(i * batch_size, (i + 1) * batch_size):
+                yield X[b].todense(), [y[t][b].todense() for t in range(4)]
+
+    if sparse:
+        vae.fit(
+            x=batch_generator(ds, targets, batch_size),
+            # y=batch_generator(targets, batch_size),
+            verbose=verbose,
+            workers=8,
+            initial_epoch=initial_epoch,
+            epochs=initial_epoch + final_epoch,
+            callbacks=[tensorboard_callback,
+                       checkpoint,
+                       PrintLearningRate(),
+                       IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
+                       LossHistory(callbacks_path),
+                       early_stopping],
+            validation_data=batch_generator(ds_test, targets_test, batch_size),
+            use_multiprocessing=True,
+            batch_size=batch_size
+        )
+    else:
+        vae.fit(
+            x=ds,
+            y=targets,
+            verbose=verbose,
+            workers=8,
+            initial_epoch=initial_epoch,
+            epochs=initial_epoch + final_epoch,
+            callbacks=[tensorboard_callback,
+                       checkpoint,
+                       PrintLearningRate(),
+                       IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
+                       LossHistory(callbacks_path),
+                       early_stopping],
+            validation_data=(ds_test, targets_test),
+            use_multiprocessing=True
+        )
 
     with open(f'{vae_dir}/initial_epoch', 'w') as f:
         f.write(str(early_stopping.stopped_epoch))

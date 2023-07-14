@@ -11,7 +11,7 @@ data_path = project_path + '/data/'
 datasets_path = os.path.join(data_path, 'datasets')
 datasets_debug_path = os.path.join(datasets_path, 'debug')
 data_tests_path = data_path + 'tests/'
-preprocessed_data_dir = data_path + 'preprocessed_data_path/'
+preprocessed_data_dir = data_path + 'preprocessed_data/'
 path_saved_models = data_path + 'brmf_4b/vae/'
 original_audios_path = os.path.join(preprocessed_data_dir, 'original/audios/')
 

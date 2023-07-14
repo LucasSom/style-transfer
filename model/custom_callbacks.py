@@ -21,6 +21,7 @@ class PrintLearningRate(keras.callbacks.Callback):
             print("----------------------------- CAMBIÓ LEARNING RATE -----------------------------")
             print("\nEpoch %05d: Learning rate is %6.4f." % (epoch, self.lr))
 
+
 class IncrementKLBeta(keras.callbacks.Callback):
     """Increment value of kl_beta by a ratio
 

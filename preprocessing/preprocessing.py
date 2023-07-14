@@ -44,7 +44,7 @@ def preprocess_data(songs_dict: Dict[str, List[str]], save_midis: bool, sparse: 
     rolls_list = []
     for i, (a, t, p) in enumerate(paths):
         rolls_list.append(f(a, t, p))
-        print(f"Roll: {i}/{len(paths)} - {i/len(paths)*100}%")
+        print(f"Roll: {i}/{len(paths)} - {(i/len(paths)*100):.2f}%")
     # rolls_list = p_tqdm.p_map(f, *zip(*paths))
     data = [{'Style': author,
              'Title': root_file_name(title),

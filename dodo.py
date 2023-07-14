@@ -32,15 +32,18 @@ from utils.utils import show_sheets
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 subdataset_lmd = "sub_lmd"
+subdatasets_lmd = ["sub_lmd/classical", 'sub_lmd/pop', 'sub_lmd/rock', 'sub_lmd/folk', 'sub_lmd/cpr1']
 small_subdatasets = ["small_Bach", "small_ragtime"]
-styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime"}
+styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime", "c": "sub_lmd/classical",
+               "p": "sub_lmd/pop", "l": "sub_lmd/folk", "k": "sub_lmd/rock", "a": "sub_lmd/cpr1"}
 
 z_dims = [20, 96, 192, 512]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
 old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
-models = old_models + [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y] + ["4-small_br-96"]
-
+pre_models = [f"4-cplka-{z}" for z in z_dims]
+models = old_models + [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y] + [
+    "4-small_br-96"] + pre_models
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
@@ -73,7 +76,6 @@ def preprocess(b, folders, save_midis, sparse, targets):
         songs[folder] = [f"{folder}/{song}"
                          for song in os.listdir(f"{datasets_path}/{folder}")]
     df = preprocess_data(songs, save_midis, sparse=sparse)
-    print("Saving pickle on:", targets[0])
     save_pickle(df, targets[0], verbose=True)
 
 
@@ -92,15 +94,22 @@ def task_preprocess():
             yield {
                 'name': f"{b}bars_lmd-{i}",
                 'actions': [(preprocess, [b, [f'{subdataset_lmd}/{i}'], False, True])],
-                'targets': [preprocessed_data_path(b, i+1)],
+                'targets': [preprocessed_data_path(b, i + 1)],
                 'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
             }
+        yield {
+            'name': f"{b}bars_sublmd",
+            'actions': [(preprocess, [b, subdatasets_lmd, False, True])],
+            'targets': [preprocessed_data_path(b, True)],
+            'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
+        }
     yield {
         # 'file_dep': files,
         'name': f"small_4bars",
-        'actions': [(preprocess, [4], {'folders': small_subdatasets, 'save_midis': True, 'sparse': True})],
+        'actions': [(preprocess, [4], {'folders': small_subdatasets, 'save_midis': False, 'sparse': True})],
         'targets': [preprocessed_data_path(4, False, True)],
-        'uptodate': [os.path.isfile(preprocessed_data_path(4, False, True))]
+        # 'uptodate': [os.path.isfile(preprocessed_data_path(4, False, True))]
+        'uptodate': [False]
     }
 
 
@@ -116,17 +125,18 @@ def split(b, df_path, train_path, test_path, val_path):
     save_pickle(dfs_test[0], test_path)
     save_pickle(dfs_val[0], val_path)
 
+
 def task_split_dataset():
     """Split the dataset into train, test and validation"""
-    for b in bars:
-        train_path = f"{preprocessed_data_dir}{b}train.pkl"
-        test_path = f"{preprocessed_data_dir}{b}test.pkl"
-        val_path = f"{preprocessed_data_dir}{b}val.pkl"
-        df_path = preprocessed_data_path(b, False)
+    for model in old_models + pre_models:
+        train_path = f"{preprocessed_data_dir}{model}train.pkl"
+        test_path = f"{preprocessed_data_dir}{model}test.pkl"
+        val_path = f"{preprocessed_data_dir}{model}val.pkl"
+        df_path = preprocessed_data_path(4, (model in pre_models), False)
         yield {
             'file_dep': [df_path],
-            'name': f"{b}bars",
-            'actions': [(split, [b, df_path, train_path, test_path, val_path])],
+            'name': model,
+            'actions': [(split, [4, df_path, train_path, test_path, val_path])],
             'targets': [train_path, test_path, val_path],
             # 'uptodate': [False],
         }
@@ -171,6 +181,7 @@ def prepare_data(df_path, eval_dir, b, cv):
         save_pickle(melodic_distribution, f'{eval_dir}/melodic_distribution')
         save_pickle(rhythmic_distribution, f'{eval_dir}/rhythmic_distribution')
 
+
 def task_assemble_data_to_analyze():
     """Prepare the data for analysis"""
     for b in bars:
@@ -196,6 +207,7 @@ def task_assemble_data_to_analyze():
                         eval_dir + '/melodic_distribution_0.pkl',
                         eval_dir + '/rhythmic_distribution_0.pkl'],
         }
+
 
 def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analysis, cv):
     init(b)
@@ -229,7 +241,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                     # plot_distances_distribution(rolls_diff_df, f'{eval_dir}/{i}', single_plot=True)
 
                     plot_closest_ot_style(rolls_diff_df, f'{eval_dir_cv}/{i}')
-            
+
             elif analysis == 'musicality':
                 melodic_distribution = load_pickle(f'{eval_dir_cv}/melodic_distribution_{i}')
                 rhythmic_distribution = load_pickle(f'{eval_dir_cv}/rhythmic_distribution_{i}')
@@ -276,8 +288,6 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
             rolls_diff_df = load_pickle(eval_dir + '/rolls_diff_df')
 
 
-
-
 def task_analyze_data():
     """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
     for b in bars:
@@ -315,11 +325,12 @@ def do_oversampling(path_in, path_out, b):
     df = oversample(df)
     save_pickle(df, path_out)
 
+
 def task_oversample():
     """Balances the minority classes"""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
-        train_path = f"{preprocessed_data_dir}{b}train.pkl"
+        train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
         oversample_data_path = oversample_path(model_name)
         yield {
             'name': f"{model_name}",
@@ -329,18 +340,26 @@ def task_oversample():
             # 'uptodate': [True]
         }
 
-def train(train_path, test_path, model_name, b, z):
+
+def train(train_path, test_path, model_name, b, z, debug=False):
     init(b, z)
-    if_train = input("Do you want to train the model [Y/n]? ")
+    if_train = input("Do you want to train the model [Y/n]? ") if not debug else 'Y'
     if if_train in ['Y', 'y', 'S', 's']:
-        styles = ["small_Bach", "small_ragtime"] if "small" in model_name else [styles_dict[a] for a in model_name[2:4]]
+        if "small" in model_name:
+            styles = ["small_Bach", "small_ragtime"]
+        elif model_name in old_models:
+            styles = [styles_dict[a] for a in model_name[0:4]]
+        elif model_name in pre_models:
+            styles = [styles_dict[a] for a in model_name[2:7]]
+        else:
+            styles = [styles_dict[a] for a in model_name[2:4]]
 
         df = load_pickle(train_path)
         df = df[df['Style'].isin(styles)]
         test_data = load_pickle(test_path)
         test_data = test_data[test_data['Style'].isin(styles)]
 
-        train_model(df, test_data, model_name)
+        train_model(df, test_data, model_name, debug=debug)
     elif if_train in ['N', 'n']:
         print("Skipping training")
     else:
@@ -352,10 +371,14 @@ def task_train():
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
+
         oversample_data_path = oversample_path(model_name)
-        test_path = f"{preprocessed_data_dir}{b}test.pkl"
+        test_path = f"{preprocessed_data_dir}{model_name}train.pkl"
 
         vae_path = get_model_paths(model_name)[2]
+        if "small" in model_name:
+            oversample_data_path = f"{preprocessed_data_dir}4-small_br.pkl"
+            test_path = oversample_data_path
         yield {
             'name': f"{model_name}",
             'file_dep': [oversample_data_path, test_path],
@@ -524,13 +547,12 @@ def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, b=4, z
     rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
 
     successful_rolls, tables, overall_metrics = evaluate_model(df_transferred, metrics, styles,
-                                                              melodic_musicality_distribution,
-                                                              rhythmic_musicality_distribution, eval_path=eval_dir)
+                                                               melodic_musicality_distribution,
+                                                               rhythmic_musicality_distribution, eval_path=eval_dir)
     save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
     save_pickle(overall_metrics, f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}")
     for t, v in tables.items():
         v.to_csv(f"{eval_dir}/{t}_results-{s1}_to_{s2}.csv")
-
 
 
 def task_evaluation():
@@ -592,8 +614,8 @@ def task_overall_evaluation():
         yield {
             'name': model_name,
             'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
-                        for s1, s2 in styles_names(model_name)
-                        ],
+                         for s1, s2 in styles_names(model_name)
+                         ],
             'actions': [(do_overall_evaluation, [[eval_dir], eval_path, b, z])],
             'targets': [],
             'verbosity': 2,
@@ -631,6 +653,7 @@ def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
         make_html(df_html, orig=orig, target=dest, app_dir=os.path.dirname(os.path.dirname(audios_path)) + '/app')
         df_html[["Title", "Style", "target", "Selection criteria", "Original audio files", "New audio files"]].to_csv(
             f'{os.path.dirname(os.path.dirname(audios_path))}/app/Sampled_rolls-{orig}_to_{dest}.csv')
+
 
 def task_sample_audios():
     """Produce the midis generated by the style transfer"""
