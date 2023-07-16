@@ -17,6 +17,7 @@ except ImportError:
     from tensorflow.keras.callbacks import ModelCheckpoint
 
 from tensorflow import keras
+import tensorflow as tf
 
 from model.colab_tension_vae import build_model, params
 from utils.files_utils import load_pickle, data_path, preprocessed_data_dir, get_logs_path, get_model_paths
@@ -105,18 +106,32 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, batch_size
 
     backend.set_value(vae.optimizer.learning_rate, 0.0001)
 
-    def batch_generator(X, y, batch_size):
+    def batch_generator(X, y, b_size):
         samples_per_epoch = len(X) if type(X) is list else X.shape[0]
-        number_of_batches = int(samples_per_epoch / batch_size)
+        number_of_batches = int(samples_per_epoch / b_size)
 
         for i in range(number_of_batches):
-            for b in range(i * batch_size, (i + 1) * batch_size):
-                yield X[b].todense(), [y[t][b].todense() for t in range(4)]
+            yield [X[b].todense() for b in range(i * b_size, (i + 1) * b_size)], \
+                ([y[0][b].todense() for b in range(i * b_size, (i + 1) * b_size)],
+                 [y[1][b].todense() for b in range(i * b_size, (i + 1) * b_size)],
+                 [y[2][b].todense() for b in range(i * b_size, (i + 1) * b_size)],
+                 [y[3][b].todense() for b in range(i * b_size, (i + 1) * b_size)])
+
+    def dataset_generator(X, y, b_size):
+        return tf.data.Dataset.from_generator(
+            lambda: batch_generator(X, y, b_size),
+            output_signature=(
+                tf.TensorSpec(shape=(None, params.config.time_step, params.config.input_dim), dtype=tf.float64),
+                (tf.TensorSpec(shape=(None, params.config.time_step, params.config.melody_output_dim), dtype=tf.float64),
+                 tf.TensorSpec(shape=(None, params.config.time_step, params.config.melody_note_start_dim), dtype=tf.float64),
+                 tf.TensorSpec(shape=(None, params.config.time_step, params.config.bass_output_dim), dtype=tf.float64),
+                 tf.TensorSpec(shape=(None, params.config.time_step, params.config.bass_note_start_dim), dtype=tf.float64))
+            )
+        )
 
     if sparse:
         vae.fit(
-            x=batch_generator(ds, targets, batch_size),
-            # y=batch_generator(targets, batch_size),
+            x=dataset_generator(ds, targets, batch_size),
             verbose=verbose,
             workers=8,
             initial_epoch=initial_epoch,
@@ -127,7 +142,7 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, batch_size
                        IncrementKLBeta(initial_kl_beta, kl_increment_ratio, kl_threshold),
                        LossHistory(callbacks_path),
                        early_stopping],
-            validation_data=batch_generator(ds_test, targets_test, batch_size),
+            validation_data=dataset_generator(ds_test, targets_test, batch_size),
             use_multiprocessing=True,
             batch_size=batch_size
         )
