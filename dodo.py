@@ -30,18 +30,22 @@ from utils.plots_utils import plot_embeddings, plot_accuracies
 from utils.sampling_utils import sample_uniformly, balanced_sampling
 from utils.utils import show_sheets
 
+
+DOIT_CONFIG = {'verbosity': 2}
+
+
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 subdataset_lmd = "sub_lmd"
 subdatasets_lmd = ["sub_lmd/classical", 'sub_lmd/pop', 'sub_lmd/rock', 'sub_lmd/folk', 'sub_lmd/cpr1']
 small_subdatasets = ["small_Bach", "small_ragtime"]
-styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime", "c": "sub_lmd/classical",
-               "p": "sub_lmd/pop", "l": "sub_lmd/folk", "k": "sub_lmd/rock", "a": "sub_lmd/cpr1"}
+styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime", "C": "sub_lmd/classical",
+               "P": "sub_lmd/pop", "F": "sub_lmd/folk", "R": "sub_lmd/rock", "A": "sub_lmd/cpr0", "a": "sub_lmd/cpr1"}
 
 z_dims = [20, 96, 192, 512]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
 old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
-pre_models = [f"4-cplka-{z}" for z in z_dims]
+pre_models = [f"4-CPFRAa-{z}" for z in z_dims]
 models = old_models + [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y] + [
     "4-small_br-96"] + pre_models
 
@@ -66,9 +70,6 @@ def styles_names(model_name):
     return styles
 
 
-DOIT_CONFIG = {'verbosity': 2}
-
-
 def preprocess(b, folders, save_midis, sparse, targets):
     init(b)
     songs = {}
@@ -90,13 +91,13 @@ def task_preprocess():
             'targets': [preprocessed_data_path(b, False)],
             'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
         }
-        for i in range(32):
-            yield {
-                'name': f"{b}bars_lmd-{i}",
-                'actions': [(preprocess, [b, [f'{subdataset_lmd}/{i}'], False, True])],
-                'targets': [preprocessed_data_path(b, i + 1)],
-                'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
-            }
+        # for i in range(32):
+        #     yield {
+        #         'name': f"{b}bars_lmd-{i}",
+        #         'actions': [(preprocess, [b, [f'{subdataset_lmd}/{i}'], False, True])],
+        #         'targets': [preprocessed_data_path(b, i + 1)],
+        #         'uptodate': [os.path.isfile(preprocessed_data_path(b, False))]
+        #     }
         yield {
             'name': f"{b}bars_sublmd",
             'actions': [(preprocess, [b, subdatasets_lmd, False, True])],
@@ -196,7 +197,7 @@ def task_assemble_data_to_analyze():
             # 'uptodate': [False]
         }
 
-        eval_dir = f"{data_path}/data_analysis/cross_val"
+        eval_dir = f"{data_path}data_analysis/cross_val"
         yield {
             'name': f"cv",
             'file_dep': [preprocessed_data_path(b, False)],
@@ -287,6 +288,15 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
         elif analysis == 'style_confusion_matrix':
             rolls_diff_df = load_pickle(eval_dir + '/rolls_diff_df')
 
+        elif analysis == 'musicality':
+            df_test = load_pickle(f'{dfs_test_path}0')
+            df_80 = df.loc[load_pickle(f'{df_80_indexes_path}0')]
+
+            melodic_distribution = load_pickle(f'{eval_dir_cv}/melodic_distribution_0')
+            rhythmic_distribution = load_pickle(f'{eval_dir_cv}/rhythmic_distribution_0')
+
+            evaluate_musicality(df_80, df_test, melodic_distribution, rhythmic_distribution, f'{eval_dir}', '')
+
 
 def task_analyze_data():
     """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
@@ -300,10 +310,10 @@ def task_analyze_data():
                 yield {
                     'name': f"{analysis}{'-cv' if cv else ''}",
                     'file_dep': [eval_dir + '/df_to_analyze.pkl',
-                                 eval_dir + f"/cross_val/df_80_indexes{'_0' if cv else ''}.pkl",
-                                 # eval_dir + f"/cross_val/rolls_long_df_test{'_0' if cv else ''}.pkl",
-                                 eval_dir + f"/cross_val/melodic_distribution{'_0' if cv else ''}.pkl",
-                                 eval_dir + f"/cross_val/rhythmic_distribution{'_0' if cv else ''}.pkl"
+                                 eval_dir + f"/{'cross_val/df_80_indexes_0' if cv else 'df_to_analyze'}.pkl",
+                                 eval_dir + f"/{'cross_val/' if cv else ''}rolls_long_df_test{'_0' if cv else ''}.pkl",
+                                 eval_dir + f"/{'cross_val/' if cv else ''}melodic_distribution{'_0' if cv else ''}.pkl",
+                                 eval_dir + f"/{'cross_val/' if cv else ''}rhythmic_distribution{'_0' if cv else ''}.pkl"
                                  ],
                     'actions': [(data_analysis, [f'{eval_dir}/df_to_analyze',
                                                  df_80_indexes_path,

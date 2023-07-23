@@ -75,11 +75,11 @@ def oversample_path(model_name):
 
 
 def get_logs_path(model_name):
-    return os.path.join(data_path, model_name, 'logs/')
+    return os.path.join(data_path, "models", model_name, 'logs/')
 
 
 def get_embedding_dir(model_name):
-    return os.path.join(data_path, model_name, 'embeddings')
+    return os.path.join(data_path, "models", model_name, 'embeddings')
 
 
 def get_embedding_path(model_name, characteristics=False):
@@ -87,7 +87,7 @@ def get_embedding_path(model_name, characteristics=False):
 
 
 def get_model_paths(model_name: str):
-    model_dir = os.path.join(data_path, model_name)
+    model_dir = os.path.join(data_path, "models", model_name)
     vae_dir = os.path.join(model_dir, "vae")
 
     if not os.path.isdir(model_dir):
@@ -98,25 +98,25 @@ def get_model_paths(model_name: str):
 
 
 def get_metrics_dir(model_name: str):
-    metrics_file_path = f"{data_path}{model_name}/metrics"
+    metrics_file_path = f"{data_path}models/{model_name}/metrics"
     make_dirs_if_not_exists(metrics_file_path)
     return metrics_file_path
 
 
 def get_transferred_path(s1: str, s2: str, model_name: str):
-    transferred_path = f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}.pkl"
+    transferred_path = f"{data_path}models/{model_name}/embeddings/df_transferred_{s1}_{s2}.pkl"
     make_dirs_if_not_exists(transferred_path)
     return transferred_path
 
 
 def get_emb_path(model_name: str):
-    emb_path = f"{data_path}{model_name}/embeddings/df_emb.pkl"
+    emb_path = f"{data_path}models/{model_name}/embeddings/df_emb.pkl"
     make_dirs_if_not_exists(emb_path)
     return emb_path
 
 
 def get_characteristics_path(model_name: str):
-    characteristics_path = f"{data_path}{model_name}/embeddings/authors_characteristics.pkl"
+    characteristics_path = f"{data_path}models/{model_name}/embeddings/authors_characteristics.pkl"
     return characteristics_path
 
 
@@ -125,7 +125,7 @@ def get_reconstruction_path(model_name: str):
 
 
 def get_eval_dir(model_name: str):
-    eval_path = f"{data_path}{model_name}/Evaluation"
+    eval_path = f"{data_path}models/{model_name}/Evaluation"
     make_dirs_if_not_exists(eval_path)
     return eval_path
 
@@ -134,7 +134,7 @@ def get_audios_path(model_name=None, reconstruction=False, e_orig=None, e_dest=N
     if model_name is None:  # ie, original
         return os.path.join(data_path, "original/audios/")
         # return original_audios_path
-    path = os.path.join(data_path, model_name, "audios/")
+    path = os.path.join(data_path, "models", model_name, "audios/")
 
     if e_orig is not None or e_dest is not None:
         return os.path.join(path, f"{e_orig}_to_{e_dest}/")
@@ -154,7 +154,7 @@ def get_sheets_path(model_name: str = None, original_style: str = None, target_s
     if model_name is None:
         path = os.path.join(data_path, "original/sheets/")
     else:
-        path = os.path.join(data_path, model_name, "sheets/")
+        path = os.path.join(data_path, "models", model_name, "sheets/")
 
     if original_style is None and target_style is None:
         path = os.path.join(path, f"{'orig' if orig else 'recon'}/")
