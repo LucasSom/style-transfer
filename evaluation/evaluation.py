@@ -307,12 +307,10 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
 
 def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rhythmic_musicality_distribution,
                    eval_path=data_path, **kwargs):
-    merge_pl, cache_path, context, by_distance, thold = False, None, 'talk', False, 1
+    merge_pl, cache_path, context, thold = False, None, 'talk', 1
     for k, v in kwargs.items():
         if k == "context":
             context = v
-        elif k == "by_distance":
-            by_distance = v
         elif k == "thold":
             thold = v
 
@@ -324,11 +322,15 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
                                                                    styles_char,
                                                                    orig, target, eval_path, context)
 
+    print("===== Evaluating plagiarism (dist) =====")
+    by_distance = True
+    p_dist_table, p_dist_sorted_df, avg_plagiarism_dist_rank = evaluate_plagiarism(metrics["plagiarism-dist"], orig, target, eval_path, by_distance, context, thold)
+    p_dist_sorted_df["Plagiarism (dist) rank"] = range(p_dist_sorted_df.shape[0])
 
-    print("===== Evaluating plagiarism =====")
-    p_table, p_sorted_df, avg_plagiarism_rank = evaluate_plagiarism(metrics["plagiarism"], orig, target, eval_path, by_distance, context, thold)
-    p_sorted_df["Plagiarism rank"] = range(p_sorted_df.shape[0])
-
+    print("===== Evaluating plagiarism (diff) =====")
+    by_distance = False
+    p_diff_table, p_diff_sorted_df, avg_plagiarism_diff_rank = evaluate_plagiarism(metrics["plagiarism-dist"], orig, target, eval_path, by_distance, context, thold)
+    p_diff_sorted_df["Plagiarism (diff) rank"] = range(p_diff_sorted_df.shape[0])
 
     print("===== Evaluating musicality =====")
     df_test = df[["Style", "Title", "roll", "NewRoll", "roll_id"]]
@@ -343,11 +345,14 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
 
     return {"Style": s_df,
             "Musicality": mus_sorted_df,
-            "Plagiarism": p_sorted_df}, \
+            "Plagiarism-dist": p_dist_sorted_df,
+            "Plagiarism-diff": p_diff_sorted_df}, \
         {"Style": s_table,
          "Musicality": mus_table,
-         "Plagiarism": p_table}, \
+         "Plagiarism-dist": p_dist_table,
+         "Plagiarism-diff": p_diff_table}, \
         {"Style": styles_approach_dict,
          "Musicality": avg_musicality_rank,
-         "Plagiarism": avg_plagiarism_rank,
+         "Plagiarism-dist": avg_plagiarism_dist_rank,
+         "Plagiarism-diff": avg_plagiarism_diff_rank,
          'orig': orig, 'target': target}

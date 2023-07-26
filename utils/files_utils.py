@@ -180,26 +180,31 @@ def get_packed_metrics(overall_metric_dirs: List[str]):
     # Packing musicality and plagiarism evaluation
     packed_metrics_aux = {"Style": {},
                           "Musicality": {target: {orig: 0 for orig in styles} for target in styles},
-                          "Plagiarism": {target: {orig: 0 for orig in styles} for target in styles}}
+                          "Plagiarism-dist": {target: {orig: 0 for orig in styles} for target in styles},
+                          "Plagiarism-diff": {target: {orig: 0 for orig in styles} for target in styles}}
 
     for d in dicts_overall_metrics:
         packed_metrics_aux["Musicality"][d["target"]][d['orig']] = d['Musicality']
-        packed_metrics_aux["Plagiarism"][d["target"]][d['orig']] = d['Plagiarism']
+        packed_metrics_aux["Plagiarism-dist"][d["target"]][d['orig']] = d['Plagiarism-dist']
+        packed_metrics_aux["Plagiarism-diff"][d["target"]][d['orig']] = d['Plagiarism-diff']
 
-    musicality = {}
-    plagiarism = {}
+    musicality, plagiarism_dist, plagiarism_diff = {}, {}, {}
     for target in styles:
         musicality[target] = []
-        plagiarism[target] = []
+        plagiarism_dist[target] = []
+        plagiarism_diff[target] = []
         musicality['original'] = []
-        plagiarism['original'] = []
+        plagiarism_dist['original'] = []
+        plagiarism_diff['original'] = []
 
         for orig in styles:
             musicality[target].append(packed_metrics_aux["Musicality"][target][orig])
-            plagiarism[target].append(packed_metrics_aux["Plagiarism"][target][orig])
+            plagiarism_dist[target].append(packed_metrics_aux["Plagiarism-dist"][target][orig])
+            plagiarism_diff[target].append(packed_metrics_aux["Plagiarism-diff"][target][orig])
 
             musicality['original'].append(orig)
-            plagiarism['original'].append(orig)
+            plagiarism_dist['original'].append(orig)
+            plagiarism_diff['original'].append(orig)
 
     # Packing style evaluation
     style_eval = {d['orig']: {'target': []} for d in dicts_overall_metrics}
@@ -208,7 +213,8 @@ def get_packed_metrics(overall_metric_dirs: List[str]):
         style_eval[d['orig']]['target'].append(d['target'])
 
     packed_metrics = {"Musicality": pd.DataFrame(musicality).set_index('original'),
-                      "Plagiarism": pd.DataFrame(plagiarism).set_index('original'),
+                      "Plagiarism-dist": pd.DataFrame(plagiarism_dist).set_index('original'),
+                      "Plagiarism-diff": pd.DataFrame(plagiarism_diff).set_index('original'),
                       "Style": {s: pd.DataFrame(val).set_index('target') for s, val in style_eval.items()}
                       }
 

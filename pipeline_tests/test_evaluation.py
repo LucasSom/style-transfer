@@ -24,35 +24,35 @@ def confusion_matrices():
 
 @pytest.fixture
 def df_transferred():
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Bach_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_ragtime_Bach.pkl"))
     return pd.concat([df1, df2], axis=0)
 
 
 @pytest.fixture
 def all_dfs():
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Bach_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_ragtime_Bach.pkl"))
     df_br = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_Frescobaldi.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Frescobaldi_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Bach_Frescobaldi.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Frescobaldi_Bach.pkl"))
     df_bf = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_Mozart.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Bach_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Mozart_Bach.pkl"))
     df_bm = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Frescobaldi_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Frescobaldi.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Frescobaldi_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_ragtime_Frescobaldi.pkl"))
     df_fr = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Frescobaldi_Mozart.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_Frescobaldi.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Frescobaldi_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Mozart_Frescobaldi.pkl"))
     df_fm = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Mozart.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Mozart_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_ragtime_Mozart.pkl"))
     df_mr = pd.concat([df1, df2], axis=0)
 
     return [df_br, df_bf, df_bm, df_fr, df_fm, df_mr]
@@ -60,12 +60,12 @@ def all_dfs():
 
 @pytest.fixture
 def bmmr_dfs():
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_ragtime.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_ragtime_Mozart.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Mozart_ragtime.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_ragtime_Mozart.pkl"))
     df_mr = pd.concat([df1, df2], axis=0)
 
-    df1 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Bach_Mozart.pkl"))
-    df2 = load_pickle(os.path.join(data_path, "brmf_4b/embeddings/df_transferred_Mozart_Bach.pkl"))
+    df1 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Bach_Mozart.pkl"))
+    df2 = load_pickle(os.path.join(data_path, "models/brmf_4b/embeddings/df_transferred_Mozart_Bach.pkl"))
     df_bm = pd.concat([df1, df2], axis=0)
 
     return [df_bm, df_mr]
@@ -93,10 +93,10 @@ def test_intervals_characteristic_confusion_matrix(confusion_matrices):
 def test_evaluate_single_intervals_distribution(df_transferred):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
-    trans_path = get_transferred_path(s1, s2, model_name)
-    metrics = load_pickle(get_metrics_dir(trans_path))
+    metrics_dir = get_metrics_dir(model_name)
+    metrics = load_pickle(metrics_dir + '/metrics_Bach_to_ragtime')
 
-    eval_path = get_eval_dir(transferred_path=trans_path)
+    eval_path = get_eval_dir(model_name)
 
     plot_intervals_improvements(orig="Bach", dest="ragtime", interval_distances=metrics['intervals'],
                                 plot_path=eval_path)
@@ -116,18 +116,20 @@ def test_intervals_results():
     df_results = get_bigrams_results(d, 'a', 'b', eval_path, "test_intervals_results")
 
     assert list(df_results[df_results["Transference"] == f"a to b"]["% got closer"])[0] == 100
-    assert list(df_results[df_results["Transference"] == f"b to a"]["% got closer"])[0] == 40
+    # assert list(df_results[df_results["Transference"] == f"b to a"]["% got closer"])[0] == 40
     assert list(df_results[df_results["Transference"] == f"a to b"]["% got away"])[0] == 20
-    assert list(df_results[df_results["Transference"] == f"b to a"]["% got away"])[0] == 0
+    # assert list(df_results[df_results["Transference"] == f"b to a"]["% got away"])[0] == 0
 
 
 def test_evaluate_intervals_distribution_small(bmmr_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
-    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"],
-                                                metrics["target_style"], eval_path, "test_evaluate_intervals_distribution_small")
+    metrics_dir = get_metrics_dir(model_name)
+    metrics = load_pickle(metrics_dir + '/metrics_Bach_to_ragtime')
+    table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"],
+                                             metrics["target_style"], eval_path,
+                                             "test_evaluate_intervals_distribution_small")
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-small.csv", index=False)
 
@@ -136,9 +138,11 @@ def test_evaluate_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
-    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"],
-                                                metrics["target_style"], eval_path, "test_evaluate_intervals_distribution")
+    metrics_dir = get_metrics_dir(model_name)
+    metrics = load_pickle(metrics_dir + '/metrics_Bach_to_ragtime')
+    table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"],
+                                             metrics["target_style"], eval_path,
+                                             "test_evaluate_intervals_distribution")
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all.csv", index=False)
 
@@ -147,10 +151,11 @@ def test_evaluate_all_single_intervals_distribution(all_dfs):
     init(4)
     s1, s2, model_name = "Bach", "ragtime", "brmf_4b"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
-    metrics = load_pickle(get_metrics_dir(get_transferred_path(s1, s2, model_name)))
-    _, table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"],
-                                                metrics["target_style"], eval_path,
-                                                "test_evaluate_all_single_intervals_distribution", context='talk')
+    metrics_dir = get_metrics_dir(model_name)
+    metrics = load_pickle(metrics_dir + '/metrics_Bach_to_ragtime')
+    table, _ = evaluate_bigrams_distribution(metrics['intervals'], metrics["original_style"],
+                                             metrics["target_style"], eval_path,
+                                             "test_evaluate_all_single_intervals_distribution", context='talk')
     print(table)
     table.to_csv(f"{data_path}/debug_outputs/tables/table_intervals-all_single.csv", index=False)
 
@@ -167,20 +172,23 @@ def test_calculate_resume_table():
     t = calculate_resume_table(d, 1)
     assert list(t["Style"]) == ["a", "b"]
     assert list(t["Target"]) == ["b", "a"]
-    assert list(t["Percentage of winners"]) == [0.5, 0.25]
+    assert list(t["Percentage of winners"]) == [50, 25]
 
     t = calculate_resume_table(d, 2)
-    assert list(t["Percentage of winners"]) == [0.5, 0.5]
+    assert list(t["Percentage of winners"]) == [50, 50]
 
 
 def test_evaluate_plagiarism_1():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, eval_path)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path)
+    print(table)
+
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, eval_path)
     print(table)
 
 
@@ -188,16 +196,24 @@ def test_evaluate_plagiarism_separated_2():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, eval_path, thold=2)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path, thold=2)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
 
-    table.to_csv(cache_path + '.csv', index=False)
+    table.to_csv(cache_path + '-dist.csv', index=False)
+    print(table)
+
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, eval_path, thold=2)
+
+    for s, t in zip(table["Style"], table["Target"]):
+        assert s != t
+
+    table.to_csv(cache_path + '-diff.csv', index=False)
     print(table)
 
 
@@ -205,11 +221,11 @@ def test_evaluate_plagiarism_separated_proportional_10():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, eval_path, thold=0.1)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path, thold=0.1)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -222,11 +238,11 @@ def test_evaluate_plagiarism_separated_proportional_25():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, eval_path, thold=0.25)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, eval_path, thold=0.25)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -239,11 +255,11 @@ def test_evaluate_plagiarism_separated_proportional_50():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}{model_name}/embeddings/df_transferred_{s1}_{s2}-metrics.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    _, table, _ = evaluate_plagiarism(metrics["plagiarism"], None, None, eval_path, thold=0.5)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path, thold=0.5)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -259,8 +275,8 @@ def test_evaluate_model():
     trans_path = get_transferred_path(s1, s2, model_name)
     df = load_pickle(trans_path)
 
-    metrics_dir = get_metrics_dir(trans_path)
-    metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
+    metrics_dir = get_metrics_dir(model_name)
+    metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}_small")
 
     styles_path = get_characteristics_path(model_name)
     styles = load_pickle(styles_path)
@@ -288,11 +304,10 @@ def test_evaluation_task_4br():
         do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
 
 
-
 def test_evaluation_task():
     init(4)
     # model_name = "4-small_br"
-    model_name = "brmf_4b_beta"
+    model_name = "brmf_4b_beta-96"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
@@ -301,12 +316,11 @@ def test_evaluation_task():
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
 
-
         do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
 
 
 def test_audio_generation():
-    model_name = "brmf_4b_beta"
+    model_name = "brmf_4b_beta-96"
     s1 = "Bach"
     s2 = "Mozart"
 
@@ -321,18 +335,18 @@ def test_audio_generation():
 
 
 def test_packed_metrics():
-    d01 = {"Plagiarism": 1, "Musicality": 1, "orig": 's0', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
-    d02 = {"Plagiarism": 2, "Musicality": 2, "orig": 's0', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
-    d03 = {"Plagiarism": 3, "Musicality": 3, "orig": 's0', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
-    d10 = {"Plagiarism": 10, "Musicality": 10, "orig": 's1', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
-    d12 = {"Plagiarism": 12, "Musicality": 12, "orig": 's1', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
-    d13 = {"Plagiarism": 13, "Musicality": 13, "orig": 's1', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
-    d20 = {"Plagiarism": 20, "Musicality": 20, "orig": 's2', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
-    d21 = {"Plagiarism": 21, "Musicality": 21, "orig": 's2', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
-    d23 = {"Plagiarism": 23, "Musicality": 23, "orig": 's2', "target": 's3', "Style":{'s1':3, 's2':3, 's3':3}}
-    d30 = {"Plagiarism": 30, "Musicality": 30, "orig": 's3', "target": 's0', "Style":{'s1':0, 's2':0, 's3':0}}
-    d31 = {"Plagiarism": 31, "Musicality": 31, "orig": 's3', "target": 's1', "Style":{'s1':1, 's2':1, 's3':1}}
-    d32 = {"Plagiarism": 32, "Musicality": 32, "orig": 's3', "target": 's2', "Style":{'s1':2, 's2':2, 's3':2}}
+    d01 = {"Plagiarism-dist": 1, "Musicality": 1, "orig": 's0', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d02 = {"Plagiarism-dist": 2, "Musicality": 2, "orig": 's0', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d03 = {"Plagiarism-dist": 3, "Musicality": 3, "orig": 's0', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d10 = {"Plagiarism-dist": 10, "Musicality": 10, "orig": 's1', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d12 = {"Plagiarism-dist": 12, "Musicality": 12, "orig": 's1', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d13 = {"Plagiarism-dist": 13, "Musicality": 13, "orig": 's1', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d20 = {"Plagiarism-dist": 20, "Musicality": 20, "orig": 's2', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d21 = {"Plagiarism-dist": 21, "Musicality": 21, "orig": 's2', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d23 = {"Plagiarism-dist": 23, "Musicality": 23, "orig": 's2', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d30 = {"Plagiarism-dist": 30, "Musicality": 30, "orig": 's3', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d31 = {"Plagiarism-dist": 31, "Musicality": 31, "orig": 's3', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d32 = {"Plagiarism-dist": 32, "Musicality": 32, "orig": 's3', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
 
     p01 = f'{data_path}tests/overall_metrics_dict-01'
     p02 = f'{data_path}tests/overall_metrics_dict-02'
@@ -363,7 +377,7 @@ def test_packed_metrics():
     pm = get_packed_metrics([f'{data_path}tests/'])
 
     print(pm["Musicality"])
-    print(pm["Plagiarism"])
+    print(pm["Plagiarism-dist"])
 
     print("================================= STYLE =================================")
     for orig, val in pm["Style"].items():

@@ -360,7 +360,7 @@ def train(train_path, test_path, model_name, b, z, debug=False):
         elif model_name in old_models:
             styles = [styles_dict[a] for a in model_name[0:4]]
         elif model_name in pre_models:
-            styles = [styles_dict[a] for a in model_name[2:7]]
+            styles = [styles_dict[a] for a in model_name[2:8]]
         else:
             styles = [styles_dict[a] for a in model_name[2:4]]
 
@@ -389,6 +389,8 @@ def task_train():
         if "small" in model_name:
             oversample_data_path = f"{preprocessed_data_dir}4-small_br.pkl"
             test_path = oversample_data_path
+        if model_name in pre_models:
+            oversample_data_path = f"{preprocessed_data_dir}{model_name}train.pkl"
         yield {
             'name': f"{model_name}",
             'file_dep': [oversample_data_path, test_path],

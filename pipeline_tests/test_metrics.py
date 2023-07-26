@@ -31,7 +31,7 @@ def matrix_4bar_rest_diff():
 
 @pytest.fixture
 def roll_8bar_w_rest():
-    init("8bar")
+    init(8)
     return load_pickle(data_tests_path + "roll_8bar_w_rest")
 
 
@@ -80,7 +80,7 @@ def test_rhythmic_patters_choral_bass(roll_8bar_w_rest):
 
 def test_rhythmic_patterns_multiple(matrix_4bar):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', sparse=False, save_midi=False)
     r_patterns = roll_4bar.get_adjacent_rhythmic_patterns(voice='melody')
     correct_patterns = ['1010', '1101', '0000', '0110',
                         '1110', '1001', '0001', '0110',
@@ -93,7 +93,7 @@ def test_rhythmic_patterns_multiple(matrix_4bar):
 def test_plot_interval_matrix():
     init(4)
     s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15",
-             audio_path=original_audios_path)
+             audio_path=original_audios_path, sparse=False, save_midi=False)
     plot_matrix_of_adjacent_intervals(s, 'melody')
     plt.show()
     plot_matrix_of_adjacent_intervals(s, 'bass')
@@ -113,7 +113,7 @@ def test_pattern_to_int():
 def test_plot_rhythmic_matrix():
     init(4)
     s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15",
-             audio_path=original_audios_path)
+             audio_path=original_audios_path, sparse=False, save_midi=False)
     plot_matrix_of_adjacent_rhythmic_bigrams(s, 'melody')
     plt.show()
     plot_matrix_of_adjacent_rhythmic_bigrams(s, 'bass')
@@ -123,7 +123,7 @@ def test_plot_rhythmic_matrix():
 def test_dumb_plagiarism_0():
     init(4)
     s = Song(midi_file=f"{datasets_debug_path}/sonata15-1-debug.mid", nombre="sonata15",
-             audio_path=original_audios_path)
+             audio_path=original_audios_path, sparse=False, save_midi=False)
 
     b, m = dumb_pitch_plagiarism(s.rolls[0], s.rolls[0])
     assert b, m == (0, 0)
@@ -131,8 +131,8 @@ def test_dumb_plagiarism_0():
 
 def test_dumb_plagiarism_little_diffs(matrix_4bar, matrix_4bar_diff):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
-    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff')
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', sparse=False, save_midi=False)
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff', sparse=False, save_midi=False)
 
     b, m = dumb_pitch_plagiarism(roll_4bar, roll_4bar_diff)
     assert b[1], m[1] == (3, 2)
@@ -140,9 +140,9 @@ def test_dumb_plagiarism_little_diffs(matrix_4bar, matrix_4bar_diff):
 
 def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_rest_diff):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar')
-    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff')
-    roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff, 'matrix_4bar_rest_diff')
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', sparse=False, save_midi=False)
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff', sparse=False, save_midi=False)
+    roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff, 'matrix_4bar_rest_diff', sparse=False, save_midi=False)
 
     b, m = dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff)
     assert b, m == (12, 12)
@@ -152,11 +152,6 @@ def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_r
 
     b, m = dumb_pitch_plagiarism(roll_4bar_diff, roll_4bar_rest_diff)
     assert b, m == (15, 14)
-
-
-def test_rhythm_dumb_plagiarism():
-    pass
-
 
 
 # -------------------------------- TASK --------------------------------
@@ -173,7 +168,7 @@ def test_obtain_metrics_intervals():
     print(d["intervals"])
 
 
-def test_obtain_metrics_plagiarism():
+def test_obtain_metrics_plagiarism_dist():
     init(4)
     model_name = "brmf_4b"
     e_orig, e_dest = "Bach", "Mozart"
@@ -182,7 +177,8 @@ def test_obtain_metrics_plagiarism():
 
     d = obtain_metrics(df, e_orig, e_dest, 'plagiarism')
     print("")
-    print(d["plagiarism"])
+    print(d["plagiarism-dist"])
+    print(d["plagiarism-diff"])
 
 
 def test_task():

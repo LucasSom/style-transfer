@@ -168,7 +168,7 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, batch_size
         f.write(str(early_stopping.stopped_epoch))
     print(f"Saved initial_epoch until {early_stopping.stopped_epoch}!!")
 
-    vae.save(path_to_save)
+    # vae.save(path_to_save)
 
     return vae
 

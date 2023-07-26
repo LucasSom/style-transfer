@@ -17,7 +17,9 @@ def obtain_metrics(df, e_orig, e_dest, *argv):
             dist = get_distribution_distances(df, e_orig, e_dest)
             d["intervals"] = dist
 
-        if metric == "plagiarism": d["plagiarism"] = get_plagiarism_ranking_table(df, e_orig, e_dest)
+        if metric == "plagiarism":
+            d["plagiarism-dist"] = get_plagiarism_ranking_table(df, e_orig, e_dest, by_distance=True)
+            d["plagiarism-diff"] = get_plagiarism_ranking_table(df, e_orig, e_dest, by_distance=False)
 
         if metric == "musicality": d["musicality"] = get_information_rate_table(df)
     return d

@@ -34,7 +34,8 @@ def plot_matrix_of_adjacent_rhythmic_bigrams(song: Song, voice='melody'):
 
     plt.title(f"{song.name}-{voice}-rhythmic_patterns")
 
-    return sns.heatmap(patterns, cmap='Oranges', annot=True, fmt='d')
+    # return sns.heatmap(patterns[0], cmap='Oranges', annot=True, fmt='d')
+    return sns.heatmap(patterns[0], cmap='Oranges', annot=True)
 
 
 def get_rhythmic_distribution(df: pd.DataFrame) -> np.array:
