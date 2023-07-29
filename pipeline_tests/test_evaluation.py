@@ -2,7 +2,7 @@ import os.path
 
 import pytest
 
-from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation, models
+from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation, models, mixture_models
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
@@ -182,7 +182,7 @@ def test_evaluate_plagiarism_1():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
     table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path)
@@ -196,7 +196,7 @@ def test_evaluate_plagiarism_separated_2():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
@@ -221,7 +221,7 @@ def test_evaluate_plagiarism_separated_proportional_10():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
@@ -238,7 +238,7 @@ def test_evaluate_plagiarism_separated_proportional_25():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
@@ -255,7 +255,7 @@ def test_evaluate_plagiarism_separated_proportional_50():
     init(4)
     model_name = '4-small_br'
     s1, s2 = "Bach", "ragtime"
-    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_{s1}_to_{s2}_small.pkl")
+    metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
@@ -276,14 +276,13 @@ def test_evaluate_model():
     df = load_pickle(trans_path)
 
     metrics_dir = get_metrics_dir(model_name)
-    metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}_small")
+    metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
 
     styles_path = get_characteristics_path(model_name)
     styles = load_pickle(styles_path)
 
-    eval_dir = get_eval_dir(trans_path)
-    melodic_musicality_distribution = load_pickle(eval_dir + '/melodic_distribution.pkl')
-    rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
+    melodic_musicality_distribution = load_pickle(data_path + 'data_analysis/melodic_distribution.pkl')
+    rhythmic_musicality_distribution = load_pickle(data_path + 'data_analysis/rhythmic_distribution.pkl')
 
     evaluate_model(df, metrics, styles, melodic_musicality_distribution, rhythmic_musicality_distribution,
                    f"{data_path}/debug_outputs/", thold=2)
@@ -292,7 +291,7 @@ def test_evaluate_model():
 def test_evaluation_task_4br():
     init(4)
     # model_name = "4-small_br"
-    model_name = "4-br"
+    model_name = "4-br-96"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
@@ -335,18 +334,18 @@ def test_audio_generation():
 
 
 def test_packed_metrics():
-    d01 = {"Plagiarism-dist": 1, "Musicality": 1, "orig": 's0', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
-    d02 = {"Plagiarism-dist": 2, "Musicality": 2, "orig": 's0', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
-    d03 = {"Plagiarism-dist": 3, "Musicality": 3, "orig": 's0', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
-    d10 = {"Plagiarism-dist": 10, "Musicality": 10, "orig": 's1', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
-    d12 = {"Plagiarism-dist": 12, "Musicality": 12, "orig": 's1', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
-    d13 = {"Plagiarism-dist": 13, "Musicality": 13, "orig": 's1', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
-    d20 = {"Plagiarism-dist": 20, "Musicality": 20, "orig": 's2', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
-    d21 = {"Plagiarism-dist": 21, "Musicality": 21, "orig": 's2', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
-    d23 = {"Plagiarism-dist": 23, "Musicality": 23, "orig": 's2', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
-    d30 = {"Plagiarism-dist": 30, "Musicality": 30, "orig": 's3', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
-    d31 = {"Plagiarism-dist": 31, "Musicality": 31, "orig": 's3', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
-    d32 = {"Plagiarism-dist": 32, "Musicality": 32, "orig": 's3', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d01 = {"Plagiarism-dist": 1, "Plagiarism-diff": 1, "Musicality": 1, "orig": 's0', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d02 = {"Plagiarism-dist": 2, "Plagiarism-diff": 2, "Musicality": 2, "orig": 's0', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d03 = {"Plagiarism-dist": 3, "Plagiarism-diff": 3, "Musicality": 3, "orig": 's0', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d10 = {"Plagiarism-dist": 10, "Plagiarism-diff": 10, "Musicality": 10, "orig": 's1', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d12 = {"Plagiarism-dist": 12, "Plagiarism-diff": 12, "Musicality": 12, "orig": 's1', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d13 = {"Plagiarism-dist": 13, "Plagiarism-diff": 13, "Musicality": 13, "orig": 's1', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d20 = {"Plagiarism-dist": 20, "Plagiarism-diff": 20, "Musicality": 20, "orig": 's2', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d21 = {"Plagiarism-dist": 21, "Plagiarism-diff": 21, "Musicality": 21, "orig": 's2', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d23 = {"Plagiarism-dist": 23, "Plagiarism-diff": 23, "Musicality": 23, "orig": 's2', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d30 = {"Plagiarism-dist": 30, "Plagiarism-diff": 30, "Musicality": 30, "orig": 's3', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d31 = {"Plagiarism-dist": 31, "Plagiarism-diff": 31, "Musicality": 31, "orig": 's3', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d32 = {"Plagiarism-dist": 32, "Plagiarism-diff": 32, "Musicality": 32, "orig": 's3', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
 
     p01 = f'{data_path}tests/overall_metrics_dict-01'
     p02 = f'{data_path}tests/overall_metrics_dict-02'
@@ -387,7 +386,7 @@ def test_packed_metrics():
 
 def test_overall_evaluation():
     b = 4
-    model_name = "brmf_4b_beta"
+    model_name = "brmf_4b_beta-96"
 
     overall_metric_dirs = [get_eval_dir(model_name)]
     eval_path = f"{data_path}/overall_evaluation/{model_name}"
@@ -397,7 +396,7 @@ def test_overall_evaluation():
 
 def test_ensamble_overall_evaluation():
     b = 4
-    ensamble = [m for m in models if len(m) == 4 and m[0] == str(b)]
+    ensamble = [m for m in models if m in mixture_models and m[0] == str(b)]
     overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
-    eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars"
+    eval_path = f"{data_path}overall_evaluation/ensamble_{b}bars"
     do_overall_evaluation(overall_metric_dirs, eval_path, b)

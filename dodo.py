@@ -46,8 +46,9 @@ bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
 old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
 pre_models = [f"4-CPFRAa-{z}" for z in z_dims]
-models = old_models + [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y] + [
-    "4-small_br-96"] + pre_models
+mixture_models = [f"4-Lakh_Kern-{z}" for z in z_dims]
+ensamble_models = [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y]
+models = old_models + ensamble_models + ["4-small_br-96"] + pre_models + mixture_models
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
@@ -55,9 +56,9 @@ cross_val = 5
 
 
 def styles_names(model_name):
-    if len(model_name) == 4:
-        m1 = styles_dict[model_name[-1]]
-        m2 = styles_dict[model_name[-2]]
+    if model_name in ensamble_models:
+        m1 = styles_dict[model_name.split('-')[1][0]]
+        m2 = styles_dict[model_name.split('-')[1][1]]
         styles = [(m1, m2), (m2, m1)]
     elif "small" in model_name:
         b, r = small_subdatasets
@@ -129,7 +130,7 @@ def split(b, df_path, train_path, test_path, val_path):
 
 def task_split_dataset():
     """Split the dataset into train, test and validation"""
-    for model in old_models + pre_models:
+    for model in models:
         train_path = f"{preprocessed_data_dir}{model}train.pkl"
         test_path = f"{preprocessed_data_dir}{model}test.pkl"
         val_path = f"{preprocessed_data_dir}{model}val.pkl"
@@ -361,6 +362,9 @@ def train(train_path, test_path, model_name, b, z, debug=False):
             styles = [styles_dict[a] for a in model_name[0:4]]
         elif model_name in pre_models:
             styles = [styles_dict[a] for a in model_name[2:8]]
+        elif model_name in mixture_models:
+            model_name_aux = pre_models[0]
+            styles = [styles_dict[a] for a in model_name_aux[2:8]]
         else:
             styles = [styles_dict[a] for a in model_name[2:4]]
 
@@ -391,6 +395,10 @@ def task_train():
             test_path = oversample_data_path
         if model_name in pre_models:
             oversample_data_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+        if model_name in mixture_models:
+            model_name_aux = f"{b}-CPFRAa-{z}"
+            oversample_data_path = f"{preprocessed_data_dir}{model_name_aux}train"
+            test_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
         yield {
             'name': f"{model_name}",
             'file_dep': [oversample_data_path, test_path],
@@ -421,7 +429,7 @@ def analyze_training(train_path, val_path, model_name, b, z, targets):
 
     # plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
     # plot_tsne(df_emb, tsne_emb, plots_path)
-    #
+
     df_reconstructed = get_reconstruction(train_df, model, model_name, 500, inplace=False)
     save_pickle(df_reconstructed, targets[0] + '-reconstructed')
 
@@ -431,11 +439,19 @@ def task_test():
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
-        vae_path = get_model_paths(model_name)[2]
-        train_path = f"{preprocessed_data_dir}{b}train.pkl"
-        val_path = f"{preprocessed_data_dir}{b}val.pkl"
+
+        if model_name in mixture_models:
+            model_name_aux = f"{b}-CPFRAa-{z}"
+            vae_path = get_model_paths(model_name_aux)[2]
+            train_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
+            val_path = f"{preprocessed_data_dir}{model_name_aux}val.pkl"
+        else:
+            vae_path = get_model_paths(model_name)[2]
+            train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+            val_path = f"{preprocessed_data_dir}{model_name}val.pkl"
+
         yield {
-            'name': f"{model_name}",
+            'name': model_name,
             'file_dep': [train_path, vae_path],
             'actions': [(analyze_training, [train_path, val_path, model_name, b, z])],
             'targets': [get_reconstruction_path(model_name)],
@@ -464,13 +480,20 @@ def task_embeddings():
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
-        model_path, vae_dir, vae_path = get_model_paths(model_name)
+
+        if model_name in mixture_models:
+            model_name_aux = f"{b}-CPFRAa-{z}"
+            model_path, vae_dir, vae_path = get_model_paths(model_name_aux)
+            train_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
+        else:
+            model_path, vae_dir, vae_path = get_model_paths(model_name)
+            train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
-        train_path = f"{preprocessed_data_dir}{b}train.pkl"
 
         yield {
-            'name': f"{model_name}",
+            'name': model_name,
             'file_dep': [train_path, vae_path],
             'actions': [(do_embeddings,
                          [train_path,
@@ -503,7 +526,13 @@ def task_transfer_style():
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
-        model_path, vae_dir, vae_path = get_model_paths(model_name)
+
+        if model_name in mixture_models:
+            model_name_aux = f"{b}-CPFRAa-{z}"
+            model_path, vae_dir, vae_path = get_model_paths(model_name_aux)
+        else:
+            model_path, vae_dir, vae_path = get_model_paths(model_name)
+
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
 
@@ -555,8 +584,8 @@ def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, b=4, z
     styles = load_pickle(styles_path)
 
     metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
-    melodic_musicality_distribution = load_pickle(eval_dir + '/melodic_distribution.pkl')
-    rhythmic_musicality_distribution = load_pickle(eval_dir + '/rhythmic_distribution.pkl')
+    melodic_musicality_distribution = load_pickle(data_path + 'data_analysis/melodic_distribution.pkl')
+    rhythmic_musicality_distribution = load_pickle(data_path + 'data_analysis/rhythmic_distribution.pkl')
 
     successful_rolls, tables, overall_metrics = evaluate_model(df_transferred, metrics, styles,
                                                                melodic_musicality_distribution,
@@ -618,7 +647,7 @@ def task_overall_evaluation():
                 'uptodate': [False]
             }
 
-    for model_name in old_models:
+    for model_name in old_models + mixture_models:
         b = model_name[5]
         z = int(model_name.split("-")[-1])
         eval_dir = get_eval_dir(model_name)

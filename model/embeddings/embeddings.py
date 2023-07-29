@@ -60,11 +60,12 @@ def transform_embeddings(df, characteristics: dict, original: str, target: str, 
 
 
 @dfply.make_symbolic
-def embeddings_to_rolls(embeddings, roll_names, suffix, audio_path, model, verbose=False) -> List[GuoRoll]:
+def embeddings_to_rolls(embeddings, roll_names, suffix, model, verbose=False) -> List[GuoRoll]:
     decoded_matrices = decode_embeddings(embeddings, model)
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
-    rolls = [GuoRoll(m, f"{r_name}-{suffix}", audio_path=audio_path, verbose=verbose) for m, r_name in zip(matrices, roll_names)]
+    rolls = [GuoRoll(m, f"{r_name}-{suffix}", save_midi=False, verbose=verbose)
+             for m, r_name in zip(matrices, roll_names)]
 
     return rolls
 
@@ -84,7 +85,7 @@ def get_embeddings_roll_df(df_in, model, model_name: str, column='Embedding', in
     new_name_suffix = f"{column}-{name_new_column}"
     audio_path = get_audios_path(model_name)
     roll_names = [r.name for r in df['roll']]
-    rolls = embeddings_to_rolls(df[column], roll_names, new_name_suffix, audio_path, model)
+    rolls = embeddings_to_rolls(df[column], roll_names, new_name_suffix, model)
     df[name_new_column] = rolls
 
     return df

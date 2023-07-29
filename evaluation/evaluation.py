@@ -329,7 +329,7 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
 
     print("===== Evaluating plagiarism (diff) =====")
     by_distance = False
-    p_diff_table, p_diff_sorted_df, avg_plagiarism_diff_rank = evaluate_plagiarism(metrics["plagiarism-dist"], orig, target, eval_path, by_distance, context, thold)
+    p_diff_table, p_diff_sorted_df, avg_plagiarism_diff_rank = evaluate_plagiarism(metrics["plagiarism-diff"], orig, target, eval_path, by_distance, context, thold)
     p_diff_sorted_df["Plagiarism (diff) rank"] = range(p_diff_sorted_df.shape[0])
 
     print("===== Evaluating musicality =====")

@@ -45,7 +45,7 @@ def interpolate_centroids(styles, vae, audio_path):
                 d[f"{s1.name}_75_{s2.name}"] = [s75_emb]
 
     df = pd.DataFrame(d).T.rename(columns={0: 'Embedding'})
-    new_rolls = embeddings_to_rolls(df["Embedding"], df.index, "", audio_path, vae, verbose=False)
+    new_rolls = embeddings_to_rolls(df["Embedding"], df.index, "", vae, verbose=False)
     df["New"] = new_rolls
 
     return df

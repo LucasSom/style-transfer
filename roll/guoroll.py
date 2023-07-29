@@ -97,9 +97,13 @@ class GuoRoll:
         return self.matrix[:, :params.config.melody_dim]
 
     def get_melody_changes(self):
+        if self.sparse:
+            return self.matrix.todense()[:, params.config.melody_dim]
         return self.matrix[:, params.config.melody_dim]
 
     def get_bass(self):
+        if self.sparse:
+            return self.matrix.todense()[:, params.config.melody_dim + 1: -1]
         return self.matrix[:, params.config.melody_dim + 1: -1]
 
     def get_bass_changes(self):

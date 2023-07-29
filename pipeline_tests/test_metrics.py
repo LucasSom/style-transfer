@@ -168,6 +168,17 @@ def test_obtain_metrics_intervals():
     print(d["intervals"])
 
 
+def test_obtain_metrics_rhythmic_intervals():
+    init(4)
+    model_name = "4-br-96"
+    e_orig, e_dest = "Bach", "ragtime"
+
+    df = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
+
+    d = obtain_metrics(df, e_orig, e_dest, 'rhythmic_bigrams')
+    print("")
+    print(d["rhythmic_bigrams"])
+
 def test_obtain_metrics_plagiarism_dist():
     init(4)
     model_name = "brmf_4b"
