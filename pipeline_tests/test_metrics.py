@@ -80,7 +80,7 @@ def test_rhythmic_patters_choral_bass(roll_8bar_w_rest):
 
 def test_rhythmic_patterns_multiple(matrix_4bar):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', sparse=False, save_midi=False)
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', save_midi=False, sparse=False)
     r_patterns = roll_4bar.get_adjacent_rhythmic_patterns(voice='melody')
     correct_patterns = ['1010', '1101', '0000', '0110',
                         '1110', '1001', '0001', '0110',
@@ -131,8 +131,8 @@ def test_dumb_plagiarism_0():
 
 def test_dumb_plagiarism_little_diffs(matrix_4bar, matrix_4bar_diff):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', sparse=False, save_midi=False)
-    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff', sparse=False, save_midi=False)
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', save_midi=False, sparse=False)
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff', save_midi=False, sparse=False)
 
     b, m = dumb_pitch_plagiarism(roll_4bar, roll_4bar_diff)
     assert b[1], m[1] == (3, 2)
@@ -140,9 +140,9 @@ def test_dumb_plagiarism_little_diffs(matrix_4bar, matrix_4bar_diff):
 
 def test_dumb_plagiarism_rest_diffs(matrix_4bar, matrix_4bar_diff, matrix_4bar_rest_diff):
     init(4)
-    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', sparse=False, save_midi=False)
-    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff', sparse=False, save_midi=False)
-    roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff, 'matrix_4bar_rest_diff', sparse=False, save_midi=False)
+    roll_4bar = GuoRoll(matrix_4bar, 'matrix_4bar', save_midi=False, sparse=False)
+    roll_4bar_diff = GuoRoll(matrix_4bar_diff, 'matrix_4bar_diff', save_midi=False, sparse=False)
+    roll_4bar_rest_diff = GuoRoll(matrix_4bar_rest_diff, 'matrix_4bar_rest_diff', save_midi=False, sparse=False)
 
     b, m = dumb_pitch_plagiarism(roll_4bar, roll_4bar_rest_diff)
     assert b, m == (12, 12)

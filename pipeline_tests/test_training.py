@@ -1,4 +1,5 @@
 # from keras.saving.save import load_model
+from tensorflow.python.keras.saving.save import load_model
 
 from dodo import train
 from model.embeddings.embeddings import get_reconstruction

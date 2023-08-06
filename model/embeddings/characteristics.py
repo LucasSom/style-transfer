@@ -29,7 +29,7 @@ def obtain_characteristics(df, vae) -> Tuple[pd.DataFrame, Dict[str, Style]]:
 
 
 def interpolate_centroids(styles, vae, audio_path):
-    d = {s.name: [s.embedding] for s in styles}
+    d = {s.name.split('/')[-1]: [s.embedding] for s in styles}
     interpolated_styles = []
 
     for s1 in styles:
@@ -40,12 +40,13 @@ def interpolate_centroids(styles, vae, audio_path):
                 s25_emb = (s1.embedding + s50_emb) / 2
                 s75_emb = (s2.embedding + s50_emb) / 2
 
-                d[f"{s1.name}_25_{s2.name}"] = [s25_emb]
-                d[f"{s1.name}_50_{s2.name}"] = [s50_emb]
-                d[f"{s1.name}_75_{s2.name}"] = [s75_emb]
+                d[f"{s1.name.split('/')[-1]}_25_{s2.name.split('/')[-1]}"] = [s25_emb]
+                d[f"{s1.name.split('/')[-1]}_50_{s2.name.split('/')[-1]}"] = [s50_emb]
+                d[f"{s1.name.split('/')[-1]}_75_{s2.name.split('/')[-1]}"] = [s75_emb]
 
     df = pd.DataFrame(d).T.rename(columns={0: 'Embedding'})
-    new_rolls = embeddings_to_rolls(df["Embedding"], df.index, "", vae, verbose=False)
+    new_rolls = embeddings_to_rolls(df["Embedding"], df.index, "", vae, sparse=False, audio_path=audio_path, save_midi=True,
+                                    verbose=False)
     df["New"] = new_rolls
 
     return df

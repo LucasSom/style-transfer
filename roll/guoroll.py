@@ -28,7 +28,8 @@ class GuoRoll:
 
     """
 
-    def __init__(self, matrix, name='', audio_path=data_path, song=None, save_midi=True, sparse=True, verbose=False):
+    def __init__(self, matrix, name='', audio_path=data_path + 'audios', song=None, save_midi=True, save_score=False,
+                 sparse=True, verbose=False):
         """
         :param matrix: matrix of `16*n x 89` with n=number of bars
         :param name: name of roll (used on the name of midi and sheet files)
@@ -39,22 +40,22 @@ class GuoRoll:
         self.sparse = sparse
         self.song = song
         self.name = name
-        self.score = self._roll_to_score(verbose=verbose) if save_midi else None
+        self.score = self.roll_to_score(verbose=verbose) if save_score else None
 
         if save_midi:
             if song is None:
-                self.midi = self._roll_to_midi(audio_path, old_pm=None, verbose=verbose)
+                self.midi = self.roll_to_midi(audio_path, old_pm=None, verbose=verbose)
             else:
-                self.midi = self._roll_to_midi(audio_path, old_pm=song.old_pm, verbose=verbose)
+                self.midi = self.roll_to_midi(audio_path, old_pm=song.old_pm, verbose=verbose)
             if verbose: print(f"Created: {self.midi}")
         else:
             self.midi = None
 
-    def _roll_to_midi(self, path, old_pm=None, verbose=False):
+    def roll_to_midi(self, path, old_pm=None, verbose=False):
         return save_audio(self.name, util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose), path, False,
                           verbose)
 
-    def _roll_to_score(self, verbose=False):
+    def roll_to_score(self, verbose=False):
         def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24, verbose=False):
             n_part = m21.stream.Part()
 

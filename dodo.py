@@ -408,20 +408,22 @@ def task_train():
         }
 
 
-def analyze_training(train_path, val_path, model_name, b, z, targets):
+def analyze_training(train_path, val_path, model_name, vae_dir, b, z, targets):
     init(b, z)
-    model_path, vae_dir, _ = get_model_paths(model_name)
+    # model_path = get_model_paths(model_name)[0]
     model = load_model(vae_dir)
     model_name = os.path.basename(model_name)
     # plots_path = os.path.join(data_path, model_path, "plots")
     audios_path = get_audios_path(model_name)
-    logs_path = get_logs_path(model_name)
+    # logs_path = get_logs_path(model_name)
     train_df = load_pickle(train_path)
-    val_df = load_pickle(val_path)
+    # val_df = load_pickle(val_path)
 
-    plot_accuracies(val_df, model, logs_path)
+    # plot_accuracies(val_df, model, logs_path)
 
     df_emb, styles = obtain_characteristics(train_df, model)
+    if model_name in mixture_models:
+        styles = {name.split('/')[-1]: s for name, s in styles.items()}
     df_interpolation = interpolate_centroids(styles.values(), model, audios_path + 'interpolation/')
     save_pickle(df_interpolation, targets[0] + '-interpolation')
 
@@ -442,18 +444,18 @@ def task_test():
 
         if model_name in mixture_models:
             model_name_aux = f"{b}-CPFRAa-{z}"
-            vae_path = get_model_paths(model_name_aux)[2]
+            _, vae_dir, vae_path = get_model_paths(model_name_aux)
             train_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
             val_path = f"{preprocessed_data_dir}{model_name_aux}val.pkl"
         else:
-            vae_path = get_model_paths(model_name)[2]
+            _, vae_dir, vae_path = get_model_paths(model_name)
             train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
             val_path = f"{preprocessed_data_dir}{model_name}val.pkl"
 
         yield {
             'name': model_name,
             'file_dep': [train_path, vae_path],
-            'actions': [(analyze_training, [train_path, val_path, model_name, b, z])],
+            'actions': [(analyze_training, [train_path, val_path, model_name, vae_dir, b, z])],
             'targets': [get_reconstruction_path(model_name)],
             # 'uptodate': [False]
         }
@@ -482,9 +484,10 @@ def task_embeddings():
         z = int(model_name.split("-")[-1])
 
         if model_name in mixture_models:
-            model_name_aux = f"{b}-CPFRAa-{z}"
-            model_path, vae_dir, vae_path = get_model_paths(model_name_aux)
-            train_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
+            model_name_model = f"{b}-CPFRAa-{z}"
+            model_name_data = f"brmf_{b}b_beta-{z}"
+            model_path, vae_dir, vae_path = get_model_paths(model_name_model)
+            train_path = f"{preprocessed_data_dir}{model_name_data}train.pkl"
         else:
             model_path, vae_dir, vae_path = get_model_paths(model_name)
             train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
@@ -516,7 +519,8 @@ def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b
     characteristics = load_pickle(characteristics)
     model_name = os.path.basename(model_path)
 
-    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2)
+    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2,
+                                       sparse=False)
 
     save_pickle(df_transferred, transferred_path)
 
@@ -528,8 +532,8 @@ def task_transfer_style():
         z = int(model_name.split("-")[-1])
 
         if model_name in mixture_models:
-            model_name_aux = f"{b}-CPFRAa-{z}"
-            model_path, vae_dir, vae_path = get_model_paths(model_name_aux)
+            model_name_model = f"{b}-CPFRAa-{z}"
+            model_path, vae_dir, vae_path = get_model_paths(model_name_model)
         else:
             model_path, vae_dir, vae_path = get_model_paths(model_name)
 
@@ -610,8 +614,8 @@ def task_evaluation():
                 'name': f"{model_name}_{s1}_to_{s2}",
                 'file_dep': [transferred_path, styles_path,
                              f"{metrics_dir}/metrics_{s1}_to_{s2}.pkl", f"{metrics_dir}/metrics_{s2}_to_{s1}.pkl",
-                             eval_dir + '/melodic_distribution.pkl',
-                             eval_dir + '/rhythmic_distribution.pkl'
+                             data_path + 'data_analysis/melodic_distribution.pkl',
+                             data_path + 'data_analysis/rhythmic_distribution.pkl'
                              ],
                 'actions': [(do_evaluation, [transferred_path, styles_path, metrics_dir, eval_dir, s1, s2, b, z])],
                 'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
@@ -648,7 +652,7 @@ def task_overall_evaluation():
             }
 
     for model_name in old_models + mixture_models:
-        b = model_name[5]
+        b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
         eval_dir = get_eval_dir(model_name)
         eval_path = f"{data_path}/overall_evaluation/{model_name}"

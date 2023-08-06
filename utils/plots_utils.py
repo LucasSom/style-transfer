@@ -25,6 +25,7 @@ def save_plot(plot_dir, plot_name, title=None):
     plt.title(title) if not title is None else plt.title(plot_name)
     if not os.path.isdir(plot_dir + "/plots/"):
         os.makedirs(plot_dir + "/plots/")
+    plt.tight_layout()
     print(f"Saving plot as {plot_dir}/plots/{plot_name}.png")
     plt.savefig(f"{plot_dir}/plots/{plot_name}.png")
     plt.close()

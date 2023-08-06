@@ -31,7 +31,7 @@ def generate_audios(df, path=f"{data_path}audios/", suffix=None, verbose=0) -> T
     original_rolls = df["roll"]
     original_midis = []
     for r in original_rolls:
-        original_midis.append(r._roll_to_midi(path, verbose=verbose))
+        original_midis.append(r.roll_to_midi(path, verbose=verbose))
 
     new_rolls = df["NewRoll"]
     new_midis = [r.midi for r in new_rolls]

@@ -69,11 +69,22 @@ def test_obtain_embeddings(brmf4_prep):
 
 def test_analyze_training():
     b, z = 4, 96
-    model_name = 'brmf_4b_beta'
+    model_name = '4-CPFRAa-96'
     val_path = f"{preprocessed_data_dir}{b}val.pkl"
-    analyze_training(train_path=preprocessed_data_path(4, False), val_path=val_path, model_name=model_name, b=4,
-                     targets=[get_reconstruction_path(model_name)], z=z)
+    _, vae_dir, vae_path = get_model_paths(model_name)
+    train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+    analyze_training(train_path=train_path, val_path=val_path, vae_dir=vae_dir,
+                     model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
 
+
+def test_analyze_training_mixture_model():
+    b, z = 4, 96
+    model_name = '4-Lakh_Kern-96'
+    val_path = f"{preprocessed_data_dir}{b}val.pkl"
+    model_name_aux = f"{b}-CPFRAa-{z}"
+    _, vae_dir, vae_path = get_model_paths(model_name_aux)
+    analyze_training(train_path=preprocessed_data_path(4, False), val_path=val_path, vae_dir=vae_dir,
+                     model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
 
 # def test_plot_distributions(characteristics):
 #     plot_dir = data_path + 'debug_outputs/'

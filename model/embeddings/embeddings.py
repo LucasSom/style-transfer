@@ -31,7 +31,8 @@ def obtain_embeddings(df: pd.DataFrame, vae, samples=500, inplace=False) -> pd.D
         df_emb = df.groupby('Style').sample(n=samples, random_state=42)
     # df_sampled['Embedding'].iloc[0][0]
 
-    t = vae.get_layer(name='encoder')(np.stack([r.matrix for r in df_emb['roll']]))
+    roll_matrices = [r.matrix.todense() if r.sparse else r.matrix for r in df_emb['roll']]
+    t = vae.get_layer(name='encoder')(np.stack(np.array(roll_matrices)))
     df_emb['Embedding'] = list(t.numpy())
     return df_emb
 
@@ -60,32 +61,32 @@ def transform_embeddings(df, characteristics: dict, original: str, target: str, 
 
 
 @dfply.make_symbolic
-def embeddings_to_rolls(embeddings, roll_names, suffix, model, verbose=False) -> List[GuoRoll]:
+def embeddings_to_rolls(embeddings, roll_names, suffix, model, sparse, audio_path, save_midi, verbose=False) -> List[GuoRoll]:
     decoded_matrices = decode_embeddings(embeddings, model)
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
-    rolls = [GuoRoll(m, f"{r_name}-{suffix}", save_midi=False, verbose=verbose)
+    rolls = [GuoRoll(m, f"{r_name}-{suffix}", sparse=sparse, audio_path=audio_path, save_midi=save_midi, verbose=verbose)
              for m, r_name in zip(matrices, roll_names)]
 
     return rolls
 
 
-def get_embeddings_roll_df(df_in, model, model_name: str, column='Embedding', inplace=False) -> pd.DataFrame:
+def get_embeddings_roll_df(df_in, model, model_name: str, sparse, save_midi, column='Embedding', inplace=False) -> pd.DataFrame:
     name_new_column = "NewRoll"
 
     df = df_in if inplace else copy.deepcopy(df_in)
 
     if type(column) == list:
         # TODO(march): esto pisa df constantemente, salvo que se haga inplace
-        print("===== PASO POR EL IF DE get_embeddings_roll_df =====")
+        # print("===== PASO POR EL IF DE get_embeddings_roll_df =====")
         for c, n in zip(column, name_new_column):
-            df = get_embeddings_roll_df(df_in, model, model_name, column=c, inplace=inplace)
+            df = get_embeddings_roll_df(df_in, model, model_name, sparse, save_midi, column=c, inplace=inplace)
         return df
 
     new_name_suffix = f"{column}-{name_new_column}"
     audio_path = get_audios_path(model_name)
     roll_names = [r.name for r in df['roll']]
-    rolls = embeddings_to_rolls(df[column], roll_names, new_name_suffix, model)
+    rolls = embeddings_to_rolls(df[column], roll_names, new_name_suffix, model, sparse, audio_path, save_midi)
     df[name_new_column] = rolls
 
     return df
@@ -103,7 +104,7 @@ def matrix_sets_to_matrices(matrix_sets: list):
 
 def get_reconstruction(df, model, model_name: str, samples, inplace=False):
     df_emb = obtain_embeddings(df, model, samples, inplace)
-    get_embeddings_roll_df(df_emb, model, model_name, inplace=True)
+    get_embeddings_roll_df(df_emb, model, model_name, sparse=False, save_midi=True, inplace=True)
     return df_emb
 
 

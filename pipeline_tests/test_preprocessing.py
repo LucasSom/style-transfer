@@ -38,7 +38,7 @@ def test_mapleaf(mapleleaf_ds):
     assert df[df["Style"] == "ragtime_test"].shape[0] <= 17
     assert df[df["Style"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix, 'mapleleaf_8')
-    assert pm_cmp(r.midi, r._roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
+    assert pm_cmp(r.midi, r.roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
 
 
 def test_preprocess_data(sonata15_mapleleaf_ds):
@@ -58,8 +58,8 @@ def test_preprocess_data(sonata15_mapleleaf_ds):
 
     r0 = GuoRoll(df.roll[0].matrix, 'matrix_test_0')
     r20 = GuoRoll(df.roll[20].matrix, 'matrix_test_20')
-    assert pm_cmp(r0.midi, r0._roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
-    assert pm_cmp(r20.midi, r20._roll_to_midi(old_pm=df.roll[20].song.old_pm, path=audio_path))
+    assert pm_cmp(r0.midi, r0.roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
+    assert pm_cmp(r20.midi, r20.roll_to_midi(old_pm=df.roll[20].song.old_pm, path=audio_path))
 
 
 def test_midis_from_df(sonata15_mapleleaf_ds):
@@ -89,7 +89,7 @@ def test_mapleaf_4bars(mapleleaf_ds):
     assert df[df["Style"] == "ragtime_test"].shape[0] <= 17 * 2
     assert df[df["Style"] == "ragtime_test"].shape[0] > 0
     r = GuoRoll(df.roll[0].matrix, 'mapleleaf_4')
-    assert pm_cmp(r.midi, r._roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
+    assert pm_cmp(r.midi, r.roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
     assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
 
 
@@ -105,8 +105,8 @@ def test_preprocess_data_4bars(sonata15_mapleleaf_ds):
 
     r0 = GuoRoll(df.roll[0].matrix, 'matrix_test_0')
     r20 = GuoRoll(df.roll[20].matrix, 'matrix_test_20')
-    assert pm_cmp(r0.midi, r0._roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
-    assert pm_cmp(r20.midi, r20._roll_to_midi(old_pm=df.roll[20].song.old_pm, path=audio_path))
+    assert pm_cmp(r0.midi, r0.roll_to_midi(old_pm=df.roll[0].song.old_pm, path=audio_path))
+    assert pm_cmp(r20.midi, r20.roll_to_midi(old_pm=df.roll[20].song.old_pm, path=audio_path))
     assert df['roll'][0].matrix.shape == (df['roll'][0].bars * params.config.SAMPLES_PER_BAR, 89)
 
 
