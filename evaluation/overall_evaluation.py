@@ -34,21 +34,21 @@ def overall_evaluation(metrics, plot_dir, context='talk'):
 
     # Plot heatmap musicality
     sns.heatmap(metrics["Musicality"], annot=True, fmt='g', vmin=0, vmax=100)
-    save_plot(plot_dir, "heatmap_musicality", "Avg of % of permutations\nthat are less musical than the generated")
+    save_plot(plot_dir, "heatmap_musicality", "Promedio de % de permutaciones\nque son menos musicales que el generado")
     d = {s: [sum(metrics["Musicality"][s]) / 3] for s in metrics["Musicality"].columns}
     df_mus = pd.DataFrame(d)
     df_mus.to_csv(plot_dir + "/overall_musicality.csv", index=False)
 
     # Plot heatmap plagiarism (dist)
     sns.heatmap(metrics["Plagiarism-dist"], annot=True, fmt='g', vmin=0, vmax=1)
-    save_plot(plot_dir, "heatmap_plagiarism_dist", "Avg of % of rolls\nthat are more different than the generated\n(by distance)")
+    save_plot(plot_dir, "heatmap_plagiarism_dist", "Promedio de % de rolls\nque son más diferentes que el generado\n(distancia)")
     d = {s: [sum(metrics["Plagiarism-dist"][s]) / 3] for s in metrics["Plagiarism-dist"].columns}
     df_plagiarism_dist = pd.DataFrame(d)
     df_plagiarism_dist.to_csv(plot_dir + "/overall_plagiarism_dist.csv", index=False)
 
     # Plot heatmap plagiarism (diff)
     sns.heatmap(metrics["Plagiarism-diff"], annot=True, fmt='g', vmin=0, vmax=1)
-    save_plot(plot_dir, "heatmap_plagiarism_diff", "Avg of % of rolls\nthat are more different than the generated\n(by difference)")
+    save_plot(plot_dir, "heatmap_plagiarism_diff", "Promedio de % de rolls\nque son más diferentes que el generado\n(diferencia)")
     d = {s: [sum(metrics["Plagiarism-diff"][s]) / 3] for s in metrics["Plagiarism-diff"].columns}
     df_plagiarism_diff = pd.DataFrame(d)
     df_plagiarism_diff.to_csv(plot_dir + "/overall_plagiarism_diff.csv", index=False)

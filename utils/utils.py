@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from scipy.stats import entropy
+from typing import List
 
 
 def filter_column(df, column="Embedding", tipo='Fragmento'):
@@ -25,13 +26,19 @@ def normalize(m, eps=0.00001):
     return m + eps / m_sum
 
 
-def show_sheets(df_transferred, column, sheets_path, suffix):
-    titles = (df_transferred['Title'] if suffix is None
-              else df_transferred['Title'].map(lambda t: f'{t}_{suffix}'))
-    rolls = df_transferred[column]
+def generate_sheets(df, column, sheets_path, suffix) -> List[str]:
+    """
+    Generates the sheets on PNGs of the rolls in the DataFrame[column]
+    :return: list of PNGs paths
+    """
+    titles = [t + suffix for t in df['Title']]
+    rolls = df[column]
+    pngs_path = []
     for title, roll in zip(titles, rolls):
         sheet_path = os.path.join(sheets_path, title)
-        roll.display_score(file_name=sheet_path, fmt='png', do_display=False)
+        sheet_path = roll.generate_sheet(file_name=sheet_path, fmt='png', do_display=False)
+        pngs_path.append(sheet_path)
+    return pngs_path
 
 
 def get_matrix_comparisons(m_orig, m_trans, orig_avg, trans_avg):

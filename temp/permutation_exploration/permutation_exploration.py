@@ -16,7 +16,7 @@ d = pd.read_pickle('./data/preprocessed_data_path/bach-rag-moz-fres-4.pkl')
 d
 d.iloc[0]['roll']
 r = d.iloc[0]['roll']
-r.display_score()
+r.generate_sheet()
 r
 r.score
 r.score.plot('roll')
@@ -105,7 +105,7 @@ import model.colab_tension_vae.util as uitl
 import model.colab_tension_vae.util as util
 util
 util.roll_to_pretty_midi?
-util.roll_to_pretty_midi(ps)
+util.roll_to_pretty_midi(ps, )
 util.roll_to_pretty_midi(ps, r.midi)
 util.roll_to_pretty_midi(ps[0], r.midi)
 r.midi

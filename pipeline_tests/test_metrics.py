@@ -193,11 +193,10 @@ def test_obtain_metrics_plagiarism_dist():
 
 
 def test_task():
-    model_name = "4-small_br"
+    model_name = "brmf_4b_beta-96"
 
     s1, s2 = styles_names(model_name)[0]
     transferred_path = get_transferred_path(s1, s2, model_name)
     metrics_path = get_metrics_dir(transferred_path)
-    char_path = get_characteristics_path(model_name)
 
-    calculate_metrics(transferred_path, metrics_path, None, None)
+    calculate_metrics(transferred_path, metrics_path, 'Mozart', 'Bach')

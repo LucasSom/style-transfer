@@ -129,6 +129,7 @@ def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFr
             - Style
             - Title
             - roll
+            - Reconstruction
             - NewRoll
             - Differences position
             - Differences relative ranking
@@ -143,6 +144,7 @@ def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFr
     table = {"Style": [],
              "Title": [],
              "roll": [],
+             "Reconstruction": [],
              "NewRoll": [],
              f"{kind} position": [],
              f"{kind} relative ranking": [],
@@ -152,10 +154,11 @@ def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFr
 
     sub_df = df[df["Style"] == orig]
 
-    for style, title, r_orig, r_trans in zip(sub_df["Style"], sub_df["Title"], sub_df['roll'], sub_df["NewRoll"]):
+    for style, title, r_orig, r_rec, r_trans in zip(sub_df["Style"], sub_df["Title"], sub_df['roll'], sub_df['Reconstruction'], sub_df["NewRoll"]):
         table["Style"].append(style)
         table["Title"].append(title)
         table["roll"].append(r_orig)
+        table["Reconstruction"].append(r_rec)
         table["NewRoll"].append(r_trans)
 
         position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=by_distance)

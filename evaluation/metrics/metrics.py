@@ -36,6 +36,7 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, rhythm=Fa
     table = {"Style": [],
              "Title": [],
              "roll": [],
+             "Reconstruction": [],
              "NewRoll": [],
              "target": [],
              "m": [],
@@ -44,13 +45,14 @@ def get_distribution_distances(df: pd.DataFrame, orig: str, dest: str, rhythm=Fa
 
     for s1, s2 in [(orig, dest), (dest, orig)]:
         sub_df = df[df["Style"] == s1]
-        for title, r_orig, r_trans in zip(sub_df["Title"], sub_df['roll'], sub_df["NewRoll"]):
+        for title, r_orig, r_rec, r_trans in zip(sub_df["Title"], sub_df['roll'], sub_df["Reconstruction"], sub_df["NewRoll"]):
             m_orig = matrix_of_adjacent_rhythmic_bigrams(r_orig)[0] if rhythm else matrix_of_adjacent_intervals(r_orig)[0]
             m_trans = matrix_of_adjacent_rhythmic_bigrams(r_trans)[0] if rhythm else matrix_of_adjacent_intervals(r_trans)[0]
 
             table["Style"].append(s1)
             table["Title"].append(title)
             table["roll"].append(r_orig)
+            table["Reconstruction"].append(r_rec)
             table["NewRoll"].append(r_trans)
             table["target"].append(s2)
             table["m"].append(m_orig)

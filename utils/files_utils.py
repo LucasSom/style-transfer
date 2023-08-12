@@ -86,6 +86,10 @@ def get_embedding_path(model_name, characteristics=False):
 
 
 def get_model_paths(model_name: str):
+    """Returns a tuple with model_dir, vae_dir and vae_path
+
+    :param model_name: name of de model
+    :return: model_dir, vae_dir, vae_path"""
     model_dir = os.path.join(data_path, "models", model_name)
     vae_dir = os.path.join(model_dir, "vae")
 
@@ -120,7 +124,7 @@ def get_characteristics_path(model_name: str):
 
 
 def get_reconstruction_path(model_name: str):
-    return os.path.join(get_logs_path(model_name), 'reconstruction.pkl')
+    return f'{data_path}models/{model_name}/embeddings/reconstruction.pkl'
 
 
 def get_eval_dir(model_name: str):
@@ -143,22 +147,17 @@ def get_audios_path(model_name=None, reconstruction=False, e_orig=None, e_dest=N
     return path
 
 
-def get_sheets_path(model_name: str = None, original_style: str = None, target_style: str = None, orig=False):
+def get_sheets_path(original_style: str, target_style: str, model_name: str = None):
     """
-    :param model_name: name of the containing folder inside the data directory.
+    :param model_name: name of the containing folder inside the data directory. If it's None, the folder will be 'data/original_sheets'
     :param original_style: name of style of the original song.
     :param target_style: name of transferred style.
-    :param orig: if original_style and target_style are None, determines the suffix between 'orig' and 'recon'.
     """
     if model_name is None:
-        path = os.path.join(data_path, "original/sheets/")
+        path = os.path.join(data_path, "original_sheets/")
     else:
         path = os.path.join(data_path, "models", model_name, "sheets/")
-
-    if original_style is None and target_style is None:
-        path = os.path.join(path, f"{'orig' if orig else 'recon'}/")
-    else:
-        path = os.path.join(path, f"{original_style}_to_{target_style}/")
+    path = os.path.join(path, f"{original_style}_to_{target_style}/")
 
     if not os.path.isdir(path):
         os.makedirs(path)

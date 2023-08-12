@@ -52,8 +52,8 @@ class GuoRoll:
             self.midi = None
 
     def roll_to_midi(self, path, old_pm=None, verbose=False):
-        return save_audio(self.name, util.roll_to_pretty_midi(self.matrix, old_pm, verbose=verbose), path, False,
-                          verbose)
+        return save_audio(self.name, util.roll_to_pretty_midi(self.matrix, old_pm, self.sparse, verbose=verbose), path,
+                          False, verbose)
 
     def roll_to_score(self, verbose=False):
         def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24, verbose=False):
@@ -61,7 +61,10 @@ class GuoRoll:
 
             t = 0
             if self.sparse:
-                rhythm_roll = rhythm_roll.toarray()[0]
+                try:
+                    rhythm_roll = rhythm_roll.toarray()[0]
+                except:
+                    rhythm_roll = np.array(rhythm_roll)[0]
             while t < rhythm_roll.shape[0]:
                 if rhythm_roll[t] == 1:  # not rest
                     pitch = np.nonzero(pitch_roll[:, t])[0][0]
@@ -122,9 +125,14 @@ class GuoRoll:
         if voice == 'bass':
             return get_rp(self.get_bass_changes())
 
-    def display_score(self, file_name='file', fmt='png', do_display=True):
+    def get_score(self, verbose=False):
+        if self.score is None:
+            return self.roll_to_score(verbose)
+        return self.score
+
+    def generate_sheet(self, file_name, fmt='png', do_display=True, verbose=False):
         # file_name += f'.{fmt}'
-        lily = lily_conv.write(self.score, fmt='lilypond', fp=file_name, subformats=[fmt])
+        lily = lily_conv.write(self.get_score(verbose=verbose), fmt='lilypond', fp=file_name, subformats=[fmt])
 
         if do_display:
             display(Image(str(lily)))
@@ -135,7 +143,7 @@ class GuoRoll:
                 os.remove(f)
 
         print("File saved in ", os.path.abspath(lily))
-        return lily
+        return str(lily)
 
     def _get_permutation(self, changes, permutation, voice, idx_change):
         durations = []
@@ -172,6 +180,11 @@ class GuoRoll:
         permutation = self._get_permutation(bass_changes, permutation, voice, -1)
 
         return permutation
+
+    def get_midi(self, audio_path, verbose=False):
+        if self.midi is None:
+            return self.roll_to_midi(audio_path, old_pm=None, verbose=verbose)
+        return self.midi
 
 
 def get_rp(changes) -> List[str]:

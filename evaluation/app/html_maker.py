@@ -23,16 +23,23 @@ def make_table(target: str, songs: List[dict]) -> str:
     :param songs: list of dictionary with keys:
         * title: title of the song
         * selection_criteria: reason of selection (plagiarism, musicality, etc.)
-        * path_orig: path of the original roll
-        * path_rec: path of the roll reconstructed (ie, after encode and decode the original matrix)
-        * path_transformed: path of the roll after being applied the transformation
+        * audio_path_orig: path of the audio of the original roll
+        * audio_path_rec: path of audio of the reconstructed roll
+        * audio_path_transformed: path of the audio after being applied the transformation
+        * sheet_path_orig: path of the sheet of the original roll
+        * sheet_path_rec: path of sheet of the reconstructed roll
+        * sheet_path_transformed: path of the sheet after being applied the transformation
     """
     table = f"""
     <h3> A {target} </h3>
 
       <figure><table>
         <thead>
-        <tr><th>Nombre de canción</th><th>Criterio de selección</th><th>Original</th><th>A {target}</th></tr>
+        <tr>
+        <th>Nombre de canción</th><th>Criterio de selección</th>
+        <th>Audio original</th><th>Audio reconstruido</th><th>Audio transformado</th>
+        <th>Partitura original</th><th>Partitura reconstruida</th><th>Partitura transformada</th>
+        </tr>
         </thead>
         <tbody>
         """
@@ -42,11 +49,14 @@ def make_table(target: str, songs: List[dict]) -> str:
         table += f"""    <td>{s['title']}</td>\n"""
         table += f"""    <td>{s['selection_criteria']}</td>\n"""
 
-        for path in s['path_orig'], s['path_transformed']:
+        for path in s['audio_path_orig'], s['audio_path_rec'], s['audio_path_transformed']:
             table += f"""    <td><audio controls>
                     <source src="{path}" type="audio/mpeg">
                     Your browser does not support the audio element.
                     </audio></td>\n"""
+
+        for path in s['sheet_path_orig'], s['sheet_path_rec'], s['sheet_path_transformed']:
+            table += f"""    <td><img src="{path}"></td>\n"""
 
         table += """</tr>\n"""
 
@@ -74,30 +84,48 @@ def make_body(original_style: str, songs: dict) -> str:
     return file + "</body>"
 
 
-def make_html(df_transferred, orig, target, app_dir):
-    def get_selection_criterion(r):
-        try:
-            if orig == "Mozart":
-                return os.path.basename(root_file_name(r["New audio files"])).split('-')[1].split('_')[1]
-            return os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[1]
-        except:
-            if orig == "Mozart":
-                return os.path.basename(root_file_name(r["New audio files"])).split('-')[2].split('_')[1]
-            return os.path.basename(root_file_name(r["New audio files"])).split('-')[1].split('_')[1]
-
-    songs = {target:
-            [{'title': os.path.basename(root_file_name(r["New audio files"])).split('-')[0].split('_')[0],
-             'selection_criteria': get_selection_criterion(r),
-             'path_orig': os.path.join('../audios/', os.path.basename(r["Original audio files"])),
-             'path_transformed': os.path.join('../audios/', os.path.basename(r["New audio files"]))
+def make_html(df, orig, target, app_dir):
+    songs = {target: [{'title': r['Title'],
+                       'selection_criteria': r['Selection criteria'],
+                       'audio_path_orig': r["Original audio files"],
+                       'audio_path_rec': r["Reconstructed audios"],
+                       'audio_path_transformed': r["New audio files"],
+                       'sheet_path_orig': r["Original sheet"],
+                       'sheet_path_rec': r["Reconstructed sheet"],
+                       'sheet_path_transformed': r["New sheet"]
+                       }
+                      for _, r in df.iterrows()
+                      ]
              }
-            for i, (_, r) in enumerate(df_transferred.iterrows())
-            ]
-    }
     file = make_head(orig) + make_body(orig, songs)
     file += """\n<a href="./index.html" class="button">Volver al menú</a>"""
 
     file_name = f"{app_dir}/audio_{orig}_to_{target}.html"
+    make_dirs_if_not_exists(file_name)
+
+    with open(file_name, 'w') as f:
+        f.write(file)
+        print("Saved HTML file as:", file_name)
+
+
+def make_index(app_path, files):
+    file = make_head("Evaluación")
+
+    file += f"""<body id="css-zen-garden">
+    <div class="page-wrapper">
+    
+    <h1>Transformaciones disponibles</h1>
+    
+    <ul>
+    """
+
+    for transformation in files:
+        file += f"""<li><a href="./{app_path}{transformation}.html" class="button">{transformation}</a></li>"""
+
+    file += "</ul>\n</div>\n"
+    file += "</body>"
+
+    file_name = f"{app_path}index.html"
     make_dirs_if_not_exists(file_name)
 
     with open(file_name, 'w') as f:

@@ -14,101 +14,101 @@
     <style level="9" isset="true" linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true" connectiondash="dotted" connectionwidth="2" connectionarrow="fromto" connectionpadding="3" connectionfont="Sans 10"/>
     <style level="10" isset="true" linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true" connectiondash="dotted" connectionwidth="2" connectionarrow="fromto" connectionpadding="3" connectionfont="Sans 10"/>
   </styles>
-  <drawarea x="274.42020670572913" y="-589.66564941406261" scale="0.75"/>
+  <drawarea x="-188.96360270182277" y="240.18432617187432" scale="0.75"/>
   <images/>
   <nodes>
-    <node id="1" posx="-304.42020670572913" posy="725.66564941406261" maxwidth="200" width="127" height="46" side="left" fold="false" treesize="3682.9999999999959" layout="A la derecha">
+    <node id="1" posx="158.96360270182277" posy="-104.18432617187386" maxwidth="200" width="127" height="46" side="left" fold="false" treesize="3572.9999999999918" layout="A la derecha">
       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
       <nodename>style-transfer</nodename>
       <nodenote></nodenote>
       <nodes>
-        <node id="3" posx="-77.420206705729186" posy="-1259.3343505859348" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="541.99999999999829" color="#c6262e" layout="A la derecha">
+        <node id="3" posx="385.96360270182288" posy="-2034.1843261718736" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="541.99999999999829" color="#c6262e" layout="A la derecha">
           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
           <nodename>Preprocessing</nodename>
           <nodenote></nodenote>
           <nodes>
-            <node id="5" posx="153.57979329427081" posy="-1498.3343505859325" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
+            <node id="5" posx="616.96360270182311" posy="-2273.1843261718705" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
               <style linktype="curved" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>INPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="7" posx="325.57979329427081" posy="-1507.3343505859316" maxwidth="200" width="176" height="64" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
+                <node id="7" posx="788.96360270182356" posy="-2282.1843261718695" maxwidth="200" width="176" height="64" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="none" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>PATHs of folders containing MIDI files</nodename>
                   <nodenote></nodenote>
                 </node>
               </nodes>
             </node>
-            <node id="9" posx="153.57979329427081" posy="-1250.3343505859352" maxwidth="200" width="168" height="46" side="right" fold="false" treesize="432.00000000000017" color="#c6262e" layout="A la derecha">
+            <node id="9" posx="616.96360270182311" posy="-2025.1843261718745" maxwidth="200" width="168" height="46" side="right" fold="false" treesize="432.00000000000017" color="#c6262e" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>1. preprocess_data</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="11" posx="421.57979329427081" posy="-1411.3343505859343" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="110" color="#c6262e" layout="A la derecha">
+                <node id="11" posx="884.96360270182333" posy="-2186.1843261718732" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="110" color="#c6262e" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>INPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="13" posx="593.57979329427087" posy="-1434.3343505859343" maxwidth="200" width="105" height="46" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
+                    <node id="13" posx="1056.9636027018228" posy="-2209.1843261718732" maxwidth="200" width="105" height="46" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>songs_dict</nodename>
                       <nodenote></nodenote>
                       <nodes>
-                        <node id="15" posx="798.57979329427008" posy="-1443.3343505859343" maxwidth="200" width="187" height="64" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
+                        <node id="15" posx="1261.9636027018228" posy="-2218.1843261718732" maxwidth="200" width="187" height="64" side="right" fold="false" treesize="64" color="#c6262e" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>{nombre_subdataset: [midi_file]}</nodename>
                           <nodenote></nodenote>
                         </node>
                       </nodes>
                     </node>
-                    <node id="17" posx="593.57979329427087" posy="-1379.3343505859348" maxwidth="200" width="136" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                    <node id="17" posx="1056.9636027018228" posy="-2154.1843261718736" maxwidth="200" width="136" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>verbose=False</nodename>
                       <nodenote></nodenote>
                     </node>
                   </nodes>
                 </node>
-                <node id="19" posx="421.57979329427081" posy="-1204.3343505859343" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="322.00000000000011" color="#c6262e" layout="A la derecha">
+                <node id="19" posx="884.96360270182333" posy="-1979.1843261718736" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="322.00000000000011" color="#c6262e" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame (df_preprocessed)</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="21" posx="681.57979329427076" posy="-1333.3343505859352" maxwidth="200" width="65" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                    <node id="21" posx="1144.9636027018232" posy="-2108.1843261718741" maxwidth="200" width="65" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Style</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="23" posx="681.57979329427076" posy="-1287.3343505859348" maxwidth="200" width="60" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                    <node id="23" posx="1144.9636027018232" posy="-2062.1843261718732" maxwidth="200" width="60" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Title</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="25" posx="681.57979329427076" posy="-1149.3343505859357" maxwidth="200" width="84" height="46" side="right" fold="false" treesize="230" color="#c6262e" layout="A la derecha">
+                    <node id="25" posx="1144.9636027018232" posy="-1924.1843261718741" maxwidth="200" width="84" height="46" side="right" fold="false" treesize="230" color="#c6262e" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>GuoRoll</nodename>
                       <nodenote></nodenote>
                       <nodes>
-                        <node id="27" posx="865.57979329427008" posy="-1241.3343505859352" maxwidth="200" width="187" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                        <node id="27" posx="1328.9636027018223" posy="-2016.1843261718745" maxwidth="200" width="187" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>matrix (16*bars x 89)</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="29" posx="865.57979329427008" posy="-1195.3343505859343" maxwidth="200" width="60" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                        <node id="29" posx="1328.9636027018223" posy="-1970.1843261718736" maxwidth="200" width="60" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>bars</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="31" posx="865.57979329427008" posy="-1149.3343505859357" maxwidth="200" width="63" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                        <node id="31" posx="1328.9636027018223" posy="-1924.1843261718741" maxwidth="200" width="63" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>song</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="33" posx="865.57979329427008" posy="-1103.3343505859361" maxwidth="200" width="68" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                        <node id="33" posx="1328.9636027018223" posy="-1878.184326171875" maxwidth="200" width="68" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>score</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="35" posx="865.57979329427008" posy="-1057.334350585937" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                        <node id="35" posx="1328.9636027018223" posy="-1832.1843261718755" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>pretty midi</nodename>
                           <nodenote></nodenote>
@@ -119,12 +119,12 @@
                 </node>
               </nodes>
             </node>
-            <node id="37" posx="153.57979329427081" posy="-1011.3343505859368" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="46.000000000000284" color="#c6262e" layout="A la derecha">
+            <node id="37" posx="616.96360270182311" posy="-1786.1843261718759" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="46.000000000000284" color="#c6262e" layout="A la derecha">
               <style linktype="curved" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>OUTPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="39" posx="342.57979329427081" posy="-1011.3343505859368" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                <node id="39" posx="805.96360270182333" posy="-1786.1843261718759" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>PATH of pickle</nodename>
                   <nodenote></nodenote>
@@ -133,66 +133,66 @@
             </node>
           </nodes>
         </node>
-        <node id="41" posx="-77.420206705729186" posy="-611.33435058593773" maxwidth="200" width="112" height="46" side="right" fold="false" treesize="753.99999999999898" color="#f37329" layout="A la derecha">
+        <node id="41" posx="385.96360270182288" posy="-1579.1843261718755" maxwidth="200" width="112" height="46" side="right" fold="false" treesize="368.00000000000034" color="#f37329" layout="A la derecha">
           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
           <nodename>Train Model</nodename>
           <nodenote></nodenote>
           <nodes>
-            <node id="43" posx="134.57979329427081" posy="-827.33435058593773" maxwidth="200" width="133" height="46" side="right" fold="false" treesize="322" color="#f37329" layout="A la derecha">
+            <node id="43" posx="597.96360270182333" posy="-1602.1843261718755" maxwidth="200" width="133" height="46" side="right" fold="false" treesize="322" color="#f37329" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>1. train_model</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="45" posx="367.57979329427081" posy="-873.33435058593659" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="230" color="#f37329" layout="A la derecha">
+                <node id="45" posx="830.96360270182333" posy="-1648.1843261718741" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="230" color="#f37329" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>INPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="47" posx="539.57979329427098" posy="-951.3343505859367" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="92" color="#f37329" layout="A la derecha">
+                    <node id="47" posx="1002.9636027018233" posy="-1726.1843261718745" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="92" color="#f37329" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>DataFrame (df_preprocessed)</nodename>
                       <nodenote></nodenote>
                       <nodes>
-                        <node id="49" posx="799.57979329427008" posy="-965.3343505859367" maxwidth="200" width="65" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
+                        <node id="49" posx="1262.9636027018223" posy="-1740.1843261718745" maxwidth="200" width="65" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>PATH</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="51" posx="799.57979329427008" posy="-919.3343505859367" maxwidth="200" width="108" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
+                        <node id="51" posx="1262.9636027018223" posy="-1694.1843261718745" maxwidth="200" width="108" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>DataFrame</nodename>
                           <nodenote></nodenote>
                         </node>
                       </nodes>
                     </node>
-                    <node id="53" posx="539.57979329427098" posy="-873.33435058593659" maxwidth="200" width="121" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
+                    <node id="53" posx="1002.9636027018233" posy="-1648.1843261718741" maxwidth="200" width="121" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>model_name</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="55" posx="539.57979329427098" posy="-827.33435058593773" maxwidth="200" width="163" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
+                    <node id="55" posx="1002.9636027018233" posy="-1602.1843261718755" maxwidth="200" width="163" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>final_epoch + ckpt</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="57" posx="539.57979329427098" posy="-781.33435058593761" maxwidth="200" width="108" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
+                    <node id="57" posx="1002.9636027018233" posy="-1556.1843261718755" maxwidth="200" width="108" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>verbose=2</nodename>
                       <nodenote></nodenote>
                     </node>
                   </nodes>
                 </node>
-                <node id="59" posx="367.57979329427081" posy="-712.33435058593773" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="92" color="#f37329" layout="A la derecha">
+                <node id="59" posx="830.96360270182333" posy="-1487.184326171875" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="92" color="#f37329" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>OUTPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="61" posx="556.57979329427121" posy="-735.33435058593773" maxwidth="200" width="55" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
+                    <node id="61" posx="1019.9636027018242" posy="-1510.1843261718755" maxwidth="200" width="55" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>vae</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="63" posx="556.57979329427121" posy="-689.33435058593773" maxwidth="200" width="141" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
+                    <node id="63" posx="1019.9636027018242" posy="-1464.1843261718755" maxwidth="200" width="141" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>callbacks (CSV)</nodename>
                       <nodenote></nodenote>
@@ -201,172 +201,90 @@
                 </node>
               </nodes>
             </node>
-            <node id="65" posx="134.57979329427081" posy="-450.33435058593705" maxwidth="200" width="83" height="46" side="right" fold="false" treesize="432.00000000000051" color="#f37329" layout="A la derecha">
+            <node id="65" posx="597.96360270182333" posy="-1418.1843261718741" maxwidth="200" width="83" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>2. TEST</nodename>
               <nodenote></nodenote>
-              <nodes>
-                <node id="67" posx="317.57979329427036" posy="-519.33435058593773" maxwidth="200" width="189" height="46" side="right" fold="false" treesize="294" color="#f37329" layout="A la derecha">
-                  <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                  <nodename>1. test_reconstruction</nodename>
-                  <nodenote></nodenote>
-                  <nodes>
-                    <node id="69" posx="606.57979329427087" posy="-542.33435058593761" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="248" color="#f37329" layout="A la derecha">
-                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                      <nodename>INPUT</nodename>
-                      <nodenote></nodenote>
-                      <nodes>
-                        <node id="71" posx="778.5797932942703" posy="-643.33435058593864" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="64" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>DataFrame (df_preprocessed)</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                        <node id="73" posx="778.5797932942703" posy="-579.33435058593807" maxwidth="200" width="55" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>vae</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                        <node id="75" posx="778.5797932942703" posy="-533.33435058593773" maxwidth="200" width="121" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>model_name</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                        <node id="77" posx="778.5797932942703" posy="-487.3343505859375" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>samples</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                        <node id="79" posx="778.5797932942703" posy="-441.33435058593705" maxwidth="200" width="129" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>inplace=False</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                      </nodes>
-                    </node>
-                    <node id="81" posx="606.57979329427087" posy="-395.33435058593693" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                      <nodename>OUTPUT</nodename>
-                      <nodenote></nodenote>
-                      <nodes>
-                        <node id="83" posx="795.57979329427008" posy="-395.33435058593693" maxwidth="200" width="178" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>DataFrame (df_emb)</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                      </nodes>
-                    </node>
-                  </nodes>
-                </node>
-                <node id="85" posx="317.57979329427036" posy="-303.33435058593739" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="138" color="#f37329" layout="A la derecha">
-                  <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                  <nodename>OUTPUT</nodename>
-                  <nodenote></nodenote>
-                  <nodes>
-                    <node id="87" posx="506.57979329427081" posy="-335.33435058593739" maxwidth="200" width="163" height="64" side="right" fold="false" treesize="92" color="#f37329" layout="A la derecha">
-                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                      <nodename>DataFrame (df_reconstructed)</nodename>
-                      <nodenote></nodenote>
-                      <nodes>
-                        <node id="89" posx="769.57979329427098" posy="-349.33435058593739" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>Embedding</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                        <node id="91" posx="769.57979329427098" posy="-303.33435058593739" maxwidth="200" width="173" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                          <nodename>Embedding-NewRoll</nodename>
-                          <nodenote></nodenote>
-                        </node>
-                      </nodes>
-                    </node>
-                    <node id="93" posx="506.57979329427081" posy="-257.33435058593716" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="46" color="#f37329" layout="A la derecha">
-                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-                      <nodename>PATH of pickle</nodename>
-                      <nodenote></nodenote>
-                    </node>
-                  </nodes>
-                </node>
-              </nodes>
             </node>
           </nodes>
         </node>
-        <node id="95" posx="-77.420206705729186" posy="176.66564941405795" maxwidth="200" width="209" height="46" side="right" fold="false" treesize="807.99999999999659" color="#f9c440" layout="A la derecha">
+        <node id="67" posx="385.96360270182288" posy="-984.18432617187818" maxwidth="200" width="209" height="46" side="right" fold="false" treesize="807.99999999999659" color="#f9c440" layout="A la derecha">
           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
           <nodename>Calculate characteristics</nodename>
           <nodenote></nodenote>
           <nodes>
-            <node id="97" posx="231.57979329427081" posy="-172.33435058593864" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="110" color="#f9c440" layout="A la derecha">
+            <node id="69" posx="694.96360270182356" posy="-1333.184326171875" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="110" color="#f9c440" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>INPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="99" posx="403.57979329427059" posy="-204.33435058593889" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
+                <node id="71" posx="866.96360270182311" posy="-1365.1843261718755" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame/Path (df_preprocessed)</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="101" posx="403.57979329427059" posy="-140.33435058593864" maxwidth="200" width="92" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                <node id="73" posx="866.96360270182311" posy="-1301.184326171875" maxwidth="200" width="92" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>vae/Path</nodename>
                   <nodenote></nodenote>
                 </node>
               </nodes>
             </node>
-            <node id="103" posx="231.57979329427081" posy="29.665649414058834" maxwidth="200" width="189" height="46" side="right" fold="false" treesize="293.99999999999858" color="#f9c440" layout="A la derecha">
+            <node id="75" posx="694.96360270182356" posy="-1131.184326171877" maxwidth="200" width="189" height="46" side="right" fold="false" treesize="293.99999999999858" color="#f9c440" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>1. obtain_embeddings</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="105" posx="520.57979329427098" posy="-39.334350585941166" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="156" color="#f9c440" layout="A la derecha">
+                <node id="77" posx="983.96360270182356" posy="-1200.1843261718773" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="156" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>INPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="107" posx="692.57979329427098" posy="-94.334350585940015" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
+                    <node id="79" posx="1155.9636027018232" posy="-1255.1843261718764" maxwidth="200" width="160" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>DataFrame (df_preprocessed)</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="109" posx="692.57979329427098" posy="-30.334350585941166" maxwidth="200" width="55" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                    <node id="81" posx="1155.9636027018232" posy="-1191.1843261718773" maxwidth="200" width="55" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>vae</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="111" posx="692.57979329427098" posy="15.665649414058834" maxwidth="200" width="129" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                    <node id="83" posx="1155.9636027018232" posy="-1145.1843261718773" maxwidth="200" width="129" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>inplace=False</nodename>
                       <nodenote></nodenote>
                     </node>
                   </nodes>
                 </node>
-                <node id="113" posx="520.57979329427098" posy="107.66564941405818" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="138" color="#f9c440" layout="A la derecha">
+                <node id="85" posx="983.96360270182356" posy="-1053.1843261718777" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="138" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>OUTPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="115" posx="709.57979329427167" posy="107.66564941405818" maxwidth="200" width="178" height="46" side="right" fold="false" treesize="138" color="#f9c440" layout="A la derecha">
+                    <node id="87" posx="1172.9636027018241" posy="-1053.1843261718777" maxwidth="200" width="178" height="46" side="right" fold="false" treesize="138" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>DataFrame (df_emb)</nodename>
                       <nodenote></nodenote>
                       <nodes>
-                        <node id="117" posx="987.57979329426939" posy="84.66564941405818" maxwidth="200" width="205" height="46" link="19" side="right" fold="false" treesize="92" color="#f9c440" layout="A la derecha">
+                        <node id="89" posx="1450.9636027018209" posy="-1076.1843261718777" maxwidth="200" width="205" height="46" link="19" side="right" fold="false" treesize="92" color="#f9c440" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>idem df_preprocessed</nodename>
                           <nodenote></nodenote>
                           <nodes>
-                            <node id="119" posx="1292.5797932942687" posy="61.665649414058407" maxwidth="200" width="68" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                            <node id="91" posx="1755.9636027018205" posy="-1099.1843261718775" maxwidth="200" width="68" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                               <nodename>Style</nodename>
                               <nodenote></nodenote>
                             </node>
-                            <node id="121" posx="1292.5797932942687" posy="107.66564941405818" maxwidth="200" width="69" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                            <node id="93" posx="1755.9636027018205" posy="-1053.1843261718777" maxwidth="200" width="69" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                               <nodename>Title</nodename>
                               <nodenote></nodenote>
                             </node>
                           </nodes>
                         </node>
-                        <node id="123" posx="987.57979329426939" posy="153.66564941405818" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                        <node id="95" posx="1450.9636027018209" posy="-1007.184326171878" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>Embedding</nodename>
                           <nodenote></nodenote>
@@ -377,34 +295,34 @@
                 </node>
               </nodes>
             </node>
-            <node id="125" posx="231.57979329427081" posy="254.66564941405773" maxwidth="200" width="208" height="46" side="right" fold="false" treesize="156" color="#f9c440" layout="A la derecha">
+            <node id="97" posx="694.96360270182356" posy="-906.18432617187818" maxwidth="200" width="208" height="46" side="right" fold="false" treesize="156" color="#f9c440" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>2. calculate_characteristics</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="127" posx="539.57979329427098" posy="222.66564941405773" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="92" color="#f9c440" layout="A la derecha">
+                <node id="99" posx="1002.9636027018233" posy="-938.18432617187909" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="92" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>INPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="129" posx="711.57979329427167" posy="199.66564941405773" maxwidth="200" width="178" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                    <node id="101" posx="1174.9636027018241" posy="-961.18432617187841" maxwidth="200" width="178" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>DataFrame (df_emb)</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="131" posx="711.57979329427167" posy="245.66564941405773" maxwidth="200" width="141" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                    <node id="103" posx="1174.9636027018241" posy="-915.18432617187818" maxwidth="200" width="141" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>column='Style'</nodename>
                       <nodenote></nodenote>
                     </node>
                   </nodes>
                 </node>
-                <node id="133" posx="539.57979329427098" posy="300.66564941405807" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
+                <node id="105" posx="1002.9636027018233" posy="-860.18432617187818" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>OUTPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="135" posx="728.57979329427144" posy="291.66564941405807" maxwidth="200" width="185" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
+                    <node id="107" posx="1191.9636027018237" posy="-869.18432617187841" maxwidth="200" width="185" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>{author: embedding} (authors_car)</nodename>
                       <nodenote></nodenote>
@@ -413,42 +331,42 @@
                 </node>
               </nodes>
             </node>
-            <node id="137" posx="231.57979329427059" posy="456.66564941405773" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="247.99999999999955" color="#f9c440" layout="A la derecha">
+            <node id="109" posx="694.96360270182333" posy="-704.18432617187841" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="247.99999999999955" color="#f9c440" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>OUTPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="139" posx="420.57979329427104" posy="355.66564941405818" maxwidth="200" width="97" height="46" link="115" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                <node id="111" posx="883.96360270182356" posy="-805.18432617187773" maxwidth="200" width="97" height="46" link="87" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>df_emb</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="141" posx="420.57979329427059" posy="479.66564941405773" maxwidth="200" width="199" height="46" side="right" fold="false" treesize="202" color="#f9c440" layout="A la derecha">
+                <node id="113" posx="883.96360270182311" posy="-681.18432617187841" maxwidth="200" width="199" height="46" side="right" fold="false" treesize="202" color="#f9c440" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>authors_characteristics</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="237" posx="719.57979329427053" posy="479.66564941405773" maxwidth="200" width="213" height="46" side="right" fold="false" treesize="202" color="#f9c440" layout="A la derecha">
+                    <node id="115" posx="1182.9636027018228" posy="-681.18432617187841" maxwidth="200" width="213" height="46" side="right" fold="false" treesize="202" color="#f9c440" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Dict{name: Style object}</nodename>
                       <nodenote></nodenote>
                       <nodes>
-                        <node id="238" posx="1032.5797932942705" posy="401.66564941405773" maxwidth="200" width="69" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                        <node id="117" posx="1495.9636027018223" posy="-759.18432617187841" maxwidth="200" width="69" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>name</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="239" posx="1032.5797932942705" posy="447.66564941405773" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                        <node id="119" posx="1495.9636027018223" posy="-713.18432617187841" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>embedding</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="240" posx="1032.5797932942705" posy="493.66564941405773" maxwidth="200" width="182" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
+                        <node id="121" posx="1495.9636027018223" posy="-667.18432617187841" maxwidth="200" width="182" height="46" side="right" fold="false" treesize="46" color="#f9c440" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>intervals_distribution</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="241" posx="1032.5797932942705" posy="539.66564941405773" maxwidth="200" width="226" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
+                        <node id="123" posx="1495.9636027018223" posy="-621.18432617187887" maxwidth="200" width="226" height="64" side="right" fold="false" treesize="64" color="#f9c440" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>rhythmic_bigrams_distribution</nodename>
                           <nodenote></nodenote>
@@ -461,79 +379,137 @@
             </node>
           </nodes>
         </node>
-        <node id="143" posx="-77.420206705729186" posy="1035.6656494140589" maxwidth="200" width="128" height="46" side="right" fold="false" treesize="910.00000000000227" color="#68b723" layout="A la derecha">
+        <node id="125" posx="385.96360270182277" posy="-442.1843261718775" maxwidth="200" width="116" height="46" side="right" fold="false" treesize="276" color="#c6262e" layout="A la derecha">
           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
-          <nodename>Transfer style</nodename>
+          <nodename>Reconstruct</nodename>
           <nodenote></nodenote>
           <nodes>
-            <node id="145" posx="150.57979329427081" posy="704.66564941405909" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="247.99999999999955" color="#68b723" layout="A la derecha">
+            <node id="127" posx="601.96360270182277" posy="-557.1843261718775" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>INPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="147" posx="322.57979329427081" posy="603.66564941405818" maxwidth="200" width="178" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                <node id="222" posx="773.96360270182277" posy="-557.1843261718775" maxwidth="200" width="81" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                  <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+                  <nodename>df_emb</nodename>
+                  <nodenote></nodenote>
+                </node>
+              </nodes>
+            </node>
+            <node id="223" posx="601.96360270182277" posy="-419.1843261718775" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="230" color="#c6262e" layout="A la derecha">
+              <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+              <nodename>OUTPUT</nodename>
+              <nodenote></nodenote>
+              <nodes>
+                <node id="224" posx="790.96360270182277" posy="-419.1843261718775" maxwidth="200" width="134" height="46" side="right" fold="false" treesize="230" color="#c6262e" layout="A la derecha">
+                  <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+                  <nodename>reconstruction</nodename>
+                  <nodenote></nodenote>
+                  <nodes>
+                    <node id="225" posx="1024.9636027018228" posy="-511.1843261718775" maxwidth="200" width="65" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+                      <nodename>Style</nodename>
+                      <nodenote></nodenote>
+                    </node>
+                    <node id="226" posx="1024.9636027018228" posy="-465.1843261718775" maxwidth="200" width="60" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+                      <nodename>Title</nodename>
+                      <nodenote></nodenote>
+                    </node>
+                    <node id="227" posx="1024.9636027018228" posy="-419.1843261718775" maxwidth="200" width="71" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+                      <nodename>roll_id</nodename>
+                      <nodenote></nodenote>
+                    </node>
+                    <node id="228" posx="1024.9636027018228" posy="-373.1843261718775" maxwidth="200" width="51" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+                      <nodename>roll</nodename>
+                      <nodenote></nodenote>
+                    </node>
+                    <node id="229" posx="1024.9636027018228" posy="-327.1843261718775" maxwidth="200" width="138" height="46" side="right" fold="false" treesize="46" color="#c6262e" layout="A la derecha">
+                      <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+                      <nodename>Reconstruction</nodename>
+                      <nodenote></nodenote>
+                    </node>
+                  </nodes>
+                </node>
+              </nodes>
+            </node>
+          </nodes>
+        </node>
+        <node id="129" posx="385.96360270182288" posy="150.81567382812295" maxwidth="200" width="128" height="46" side="right" fold="false" treesize="910.00000000000227" color="#68b723" layout="A la derecha">
+          <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+          <nodename>Transfer style</nodename>
+          <nodenote></nodenote>
+          <nodes>
+            <node id="131" posx="613.96360270182311" posy="-180.18432617187568" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="247.99999999999955" color="#68b723" layout="A la derecha">
+              <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
+              <nodename>INPUT</nodename>
+              <nodenote></nodenote>
+              <nodes>
+                <node id="133" posx="785.96360270182356" posy="-281.1843261718775" maxwidth="200" width="178" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame (df_emb)</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="149" posx="322.57979329427081" posy="649.66564941405818" maxwidth="200" width="55" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                <node id="135" posx="785.96360270182356" posy="-235.18432617187796" maxwidth="200" width="55" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>vae</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="151" posx="322.57979329427081" posy="695.66564941405909" maxwidth="200" width="211" height="64" side="right" fold="false" treesize="64" color="#68b723" layout="A la derecha">
+                <node id="137" posx="785.96360270182356" posy="-189.18432617187625" maxwidth="200" width="211" height="64" side="right" fold="false" treesize="64" color="#68b723" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>Dict (authors_characteristics)</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="153" posx="322.57979329427081" posy="759.66564941405773" maxwidth="200" width="155" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                <node id="139" posx="785.96360270182356" posy="-125.1843261718775" maxwidth="200" width="155" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>original_style: str</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="155" posx="322.57979329427081" posy="805.66564941405773" maxwidth="200" width="146" height="46" side="right" fold="false" treesize="46.000000000000028" color="#68b723" layout="A la derecha">
+                <node id="141" posx="785.96360270182356" posy="-79.184326171875682" maxwidth="200" width="146" height="46" side="right" fold="false" treesize="46.000000000000028" color="#68b723" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>target_style: str</nodename>
                   <nodenote></nodenote>
                 </node>
               </nodes>
             </node>
-            <node id="157" posx="150.57979329427081" posy="975.66564941405738" maxwidth="200" width="215" height="46" side="right" fold="false" treesize="294.00000000000028" color="#68b723" layout="A la derecha">
+            <node id="143" posx="613.96360270182311" posy="90.815673828121135" maxwidth="200" width="215" height="46" side="right" fold="false" treesize="294.00000000000028" color="#68b723" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>1. transform_embeddings</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="159" posx="465.57979329427081" posy="975.66564941405738" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="294.00000000000028" color="#68b723" layout="A la derecha">
+                <node id="145" posx="928.96360270182333" posy="90.815673828121135" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="294.00000000000028" color="#68b723" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>INPUT</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="161" posx="637.57979329427087" posy="851.66564941405727" maxwidth="200" width="81" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="147" posx="1100.9636027018237" posy="-33.184326171876592" maxwidth="200" width="81" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>df_emb</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="163" posx="637.57979329427087" posy="897.66564941405682" maxwidth="200" width="211" height="64" side="right" fold="false" treesize="64" color="#68b723" layout="A la derecha">
+                    <node id="149" posx="1100.9636027018237" posy="12.815673828122499" maxwidth="200" width="211" height="64" side="right" fold="false" treesize="64" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Dict (authors_characteristics)</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="165" posx="637.57979329427087" posy="961.66564941405727" maxwidth="200" width="125" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="151" posx="1100.9636027018237" posy="76.81567382812068" maxwidth="200" width="125" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>original_style</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="167" posx="637.57979329427087" posy="1007.6656494140575" maxwidth="200" width="116" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="153" posx="1100.9636027018237" posy="122.81567382812204" maxwidth="200" width="116" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>target_style</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="169" posx="637.57979329427087" posy="1053.6656494140584" maxwidth="200" width="102" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="155" posx="1100.9636027018237" posy="168.81567382812295" maxwidth="200" width="102" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>sample=1</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="171" posx="637.57979329427087" posy="1099.6656494140589" maxwidth="200" width="87" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="157" posx="1100.9636027018237" posy="214.81567382812295" maxwidth="200" width="87" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>scale=1</nodename>
                       <nodenote></nodenote>
@@ -542,59 +518,59 @@
                 </node>
               </nodes>
             </node>
-            <node id="173" posx="150.57979329427081" posy="1145.6656494140602" maxwidth="200" width="218" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+            <node id="159" posx="613.96360270182311" posy="260.81567382812386" maxwidth="200" width="218" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>2. get_embeddings_roll_df</nodename>
               <nodenote></nodenote>
             </node>
-            <node id="175" posx="150.57979329427081" posy="1329.6656494140607" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="322" color="#68b723" layout="A la derecha">
+            <node id="161" posx="613.96360270182311" posy="444.81567382812386" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="322" color="#68b723" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>OUTPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="177" posx="339.57979329427081" posy="1329.6656494140598" maxwidth="200" width="222" height="46" side="right" fold="false" treesize="322" color="#68b723" layout="A la derecha">
+                <node id="163" posx="802.96360270182333" posy="444.81567382812295" maxwidth="200" width="222" height="46" side="right" fold="false" treesize="322" color="#68b723" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame (df_transfered)</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="179" posx="661.57979329427087" posy="1260.6656494140607" maxwidth="200" width="150" height="46" link="115" side="right" fold="false" treesize="184" color="#68b723" layout="A la derecha">
+                    <node id="165" posx="1124.9636027018232" posy="375.81567382812386" maxwidth="200" width="150" height="46" link="87" side="right" fold="false" treesize="184" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>idem (df_emb)</nodename>
                       <nodenote></nodenote>
                       <nodes>
-                        <node id="181" posx="911.57979329427076" posy="1191.6656494140611" maxwidth="200" width="68" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                        <node id="167" posx="1374.9636027018228" posy="306.81567382812386" maxwidth="200" width="68" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>Style</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="183" posx="911.57979329427076" posy="1237.6656494140607" maxwidth="200" width="69" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                        <node id="169" posx="1374.9636027018228" posy="352.81567382812386" maxwidth="200" width="69" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>Title</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="185" posx="911.57979329427076" posy="1283.6656494140607" maxwidth="200" width="51" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                        <node id="171" posx="1374.9636027018228" posy="398.81567382812386" maxwidth="200" width="51" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>roll</nodename>
                           <nodenote></nodenote>
                         </node>
-                        <node id="187" posx="911.57979329427076" posy="1329.6656494140607" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                        <node id="173" posx="1374.9636027018228" posy="444.81567382812386" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                           <nodename>Embedding</nodename>
                           <nodenote></nodenote>
                         </node>
                       </nodes>
                     </node>
-                    <node id="189" posx="661.57979329427087" posy="1375.6656494140611" maxwidth="200" width="129" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="175" posx="1124.9636027018232" posy="490.81567382812523" maxwidth="200" width="129" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Mutacion_add</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="191" posx="661.57979329427087" posy="1421.6656494140611" maxwidth="200" width="162" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="177" posx="1124.9636027018232" posy="536.81567382812477" maxwidth="200" width="162" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Mutacion_add_sub</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="193" posx="661.57979329427087" posy="1467.6656494140611" maxwidth="200" width="184" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
+                    <node id="179" posx="1124.9636027018232" posy="582.81567382812523" maxwidth="200" width="184" height="46" side="right" fold="false" treesize="46" color="#68b723" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>NewRoll (GuoRoll)</nodename>
                       <nodenote></nodenote>
@@ -605,76 +581,76 @@
             </node>
           </nodes>
         </node>
-        <node id="195" posx="-77.420206705729186" posy="1720.6656494140643" maxwidth="200" width="156" height="46" side="right" fold="false" treesize="460.00000000000182" color="#3689e6" layout="A la derecha">
+        <node id="181" posx="385.96360270182288" posy="835.81567382812432" maxwidth="200" width="156" height="46" side="right" fold="false" treesize="460.00000000000182" color="#3689e6" layout="A la derecha">
           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
           <nodename>Calculate metrics</nodename>
           <nodenote></nodenote>
           <nodes>
-            <node id="197" posx="178.57979329427059" posy="1674.6656494140634" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="368.00000000000091" color="#3689e6" layout="A la derecha">
+            <node id="183" posx="641.96360270182311" posy="789.81567382812386" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="368.00000000000091" color="#3689e6" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>INPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="199" posx="350.57979329427081" posy="1651.6656494140634" maxwidth="200" width="238" height="46" link="177" side="right" fold="false" treesize="322" color="#3689e6" layout="A la derecha">
+                <node id="185" posx="813.96360270182333" posy="766.81567382812386" maxwidth="200" width="238" height="46" link="163" side="right" fold="false" treesize="322" color="#3689e6" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame (df_transfered)</nodename>
                   <nodenote></nodenote>
                   <nodes>
-                    <node id="201" posx="688.57979329427098" posy="1513.6656494140634" maxwidth="200" width="65" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                    <node id="187" posx="1151.9636027018232" posy="628.81567382812341" maxwidth="200" width="65" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Style</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="203" posx="688.57979329427098" posy="1559.6656494140634" maxwidth="200" width="60" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                    <node id="189" posx="1151.9636027018232" posy="674.81567382812204" maxwidth="200" width="60" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Title</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="205" posx="688.57979329427098" posy="1605.6656494140634" maxwidth="200" width="51" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                    <node id="191" posx="1151.9636027018232" posy="720.81567382812341" maxwidth="200" width="51" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>roll</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="207" posx="688.57979329427098" posy="1651.6656494140634" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                    <node id="193" posx="1151.9636027018232" posy="766.81567382812386" maxwidth="200" width="109" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Embedding</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="209" posx="688.57979329427098" posy="1697.6656494140634" maxwidth="200" width="129" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                    <node id="195" posx="1151.9636027018232" posy="812.81567382812318" maxwidth="200" width="129" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Mutacion_add</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="211" posx="688.57979329427098" posy="1743.6656494140634" maxwidth="200" width="162" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                    <node id="197" posx="1151.9636027018232" posy="858.81567382812318" maxwidth="200" width="162" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>Mutacion_add_sub</nodename>
                       <nodenote></nodenote>
                     </node>
-                    <node id="213" posx="688.57979329427098" posy="1789.665649414063" maxwidth="200" width="184" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                    <node id="199" posx="1151.9636027018232" posy="904.81567382812227" maxwidth="200" width="184" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                       <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                       <nodename>NewRoll (GuoRoll)</nodename>
                       <nodenote></nodenote>
                     </node>
                   </nodes>
                 </node>
-                <node id="215" posx="350.57979329427081" posy="1835.6656494140634" maxwidth="200" width="133" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                <node id="201" posx="813.96360270182333" posy="950.81567382812227" maxwidth="200" width="133" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>List of metrics</nodename>
                   <nodenote></nodenote>
                 </node>
               </nodes>
             </node>
-            <node id="217" posx="178.57979329427059" posy="1904.6656494140643" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="92" color="#3689e6" layout="A la derecha">
+            <node id="203" posx="641.96360270182311" posy="1019.8156738281241" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="92" color="#3689e6" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>OUTPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="219" posx="367.57979329427081" posy="1881.6656494140634" maxwidth="200" width="201" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                <node id="205" posx="830.96360270182333" posy="996.81567382812318" maxwidth="200" width="201" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame (df_metrics)</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="221" posx="367.57979329427081" posy="1927.6656494140639" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
+                <node id="207" posx="830.96360270182333" posy="1042.8156738281232" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="46" color="#3689e6" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>PATH of pickle</nodename>
                   <nodenote></nodenote>
@@ -683,39 +659,39 @@
             </node>
           </nodes>
         </node>
-        <node id="223" posx="-77.420206705729186" posy="2051.6656494140634" maxwidth="200" width="92" height="46" side="right" fold="false" treesize="202" color="#7a36b1" layout="A la derecha">
+        <node id="209" posx="385.96360270182288" posy="1166.8156738281223" maxwidth="200" width="92" height="46" side="right" fold="false" treesize="202" color="#7a36b1" layout="A la derecha">
           <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
           <nodename>Evaluate</nodename>
           <nodenote></nodenote>
           <nodes>
-            <node id="225" posx="114.57979329427081" posy="1996.6656494140652" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="92" color="#7a36b1" layout="A la derecha">
+            <node id="211" posx="577.96360270182288" posy="1111.815673828125" maxwidth="200" width="72" height="46" side="right" fold="false" treesize="92" color="#7a36b1" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>INPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="227" posx="286.57979329427059" posy="1973.6656494140652" maxwidth="200" width="217" height="46" link="219" side="right" fold="false" treesize="46" color="#7a36b1" layout="A la derecha">
+                <node id="213" posx="749.96360270182333" posy="1088.815673828125" maxwidth="200" width="217" height="46" link="205" side="right" fold="false" treesize="46" color="#7a36b1" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame (df_metrics)</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="229" posx="286.57979329427059" posy="2019.6656494140634" maxwidth="200" width="224" height="46" side="right" fold="false" treesize="46" color="#7a36b1" layout="A la derecha">
+                <node id="215" posx="749.96360270182333" posy="1134.8156738281232" maxwidth="200" width="224" height="46" side="right" fold="false" treesize="46" color="#7a36b1" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>List of evaluation methods</nodename>
                   <nodenote></nodenote>
                 </node>
               </nodes>
             </node>
-            <node id="231" posx="114.57979329427081" posy="2097.6656494140634" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="110" color="#7a36b1" layout="A la derecha">
+            <node id="217" posx="577.96360270182288" posy="1212.8156738281223" maxwidth="200" width="89" height="46" side="right" fold="false" treesize="110" color="#7a36b1" layout="A la derecha">
               <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
               <nodename>OUTPUT</nodename>
               <nodenote></nodenote>
               <nodes>
-                <node id="233" posx="303.57979329427059" posy="2065.6656494140634" maxwidth="200" width="146" height="64" side="right" fold="false" treesize="64" color="#7a36b1" layout="A la derecha">
+                <node id="219" posx="766.96360270182311" posy="1180.8156738281223" maxwidth="200" width="146" height="64" side="right" fold="false" treesize="64" color="#7a36b1" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>DataFrame (df_evaluations)</nodename>
                   <nodenote></nodenote>
                 </node>
-                <node id="235" posx="303.57979329427059" posy="2129.6656494140634" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="46" color="#7a36b1" layout="A la derecha">
+                <node id="221" posx="766.96360270182311" posy="1244.8156738281223" maxwidth="200" width="131" height="46" side="right" fold="false" treesize="46" color="#7a36b1" layout="A la derecha">
                   <style linktype="squared" linkwidth="4" linkarrow="false" linkdash="solid" nodeborder="underlined" nodewidth="200" nodeborderwidth="4" nodefill="false" nodemargin="8" nodepadding="6" nodefont="Sans 11" nodemarkup="true"/>
                   <nodename>PATH of pickle</nodename>
                   <nodenote></nodenote>

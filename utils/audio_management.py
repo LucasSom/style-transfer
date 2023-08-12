@@ -24,20 +24,19 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def generate_audios(df, path=f"{data_path}audios/", suffix=None, verbose=0) -> Tuple[List[str], List[str]]:
+def generate_audios(df, path=f"{data_path}audios/", suffix=None, verbose=0) -> Tuple[List[str], List[str], List[str]]:
     if verbose:
         print("============= Generating audios =============")
 
-    original_rolls = df["roll"]
-    original_midis = []
-    for r in original_rolls:
-        original_midis.append(r.roll_to_midi(path, verbose=verbose))
+    original_midis = [r.get_midi(path, verbose=verbose) for r in df["roll"]]
+    reconstructed_midis = [r.get_midi(path, verbose=verbose) for r in df["Reconstruction"]]
+    new_midis = [r.get_midi(path, verbose=verbose) for r in df["NewRoll"]]
 
-    new_rolls = df["NewRoll"]
-    new_midis = [r.midi for r in new_rolls]
     new_titles = (df['Title'] if suffix is None
                   else df['Title'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
+
     return save_audios(df['Title'], original_midis, path=path, verbose=verbose), \
+        save_audios([t + '-rec' for t in df['Title']], reconstructed_midis, path=path, verbose=verbose), \
         save_audios(new_titles, new_midis, path=path, verbose=verbose)
 
 

@@ -1,12 +1,12 @@
 import pandas as pd
 
 
-def sample_uniformly(df, column, n=5):
+def sample_uniformly(df, column_rank, n=5):
     """
     Samples n rolls uniformly distributed given the value of the column.
     """
     n = min(n, df.shape[0])
-    df = df.sort_values(by=[column]).reset_index()
+    df = df.sort_values(by=[column_rank]).reset_index()
     df_sampled = pd.DataFrame(columns=df.columns)
 
     for i in range(0, df.shape[0]-1, int(df.shape[0] / n)):

@@ -2,12 +2,14 @@ import os.path
 
 import pytest
 
-from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation, models, mixture_models
+from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation, models, mixture_models, \
+    sheets_generation
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
-    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics, get_reconstruction_path
+    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics, \
+    get_reconstruction_path, get_sheets_path
 from utils.plots_utils import plot_intervals_improvements
 
 
@@ -318,8 +320,8 @@ def test_evaluation_task():
         do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
 
 
-def test_audio_generation():
-    model_name = "brmf_4b_beta-96"
+def test_audio_generation_mixture_model():
+    model_name = "4-Lakh_Kern-96"
     s1 = "Bach"
     s2 = "Mozart"
 
@@ -330,7 +332,22 @@ def test_audio_generation():
     suffix = f'{s1}_to_{s2}'
     successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
 
-    audio_generation(transferred_path, audios_path, successful_rolls_prefix, suffix, s1, s2)
+    audio_generation(transferred_path, audios_path, successful_rolls_prefix, suffix, s1)
+
+
+def test_audio_generation():
+    model_name = "brmf_4b_beta-96"
+    b, z = 4, 96
+    s1 = "Bach"
+    s2 = "Mozart"
+    audios_path = get_audios_path(model_name)
+
+    transferred_path = get_transferred_path(s1, s2, model_name)
+    eval_dir = get_eval_dir(model_name)
+    transformation = f'{s1}_to_{s2}'
+    successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
+
+    audio_generation(eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation, b, z)
 
 
 def test_packed_metrics():
@@ -400,3 +417,18 @@ def test_ensamble_overall_evaluation():
     overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
     eval_path = f"{data_path}overall_evaluation/ensamble_{b}bars"
     do_overall_evaluation(overall_metric_dirs, eval_path, b)
+
+
+def test_sheet_generation():
+    model_name = "brmf_4b_beta-96"
+    b, z = 4, 96
+
+    s1, s2 = "Bach", "Mozart"
+
+    sheets_path = get_sheets_path(s1, s2, model_name)
+    eval_dir = get_eval_dir(model_name)
+    transference = f'{s1}_to_{s2}'
+    df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"
+    df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
+
+    sheets_generation(sheets_path, transference, df_audios_paths, df_sheets_paths, b, z)

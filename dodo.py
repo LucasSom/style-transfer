@@ -1,6 +1,7 @@
 import os.path
 from copy import copy
 
+import pandas as pd
 from doit.api import run
 from keras.models import load_model
 
@@ -10,7 +11,7 @@ from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms,
     plot_closest_ot_style, plot_styles_bigrams_entropy, heatmap_style_differences, plot_heatmap_differences, \
     plot_accuracy, plot_accuracy_distribution, plot_styles_confusion_matrix
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
-from evaluation.app.html_maker import make_html
+from evaluation.app.html_maker import make_html, make_index
 from evaluation.evaluation import evaluate_model, evaluate_musicality
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
@@ -28,11 +29,9 @@ from utils.files_utils import *
 from utils.files_utils import preprocessed_data_path
 from utils.plots_utils import plot_embeddings, plot_accuracies
 from utils.sampling_utils import sample_uniformly, balanced_sampling
-from utils.utils import show_sheets
-
+from utils.utils import generate_sheets
 
 DOIT_CONFIG = {'verbosity': 2}
-
 
 subdatasets = ["Bach", "Mozart", "Frescobaldi", "ragtime"]
 subdataset_lmd = "sub_lmd"
@@ -408,7 +407,7 @@ def task_train():
         }
 
 
-def analyze_training(train_path, val_path, model_name, vae_dir, b, z, targets):
+def analyze_training(train_path, model_name, vae_dir, b, z, targets):
     init(b, z)
     # model_path = get_model_paths(model_name)[0]
     model = load_model(vae_dir)
@@ -432,12 +431,9 @@ def analyze_training(train_path, val_path, model_name, vae_dir, b, z, targets):
     # plot_tsnes_comparison(df_emb, tsne_emb, plots_path)
     # plot_tsne(df_emb, tsne_emb, plots_path)
 
-    df_reconstructed = get_reconstruction(train_df, model, model_name, 500, inplace=False)
-    save_pickle(df_reconstructed, targets[0] + '-reconstructed')
-
 
 def task_test():
-    """Shows the reconstruction of the model over an original song and a t-SNE plot of the songs in the latent space."""
+    """Shows a t-SNE plot of the songs in the latent space."""
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
@@ -446,17 +442,14 @@ def task_test():
             model_name_aux = f"{b}-CPFRAa-{z}"
             _, vae_dir, vae_path = get_model_paths(model_name_aux)
             train_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
-            val_path = f"{preprocessed_data_dir}{model_name_aux}val.pkl"
         else:
             _, vae_dir, vae_path = get_model_paths(model_name)
             train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
-            val_path = f"{preprocessed_data_dir}{model_name}val.pkl"
 
         yield {
             'name': model_name,
             'file_dep': [train_path, vae_path],
-            'actions': [(analyze_training, [train_path, val_path, model_name, vae_dir, b, z])],
-            'targets': [get_reconstruction_path(model_name)],
+            'actions': [(analyze_training, [train_path, model_name, vae_dir, b, z])],
             # 'uptodate': [False]
         }
 
@@ -512,14 +505,46 @@ def task_embeddings():
         }
 
 
-def do_transfer(df_emb, model_path, characteristics, transferred_path, s1, s2, b=4, z=96):
+def do_reconstructions(emb_path, model_name, vae_dir, b, z, targets):
     init(b, z)
-    df_emb = load_pickle(df_emb)
+    model = load_model(vae_dir)
+    df_emb = load_pickle(emb_path)
+
+    df_reconstructed = get_reconstruction(df_emb, model, model_name)
+    save_pickle(df_reconstructed, targets[0])
+
+
+def task_reconstruct():
+    """Generates the reconstruction of the original rolls after being passed through the model."""
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name.split("-")[-1])
+
+        if model_name in mixture_models:
+            model_name_aux = f"{b}-CPFRAa-{z}"
+            _, vae_dir, vae_path = get_model_paths(model_name_aux)
+        else:
+            _, vae_dir, vae_path = get_model_paths(model_name)
+
+        emb_path = get_emb_path(model_name)
+
+        yield {
+            'name': model_name,
+            'file_dep': [emb_path, vae_path],
+            'actions': [(do_reconstructions, [emb_path, model_name, vae_dir, b, z])],
+            'targets': [get_reconstruction_path(model_name)],
+            # 'uptodate': [False]
+        }
+
+
+def do_transfer(rec_path, model_path, characteristics, transferred_path, s1, s2, b=4, z=96):
+    init(b, z)
+    df_rec = load_pickle(rec_path)
     model = load_model(model_path)
     characteristics = load_pickle(characteristics)
     model_name = os.path.basename(model_path)
 
-    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2,
+    df_transferred = transfer_style_to(df_rec, model, model_name, characteristics, original_style=s1, target_style=s2,
                                        sparse=False)
 
     save_pickle(df_transferred, transferred_path)
@@ -533,20 +558,20 @@ def task_transfer_style():
 
         if model_name in mixture_models:
             model_name_model = f"{b}-CPFRAa-{z}"
-            model_path, vae_dir, vae_path = get_model_paths(model_name_model)
+            _, vae_dir, vae_path = get_model_paths(model_name_model)
         else:
-            model_path, vae_dir, vae_path = get_model_paths(model_name)
+            _, vae_dir, vae_path = get_model_paths(model_name)
 
         characteristics_path = get_characteristics_path(model_name)
-        emb_path = get_emb_path(model_name)
+        rec_path = get_reconstruction_path(model_name)
 
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
-                'file_dep': [emb_path, vae_path, characteristics_path],
+                'file_dep': [rec_path, vae_path, characteristics_path],
                 'actions': [(do_transfer,
-                             [emb_path, vae_dir, characteristics_path, transferred_path, s1, s2, b, z]
+                             [rec_path, vae_dir, characteristics_path, transferred_path, s1, s2, b, z]
                              )],
                 'targets': [transferred_path],
                 'verbosity': 2,
@@ -668,124 +693,130 @@ def task_overall_evaluation():
         }
 
 
-def audio_generation(transferred_path, audios_path, succ_rolls_prefix=None,
-                     suffix=None, orig=None, dest=None, b=4, z=96):
+def audio_generation(eval_dir, transferred_path, audios_path, succ_rolls_prefix=None, transformation=None, b=4, z=96):
     init(b, z)
-    if succ_rolls_prefix is None:
-        df_transferred = load_pickle(transferred_path)
-        generate_audios(df_transferred, audios_path, suffix=suffix, verbose=1)
-        make_html(df_transferred, orig=orig, target=dest, app_dir=audios_path)
-    else:
-        successful_dfs = load_pickle(f"{succ_rolls_prefix}{suffix}")
-        df_html = pd.DataFrame()
-        for k, df in successful_dfs.items():
-            df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=3)
-            original_files, new_files = generate_audios(df, audios_path, f"{k}-{suffix}", 1)
-            df["Original audio files"] = original_files
-            df["New audio files"] = new_files
-            df["Selection criteria"] = len(new_files) * [k]
-            df_html = pd.concat([df_html, df])
-
-        df = load_pickle(transferred_path)
-        df = df[df["Style"] == orig].sample(n=4, random_state=42)
-
-        original_files, new_files = generate_audios(df, audios_path, f"random-{suffix}", 1)
+    orig = transformation.split('_')[0]
+    successful_dfs = load_pickle(f"{succ_rolls_prefix}{transformation}")
+    df_audios = pd.DataFrame()
+    for k, df in successful_dfs.items():
+        df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=3)
+        original_files, reconstructed_files, new_files = generate_audios(df, audios_path, f"{k}-{transformation}", 1)
         df["Original audio files"] = original_files
+        df["Reconstructed audios"] = reconstructed_files
         df["New audio files"] = new_files
-        df["Selection criteria"] = len(new_files) * ["random"]
-        df_html = pd.concat([df_html, df])
+        df["Selection criteria"] = len(new_files) * [k]
+        df_audios = pd.concat([df_audios, df])
 
-        make_html(df_html, orig=orig, target=dest, app_dir=os.path.dirname(os.path.dirname(audios_path)) + '/app')
-        df_html[["Title", "Style", "target", "Selection criteria", "Original audio files", "New audio files"]].to_csv(
-            f'{os.path.dirname(os.path.dirname(audios_path))}/app/Sampled_rolls-{orig}_to_{dest}.csv')
+    # Include random selection
+    df = load_pickle(transferred_path)
+    df = df[df["Style"] == orig].sample(n=4, random_state=42)
+    original_files, reconstructed_files, new_files = generate_audios(df, audios_path, f"random-{transformation}", 1)
+    df["Original audio files"] = original_files
+    df["Reconstructed audios"] = reconstructed_files
+    df["New audio files"] = new_files
+    df["Selection criteria"] = len(new_files) * ["random"]
+    df_audios = pd.concat([df_audios, df])
+
+    save_pickle(df_audios, f"{eval_dir}df_audios-{transformation}")
 
 
 def task_sample_audios():
     """Produce the midis generated by the style transfer"""
     for model_name in models:
-        # recon_path = get_reconstruction_path(model_name)
         audios_path = get_audios_path(model_name)
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        # yield {
-        #     'name': f'{model_name}-orig',
-        #     'file_dep': [recon_path],
-        #     'actions': [(audio_generation, [recon_path, audios_path], dict(suffix="orig", column="roll"))],
-        #     # 'uptodate': [False]
-        # }
-        # yield {
-        #     'name': f'{model_name}-reconstruction',
-        #     'file_dep': [recon_path],
-        #     'actions': [(audio_generation, [recon_path, audios_path], dict(suffix='recon', column='NewRoll'))],
-        #     # 'uptodate': [False]
-        # }
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             eval_dir = get_eval_dir(model_name)
-            suffix = f'{s1}_to_{s2}'
+            transformation = f'{s1}_to_{s2}'
             successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
             yield {
-                'name': f"{model_name}-{suffix}",
-                'file_dep': [f"{successful_rolls_prefix}{suffix}.pkl"],
+                'name': f"{model_name}-{transformation}",
+                'file_dep': [f"{successful_rolls_prefix}{transformation}.pkl", transferred_path],
                 'actions': [(audio_generation,
-                             [transferred_path, audios_path, successful_rolls_prefix],
-                             dict(suffix=suffix, orig=s1, dest=s2, b=b, z=z)
-                             )],
-                'verbosity': 2,
-                'uptodate': [False]
-            }
-
-
-def sheets_generation(transferred_path, sheets_path, suffix=None, column=None, succ_rolls_prefix=None, b=4, z=96):
-    init(b, z)
-    if succ_rolls_prefix is None:
-        df_transferred = load_pickle(transferred_path)
-        column = column if column is not None else df_transferred.columns[-1]
-
-        show_sheets(df_transferred, column, sheets_path, suffix)
-    else:
-        df_successful = load_pickle(f"{succ_rolls_prefix}{suffix}")
-        show_sheets(df_successful, "NewRoll", sheets_path, suffix)
-
-
-def task_sample_sheets():
-    """Produce the sheets generated by the style transfer"""
-    for model_name in models:
-        recon_path = get_reconstruction_path(model_name)
-        sheets_path = get_sheets_path(model_name, orig=True)
-        b = model_name[5] if model_name in old_models else model_name[0]
-        z = int(model_name.split("-")[-1])
-        yield {
-            'name': f'{model_name}-orig',
-            'file_dep': [recon_path],
-            'actions': [(sheets_generation, (recon_path, sheets_path, 'orig', 'roll'), dict(b=b, z=z))],
-            'uptodate': [False]
-        }
-        sheets_path = get_sheets_path(model_name, orig=False)
-        yield {
-            'name': f'{model_name}-reconstruction',
-            'file_dep': [recon_path],
-            'actions': [(sheets_generation, (recon_path, sheets_path, 'recon'), dict(b=b, z=z))],
-            'uptodate': [False]
-        }
-
-        for s1, s2 in styles_names(model_name):
-            transferred_path = get_transferred_path(s1, s2, model_name)
-            sheets_path = get_sheets_path(model_name, original_style=s1, target_style=s2)
-            eval_dir = get_eval_dir(model_name)
-            suffix = f'{s1}_to_{s2}'
-            successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
-            yield {
-                'name': f"{model_name}-{suffix}",
-                'file_dep': [f"{successful_rolls_prefix}{suffix}.pkl"],
-                'actions': [(sheets_generation,
-                             [transferred_path, sheets_path, suffix],
-                             dict(succ_rolls_prefix=successful_rolls_prefix, b=b, z=z)
-                             )],
+                             [eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation, b, z])],
+                'targets': [f"{eval_dir}df_audios-{transformation}.pkl"],
                 'verbosity': 2,
                 # 'uptodate': [False]
             }
+
+
+def sheets_generation(sheets_path, transference, df_audios_path, df_sheets_paths, b=4, z=96):
+    init(b, z)
+    df = load_pickle(df_audios_path)
+
+    dest = transference.split('_')[-1]
+    original_sheets = generate_sheets(df, 'roll', sheets_path, suffix='')
+    reconstructed_sheets = generate_sheets(df, 'Reconstruction', sheets_path, suffix='-rec')
+    new_sheets = generate_sheets(df, 'NewRoll', sheets_path, suffix=f'-{dest}')
+    df["Original sheet"] = original_sheets
+    df["Reconstructed sheet"] = reconstructed_sheets
+    df["New sheet"] = new_sheets
+
+    save_pickle(df, df_sheets_paths)
+
+
+def task_sample_sheets():
+    """Produces the sheets generated by the style transfer"""
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name.split("-")[-1])
+
+        for s1, s2 in styles_names(model_name):
+            sheets_path = get_sheets_path(s1, s2, model_name)
+            eval_dir = get_eval_dir(model_name)
+            transference = f'{s1}_to_{s2}'
+            df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"
+            df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
+            yield {
+                'name': f"{model_name}-{transference}",
+                'file_dep': [df_audios_paths],
+                'actions': [(sheets_generation,
+                             [sheets_path, transference, df_audios_paths, df_sheets_paths, b, z])],
+                'targets': [df_sheets_paths],
+                'verbosity': 2,
+                # 'uptodate': [False]
+            }
+
+
+def create_html(app_dir, dfs_sheets_paths, b, z):
+    init(b, z)
+    files = []
+    for df_path in dfs_sheets_paths:
+        df = load_pickle(df_path)
+        transference = root_file_name(df_path.split('-')[-1])
+        orig, _, dest = transference.split('_')
+        make_html(df, orig, dest, app_dir + transference)
+        files.append(transference)
+
+    make_index(app_dir, files)
+
+
+def task_html():
+    """Creates the HTML file where to see the sample of rolls created"""
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name.split("-")[-1])
+
+        eval_dir = get_eval_dir(model_name)
+        app_dir = f"{eval_dir}/app/"
+        dfs_sheets_paths = []
+        for s1, s2 in styles_names(model_name):
+            transference = f'{s1}_to_{s2}'
+            df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
+            dfs_sheets_paths.append(df_sheets_paths)
+
+        yield {
+            'name': model_name,
+            'file_dep': dfs_sheets_paths,
+            'actions': [(create_html,
+                         [app_dir, dfs_sheets_paths, b, z])],
+            # 'targets': [app_dir],
+            # 'verbosity': 2,
+            # 'uptodate': [False]
+        }
 
 
 # To use for debugging

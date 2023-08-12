@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from tensorflow import keras
 
-from dodo import analyze_training, do_embeddings, models
+from dodo import analyze_training, do_embeddings, models, do_reconstructions
 from model.colab_tension_vae.params import init
 from model.embeddings.embeddings import obtain_embeddings
 from model.embeddings.style import Style
@@ -70,21 +70,38 @@ def test_obtain_embeddings(brmf4_prep):
 def test_analyze_training():
     b, z = 4, 96
     model_name = '4-CPFRAa-96'
-    val_path = f"{preprocessed_data_dir}{b}val.pkl"
     _, vae_dir, vae_path = get_model_paths(model_name)
     train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
-    analyze_training(train_path=train_path, val_path=val_path, vae_dir=vae_dir,
+    analyze_training(train_path=train_path, vae_dir=vae_dir,
                      model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
 
 
 def test_analyze_training_mixture_model():
     b, z = 4, 96
     model_name = '4-Lakh_Kern-96'
-    val_path = f"{preprocessed_data_dir}{b}val.pkl"
     model_name_aux = f"{b}-CPFRAa-{z}"
     _, vae_dir, vae_path = get_model_paths(model_name_aux)
-    analyze_training(train_path=preprocessed_data_path(4, False), val_path=val_path, vae_dir=vae_dir,
+    analyze_training(train_path=preprocessed_data_path(4, False), vae_dir=vae_dir,
                      model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
+
+
+def test_reconstruction():
+    b, z = 4, 96
+    model_name = '4-CPFRAa-96'
+    _, vae_dir, vae_path = get_model_paths(model_name)
+    train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+    do_reconstructions(train_path=train_path, vae_dir=vae_dir,
+                       model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
+
+
+def test_reconstruction_mixture_model():
+    b, z = 4, 96
+    model_name = '4-Lakh_Kern-96'
+    model_name_aux = f"{b}-CPFRAa-{z}"
+    _, vae_dir, vae_path = get_model_paths(model_name_aux)
+    do_reconstructions(train_path=preprocessed_data_path(4, False), vae_dir=vae_dir,
+                       model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
+
 
 # def test_plot_distributions(characteristics):
 #     plot_dir = data_path + 'debug_outputs/'
@@ -113,7 +130,6 @@ def test_characteristics_beta():
                   vae_dir,
                   characteristics_path,
                   emb_path, b, z)
-
 
 # def test_all_models_characteristics():
 #     for model_name in models:

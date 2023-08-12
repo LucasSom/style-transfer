@@ -1,36 +1,44 @@
 # from keras.saving.save import load_model
-from tensorflow.python.keras.saving.save import load_model
+import os.path
+
+from keras.saving.legacy.save import load_model
 
 from dodo import train
+from model.colab_tension_vae.params import init
 from model.embeddings.embeddings import get_reconstruction
 from utils.files_utils import load_pickle, data_path, save_pickle, get_reconstruction_path, get_model_paths, \
-    preprocessed_data_path, oversample_path, preprocessed_data_dir
+    preprocessed_data_path, oversample_path, preprocessed_data_dir, get_emb_path
 
 
 def test_reconstruction():
-    model_name = "4-br"
+    model_name = "4-CPFRAa-96"
+    init(4, 96)
     samples = 5
-    inplace = False
     verbose = False
+    rec_path = f"{data_path}models/{model_name}/embeddings/reconstruction.pkl"
+    emb_path = get_emb_path(model_name)
     try:
-        df_reconstructed = load_pickle(file_name=f"{data_path}embeddings/{model_name}-reconsX", verbose=verbose)
+        df_reconstructed = load_pickle(file_name=rec_path, verbose=verbose)
     except:
         model_path, vae_dir, _ = get_model_paths(model_name)
         model = load_model(vae_dir)
-        df = load_pickle(preprocessed_data_path(4, False, False))
-        df_reconstructed = get_reconstruction(df, model, model_name, 500, inplace=inplace)
+        df = load_pickle(emb_path)
+        df_reconstructed = get_reconstruction(df, model, model_name)
         save_pickle(df_reconstructed, get_reconstruction_path(model_name))
+
+    assert "Reconstruction" in df_reconstructed.columns
+    assert os.path.isfile(rec_path)
 
     display_reconstruction(df_reconstructed, samples=samples)
 
 
 def display_reconstruction(df, samples=5):
-    for i, r in df.head(samples).iterrows():
-        print(r.roll.song.name)
+    for i, row in df.head(samples).iterrows():
+        print(row.roll.song.name)
         print("Original:")
-        r.roll.display_score()
+        row.roll.generate_sheet(verbose=True)
         print("Reconstrucción:")
-        r.EmbeddingRoll.display_score()
+        row.Reconstruction.generate_sheet()
         print("----------------------------------------------------------------------")
 
 

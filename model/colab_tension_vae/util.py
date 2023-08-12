@@ -35,7 +35,7 @@ def result_sampling(rolls):
     return np.array(new_rolls)
 
 
-def roll_to_pretty_midi(rolls, pm_old, verbose=False):
+def roll_to_pretty_midi(rolls, pm_old, sparse=False, verbose=False):
     melody_notes = []
     bass_notes = []
     step_time = 60 / params.config.TEMPO / 4
@@ -46,11 +46,16 @@ def roll_to_pretty_midi(rolls, pm_old, verbose=False):
     previous_b_start = False
 
     for timestep in range(rolls.shape[0]):
-        melody_pitch = np.where(rolls[timestep, :params.config.melody_dim] != 0)[0]
+        if sparse:
+            melody_pitch = rolls[timestep, :params.config.melody_dim].indices
+            bass_pitch = rolls[timestep, params.config.melody_dim + 1
+                                         :params.config.melody_dim + params.config.bass_dim + 1].indices
+        else:
+            melody_pitch = np.where(rolls[timestep, :params.config.melody_dim] != 0)[0]
+            bass_pitch = np.where(
+                rolls[timestep, params.config.melody_dim + 1:params.config.melody_dim + params.config.bass_dim + 1] != 0
+            )[0]
         melody_start = rolls[timestep, params.config.melody_dim] != 0
-        bass_pitch = np.where(
-            rolls[timestep, params.config.melody_dim + 1:params.config.melody_dim + params.config.bass_dim + 1] != 0
-        )[0]
         bass_start = rolls[timestep, params.config.melody_dim + 1 + params.config.bass_dim] != 0
 
         # not the emtpy pitch

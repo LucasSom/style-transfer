@@ -102,9 +102,9 @@ def matrix_sets_to_matrices(matrix_sets: list):
     return matrices
 
 
-def get_reconstruction(df, model, model_name: str, samples, inplace=False):
-    df_emb = obtain_embeddings(df, model, samples, inplace)
-    get_embeddings_roll_df(df_emb, model, model_name, sparse=False, save_midi=True, inplace=True)
+def get_reconstruction(df_emb, model, model_name: str):
+    get_embeddings_roll_df(df_emb, model, model_name, sparse=True, save_midi=False, inplace=True)
+    df_emb.rename(columns={'NewRoll': 'Reconstruction'}, inplace=True)
     return df_emb
 
 
