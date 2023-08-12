@@ -50,13 +50,15 @@ def make_table(target: str, songs: List[dict]) -> str:
         table += f"""    <td>{s['selection_criteria']}</td>\n"""
 
         for path in s['audio_path_orig'], s['audio_path_rec'], s['audio_path_transformed']:
+            relative_path = '../../audios/' + path.split('/')[-1]
             table += f"""    <td><audio controls>
-                    <source src="{path}" type="audio/mpeg">
+                    <source src="{relative_path}" type="audio/mpeg">
                     Your browser does not support the audio element.
                     </audio></td>\n"""
 
         for path in s['sheet_path_orig'], s['sheet_path_rec'], s['sheet_path_transformed']:
-            table += f"""    <td><img src="{path}"></td>\n"""
+            relative_path = '../../sheets/' + path.split('/')[-1]
+            table += f"""    <td><img src="{relative_path}"></td>\n"""
 
         table += """</tr>\n"""
 
@@ -100,7 +102,7 @@ def make_html(df, orig, target, app_dir):
     file = make_head(orig) + make_body(orig, songs)
     file += """\n<a href="./index.html" class="button">Volver al menú</a>"""
 
-    file_name = f"{app_dir}/audio_{orig}_to_{target}.html"
+    file_name = f"{app_dir}{orig}_to_{target}.html"
     make_dirs_if_not_exists(file_name)
 
     with open(file_name, 'w') as f:
@@ -120,7 +122,7 @@ def make_index(app_path, files):
     """
 
     for transformation in files:
-        file += f"""<li><a href="./{app_path}{transformation}.html" class="button">{transformation}</a></li>"""
+        file += f"""<li><a href="./{transformation}.html" class="button">{transformation}</a></li>"""
 
     file += "</ul>\n</div>\n"
     file += "</body>"

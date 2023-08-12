@@ -64,7 +64,7 @@ def evaluate_plagiarism(df: pd.DataFrame, orig, dest, eval_dir, by_distance=Fals
     df["target"] = [dest if orig == df["Style"][i] else orig for i in range(df.shape[0])]
 
     sorted_df = df.sort_values(by=[f"{kind} position"])
-    sorted_df.rename({f'{kind} position': "Plagiarism rank"}, inplace=True)
+    sorted_df.rename({f'{kind} position': f"Plagiarism-{'dist' if by_distance else 'diff'} rank"}, inplace=True)
     avg_plagiarism_rank = sorted_df.loc[:, f"{kind} relative ranking"].mean()
 
     df_abs = (df
@@ -325,12 +325,12 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
     print("===== Evaluating plagiarism (dist) =====")
     by_distance = True
     p_dist_table, p_dist_sorted_df, avg_plagiarism_dist_rank = evaluate_plagiarism(metrics["plagiarism-dist"], orig, target, eval_path, by_distance, context, thold)
-    p_dist_sorted_df["Plagiarism (dist) rank"] = range(p_dist_sorted_df.shape[0])
+    p_dist_sorted_df["Plagiarism-dist rank"] = range(p_dist_sorted_df.shape[0])
 
     print("===== Evaluating plagiarism (diff) =====")
     by_distance = False
     p_diff_table, p_diff_sorted_df, avg_plagiarism_diff_rank = evaluate_plagiarism(metrics["plagiarism-diff"], orig, target, eval_path, by_distance, context, thold)
-    p_diff_sorted_df["Plagiarism (diff) rank"] = range(p_diff_sorted_df.shape[0])
+    p_diff_sorted_df["Plagiarism-diff rank"] = range(p_diff_sorted_df.shape[0])
 
     print("===== Evaluating musicality =====")
     df_test = df[["Style", "Title", "roll", "NewRoll", "roll_id", "Reconstruction"]]
@@ -345,14 +345,14 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
 
     return {"Style": s_df,
             "Musicality": mus_sorted_df,
-            "Plagiarism (dist)": p_dist_sorted_df,
-            "Plagiarism (diff)": p_diff_sorted_df}, \
+            "Plagiarism-dist": p_dist_sorted_df,
+            "Plagiarism-diff": p_diff_sorted_df}, \
         {"Style": s_table,
          "Musicality": mus_table,
-         "Plagiarism (dist)": p_dist_table,
-         "Plagiarism (diff)": p_diff_table}, \
+         "Plagiarism-dist": p_dist_table,
+         "Plagiarism-diff": p_diff_table}, \
         {"Style": styles_approach_dict,
          "Musicality": avg_musicality_rank,
-         "Plagiarism (dist)": avg_plagiarism_dist_rank,
-         "Plagiarism (diff)": avg_plagiarism_diff_rank,
+         "Plagiarism-dist": avg_plagiarism_dist_rank,
+         "Plagiarism-diff": avg_plagiarism_diff_rank,
          'orig': orig, 'target': target}

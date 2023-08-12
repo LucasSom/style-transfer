@@ -147,17 +147,15 @@ def get_audios_path(model_name=None, reconstruction=False, e_orig=None, e_dest=N
     return path
 
 
-def get_sheets_path(original_style: str, target_style: str, model_name: str = None):
+def get_sheets_path(model_name: str = None):
     """
     :param model_name: name of the containing folder inside the data directory. If it's None, the folder will be 'data/original_sheets'
-    :param original_style: name of style of the original song.
-    :param target_style: name of transferred style.
     """
     if model_name is None:
         path = os.path.join(data_path, "original_sheets/")
     else:
         path = os.path.join(data_path, "models", model_name, "sheets/")
-    path = os.path.join(path, f"{original_style}_to_{target_style}/")
+    # path = os.path.join(path, f"{original_style}_to_{target_style}/")
 
     if not os.path.isdir(path):
         os.makedirs(path)

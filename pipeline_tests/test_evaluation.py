@@ -425,7 +425,7 @@ def test_sheet_generation():
 
     s1, s2 = "Bach", "Mozart"
 
-    sheets_path = get_sheets_path(s1, s2, model_name)
+    sheets_path = get_sheets_path(model_name)
     eval_dir = get_eval_dir(model_name)
     transference = f'{s1}_to_{s2}'
     df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"

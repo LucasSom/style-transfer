@@ -1,7 +1,6 @@
 import os.path
 from copy import copy
 
-import pandas as pd
 from doit.api import run
 from keras.models import load_model
 
@@ -27,7 +26,7 @@ from preprocessing.preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.files_utils import preprocessed_data_path
-from utils.plots_utils import plot_embeddings, plot_accuracies
+from utils.plots_utils import plot_embeddings
 from utils.sampling_utils import sample_uniformly, balanced_sampling
 from utils.utils import generate_sheets
 
@@ -40,7 +39,8 @@ small_subdatasets = ["small_Bach", "small_ragtime"]
 styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime", "C": "sub_lmd/classical",
                "P": "sub_lmd/pop", "F": "sub_lmd/folk", "R": "sub_lmd/rock", "A": "sub_lmd/cpr0", "a": "sub_lmd/cpr1"}
 
-z_dims = [20, 96, 192, 512]
+# z_dims = [20, 96, 192, 512]
+z_dims = [96]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
 old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
@@ -699,7 +699,7 @@ def audio_generation(eval_dir, transferred_path, audios_path, succ_rolls_prefix=
     successful_dfs = load_pickle(f"{succ_rolls_prefix}{transformation}")
     df_audios = pd.DataFrame()
     for k, df in successful_dfs.items():
-        df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=3)
+        df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=5)
         original_files, reconstructed_files, new_files = generate_audios(df, audios_path, f"{k}-{transformation}", 1)
         df["Original audio files"] = original_files
         df["Reconstructed audios"] = reconstructed_files
@@ -709,7 +709,7 @@ def audio_generation(eval_dir, transferred_path, audios_path, succ_rolls_prefix=
 
     # Include random selection
     df = load_pickle(transferred_path)
-    df = df[df["Style"] == orig].sample(n=4, random_state=42)
+    df = df[df["Style"] == orig].sample(n=5, random_state=42)
     original_files, reconstructed_files, new_files = generate_audios(df, audios_path, f"random-{transformation}", 1)
     df["Original audio files"] = original_files
     df["Reconstructed audios"] = reconstructed_files
@@ -765,7 +765,7 @@ def task_sample_sheets():
         z = int(model_name.split("-")[-1])
 
         for s1, s2 in styles_names(model_name):
-            sheets_path = get_sheets_path(s1, s2, model_name)
+            sheets_path = get_sheets_path(model_name)
             eval_dir = get_eval_dir(model_name)
             transference = f'{s1}_to_{s2}'
             df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"
@@ -788,7 +788,7 @@ def create_html(app_dir, dfs_sheets_paths, b, z):
         df = load_pickle(df_path)
         transference = root_file_name(df_path.split('-')[-1])
         orig, _, dest = transference.split('_')
-        make_html(df, orig, dest, app_dir + transference)
+        make_html(df, orig, dest, app_dir)
         files.append(transference)
 
     make_index(app_dir, files)
