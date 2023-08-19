@@ -89,18 +89,20 @@ def test_reconstruction():
     b, z = 4, 96
     model_name = '4-CPFRAa-96'
     _, vae_dir, vae_path = get_model_paths(model_name)
-    train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
-    do_reconstructions(train_path=train_path, vae_dir=vae_dir,
-                       model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
+    emb_path = get_emb_path(model_name)
+
+    do_reconstructions(emb_path, model_name, vae_dir, b, z, [get_reconstruction_path(model_name)])
 
 
 def test_reconstruction_mixture_model():
     b, z = 4, 96
-    model_name = '4-Lakh_Kern-96'
+    model_name = "4-Lakh_Kern-96"
     model_name_aux = f"{b}-CPFRAa-{z}"
     _, vae_dir, vae_path = get_model_paths(model_name_aux)
-    do_reconstructions(train_path=preprocessed_data_path(4, False), vae_dir=vae_dir,
-                       model_name=model_name, b=4, targets=[get_reconstruction_path(model_name)], z=z)
+
+    emb_path = get_emb_path(model_name)
+
+    do_reconstructions(emb_path, model_name, vae_dir, b, z, [get_reconstruction_path(model_name)])
 
 
 # def test_plot_distributions(characteristics):

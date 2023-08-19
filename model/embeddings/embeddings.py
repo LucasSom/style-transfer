@@ -1,6 +1,6 @@
 import copy
 from collections import Counter
-from typing import List
+from typing import List, Iterable
 
 import dfply
 import numpy as np
@@ -23,11 +23,9 @@ def obtain_embeddings(df: pd.DataFrame, vae, samples=500, inplace=False) -> pd.D
     """
     samples = min(samples, min(Counter(df["Style"]).values()))
     if inplace:
-        # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
         df = df.groupby('Style').sample(n=samples, random_state=42)
         df_emb = df
     else:
-        # TODO (March): Poner seed. Samplear igual cantidad de fragmentos para cada estilo
         df_emb = df.groupby('Style').sample(n=samples, random_state=42)
     # df_sampled['Embedding'].iloc[0][0]
 
@@ -37,9 +35,9 @@ def obtain_embeddings(df: pd.DataFrame, vae, samples=500, inplace=False) -> pd.D
     return df_emb
 
 
-def decode_embeddings(embedding, model):
+def decode_embeddings(embeddings, model):
     decoder = model.get_layer(name='decoder')
-    return [decoder((np.expand_dims(e, 0))) for e in embedding]
+    return [decoder((np.expand_dims(e, 0))) for e in embeddings]
 
 
 @dfply.make_symbolic
@@ -55,13 +53,14 @@ def transform_embeddings(df, characteristics: dict, original: str, target: str, 
             >> dfply.mask(dfply.X['Style'] == original)
             >> dfply.group_by('Title', 'Style')
             >> dfply.sample(sample)
-            >> dfply.mutate(Mutacion_add=dfply.X['Embedding'].apply(lambda e: e + v_goal * scale))
-            >> dfply.mutate(Mutacion_add_sub=dfply.X['Embedding'].apply(lambda e: e - v_original * scale))
+            >> dfply.mutate(Mutation_add=dfply.X['Embedding'].apply(lambda e: e + v_goal * scale))
+            >> dfply.mutate(Mutation_add_sub=dfply.X['Mutation_add'].apply(lambda e: e - v_original * scale))
             )
 
 
 @dfply.make_symbolic
-def embeddings_to_rolls(embeddings, roll_names, suffix, model, sparse, audio_path, save_midi, verbose=False) -> List[GuoRoll]:
+def embeddings_to_rolls(embeddings: Iterable, roll_names: List[str], suffix: str, model, sparse: bool, audio_path: str,
+                        save_midi: bool, verbose=False) -> List[GuoRoll]:
     decoded_matrices = decode_embeddings(embeddings, model)
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
@@ -71,23 +70,19 @@ def embeddings_to_rolls(embeddings, roll_names, suffix, model, sparse, audio_pat
     return rolls
 
 
-def get_embeddings_roll_df(df_in, model, model_name: str, sparse, save_midi, column='Embedding', inplace=False) -> pd.DataFrame:
-    name_new_column = "NewRoll"
-
+def get_embeddings_roll_df(df_in: pd.DataFrame, model, model_name: str, sparse: bool, save_midi: bool,
+                           column='Embedding', inplace=False) -> pd.DataFrame:
     df = df_in if inplace else copy.deepcopy(df_in)
 
     if type(column) == list:
-        # TODO(march): esto pisa df constantemente, salvo que se haga inplace
-        # print("===== PASO POR EL IF DE get_embeddings_roll_df =====")
-        for c, n in zip(column, name_new_column):
-            df = get_embeddings_roll_df(df_in, model, model_name, sparse, save_midi, column=c, inplace=inplace)
+        for c in column:
+            df = get_embeddings_roll_df(df_in, model, model_name, sparse, save_midi, column=c, inplace=True)
         return df
 
-    new_name_suffix = f"{column}-{name_new_column}"
     audio_path = get_audios_path(model_name)
     roll_names = [r.name for r in df['roll']]
-    rolls = embeddings_to_rolls(df[column], roll_names, new_name_suffix, model, sparse, audio_path, save_midi)
-    df[name_new_column] = rolls
+    rolls = embeddings_to_rolls(df[column], roll_names, column, model, sparse, audio_path, save_midi)
+    df[f"{column}-NewRoll"] = rolls
 
     return df
 
@@ -104,7 +99,7 @@ def matrix_sets_to_matrices(matrix_sets: list):
 
 def get_reconstruction(df_emb, model, model_name: str):
     get_embeddings_roll_df(df_emb, model, model_name, sparse=True, save_midi=False, inplace=True)
-    df_emb.rename(columns={'NewRoll': 'Reconstruction'}, inplace=True)
+    df_emb.rename(columns={'Embedding-NewRoll': 'Reconstruction'}, inplace=True)
     return df_emb
 
 
@@ -142,3 +137,13 @@ def get_accuracies(x: List[np.array], y: List[np.array]):
         bass_rhythm_acc += sum(x_bass_rhythm == y_bass_rhythm)
 
     return mel_acc / (N * n), mel_rhythm_acc / (N * n), bass_acc / (N * n), bass_rhythm_acc / (N * n)
+
+
+def interpolate(model, embedding1: np.array, embedding2: np.array, name1: str, name2: str, audios_path: str,
+                alpha: float, save_midi=True, sparse=False) -> List[GuoRoll]:
+    subtitle = f"{name1}_{name2}_"
+    interpolation = alpha * embedding1 + (1 - alpha) * embedding2
+
+    return embeddings_to_rolls([embedding1, interpolation, embedding2],
+                               [subtitle + '0', subtitle + f'{alpha * 100}', subtitle + '100'],
+                               "", model, sparse, audios_path + 'song_interpolations/', save_midi)

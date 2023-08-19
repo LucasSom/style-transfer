@@ -9,7 +9,7 @@ from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
     get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics, \
-    get_reconstruction_path, get_sheets_path
+    get_sheets_path
 from utils.plots_utils import plot_intervals_improvements
 
 
@@ -183,26 +183,28 @@ def test_calculate_resume_table():
 def test_evaluate_plagiarism_1():
     init(4)
     model_name = '4-small_br'
+    mutation = "Mutation_add"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, mutation, eval_path)
     print(table)
 
-    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, eval_path)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, mutation, eval_path)
     print(table)
 
 
 def test_evaluate_plagiarism_separated_2():
     init(4)
     model_name = '4-small_br'
+    mutation = "Mutation_add"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path, thold=2)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, mutation, eval_path, thold=2)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -210,7 +212,7 @@ def test_evaluate_plagiarism_separated_2():
     table.to_csv(cache_path + '-dist.csv', index=False)
     print(table)
 
-    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, eval_path, thold=2)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, mutation, eval_path, thold=2)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -222,12 +224,13 @@ def test_evaluate_plagiarism_separated_2():
 def test_evaluate_plagiarism_separated_proportional_10():
     init(4)
     model_name = '4-small_br'
+    mutation = "Mutation_add"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path, thold=0.1)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, mutation, eval_path, thold=0.1)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -239,12 +242,13 @@ def test_evaluate_plagiarism_separated_proportional_10():
 def test_evaluate_plagiarism_separated_proportional_25():
     init(4)
     model_name = '4-small_br'
+    mutation = "Mutation_add"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, eval_path, thold=0.25)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-diff"], None, None, mutation, eval_path, thold=0.25)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -256,12 +260,13 @@ def test_evaluate_plagiarism_separated_proportional_25():
 def test_evaluate_plagiarism_separated_proportional_50():
     init(4)
     model_name = '4-small_br'
+    mutation = "Mutation_add"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
     eval_path = f"{data_path}/debug_outputs/Evaluation"
 
-    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, eval_path, thold=0.5)
+    table, _, _ = evaluate_plagiarism(metrics["plagiarism-dist"], None, None, mutation, eval_path, thold=0.5)
 
     for s, t in zip(table["Style"], table["Target"]):
         assert s != t
@@ -274,11 +279,12 @@ def test_evaluate_model():
     init(4)
 
     s1, s2, model_name = "small_Bach", "small_ragtime", "4-small_br"
+    mutation = "Mutation_add_sub"
     trans_path = get_transferred_path(s1, s2, model_name)
     df = load_pickle(trans_path)
 
     metrics_dir = get_metrics_dir(model_name)
-    metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
+    metrics = load_pickle(f"{metrics_dir}/metrics_{mutation}_{s1}_to_{s2}")
 
     styles_path = get_characteristics_path(model_name)
     styles = load_pickle(styles_path)
@@ -286,7 +292,7 @@ def test_evaluate_model():
     melodic_musicality_distribution = load_pickle(data_path + 'data_analysis/melodic_distribution.pkl')
     rhythmic_musicality_distribution = load_pickle(data_path + 'data_analysis/rhythmic_distribution.pkl')
 
-    evaluate_model(df, metrics, styles, melodic_musicality_distribution, rhythmic_musicality_distribution,
+    evaluate_model(df, metrics, styles, melodic_musicality_distribution, rhythmic_musicality_distribution, mutation,
                    f"{data_path}/debug_outputs/", thold=2)
 
 
@@ -294,6 +300,7 @@ def test_evaluation_task_4br():
     init(4)
     # model_name = "4-small_br"
     model_name = "4-br-96"
+    mutation = "Mutation_add_sub"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
@@ -302,13 +309,14 @@ def test_evaluation_task_4br():
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
 
-        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
+        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2, mutation)
 
 
 def test_evaluation_task():
     init(4)
     # model_name = "4-small_br"
     model_name = "brmf_4b_beta-96"
+    mutation = "Mutation_add_sub"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
@@ -317,13 +325,29 @@ def test_evaluation_task():
     for style1, style2 in styles_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
 
-        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2)
+        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2, mutation)
+
+
+def test_evaluation_mixture_model():
+    init(4)
+    model_name = "4-Lakh_Kern-96"
+    mutation = "Mutation_add_sub"
+
+    styles_path = get_characteristics_path(model_name)
+    metrics_dir = get_metrics_dir(model_name)
+    eval_path = get_eval_dir(model_name)
+
+    for style1, style2 in styles_names(model_name):
+        transferred_path = get_transferred_path(style1, style2, model_name)
+
+        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2, mutation)
 
 
 def test_audio_generation_mixture_model():
     model_name = "4-Lakh_Kern-96"
     s1 = "Bach"
     s2 = "Mozart"
+    mutation = "Mutation_add"
 
     audios_path = get_audios_path(model_name)
 
@@ -332,7 +356,7 @@ def test_audio_generation_mixture_model():
     suffix = f'{s1}_to_{s2}'
     successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
 
-    audio_generation(transferred_path, audios_path, successful_rolls_prefix, suffix, s1)
+    audio_generation(mutation, transferred_path, audios_path, successful_rolls_prefix, suffix, s1)
 
 
 def test_audio_generation():
@@ -341,28 +365,41 @@ def test_audio_generation():
     s1 = "Bach"
     s2 = "Mozart"
     audios_path = get_audios_path(model_name)
+    mutation = "Mutation_add"
 
     transferred_path = get_transferred_path(s1, s2, model_name)
     eval_dir = get_eval_dir(model_name)
     transformation = f'{s1}_to_{s2}'
     successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
 
-    audio_generation(eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation, b, z)
+    audio_generation(mutation, eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation, b, z)
 
 
 def test_packed_metrics():
-    d01 = {"Plagiarism-dist": 1, "Plagiarism-diff": 1, "Musicality": 1, "orig": 's0', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
-    d02 = {"Plagiarism-dist": 2, "Plagiarism-diff": 2, "Musicality": 2, "orig": 's0', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
-    d03 = {"Plagiarism-dist": 3, "Plagiarism-diff": 3, "Musicality": 3, "orig": 's0', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
-    d10 = {"Plagiarism-dist": 10, "Plagiarism-diff": 10, "Musicality": 10, "orig": 's1', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
-    d12 = {"Plagiarism-dist": 12, "Plagiarism-diff": 12, "Musicality": 12, "orig": 's1', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
-    d13 = {"Plagiarism-dist": 13, "Plagiarism-diff": 13, "Musicality": 13, "orig": 's1', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
-    d20 = {"Plagiarism-dist": 20, "Plagiarism-diff": 20, "Musicality": 20, "orig": 's2', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
-    d21 = {"Plagiarism-dist": 21, "Plagiarism-diff": 21, "Musicality": 21, "orig": 's2', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
-    d23 = {"Plagiarism-dist": 23, "Plagiarism-diff": 23, "Musicality": 23, "orig": 's2', "target": 's3', "Style": {'s1': 3, 's2': 3, 's3': 3}}
-    d30 = {"Plagiarism-dist": 30, "Plagiarism-diff": 30, "Musicality": 30, "orig": 's3', "target": 's0', "Style": {'s1': 0, 's2': 0, 's3': 0}}
-    d31 = {"Plagiarism-dist": 31, "Plagiarism-diff": 31, "Musicality": 31, "orig": 's3', "target": 's1', "Style": {'s1': 1, 's2': 1, 's3': 1}}
-    d32 = {"Plagiarism-dist": 32, "Plagiarism-diff": 32, "Musicality": 32, "orig": 's3', "target": 's2', "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d01 = {"Plagiarism-dist": 1, "Plagiarism-diff": 1, "Musicality": 1, "orig": 's0', "target": 's1',
+           "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d02 = {"Plagiarism-dist": 2, "Plagiarism-diff": 2, "Musicality": 2, "orig": 's0', "target": 's2',
+           "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d03 = {"Plagiarism-dist": 3, "Plagiarism-diff": 3, "Musicality": 3, "orig": 's0', "target": 's3',
+           "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d10 = {"Plagiarism-dist": 10, "Plagiarism-diff": 10, "Musicality": 10, "orig": 's1', "target": 's0',
+           "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d12 = {"Plagiarism-dist": 12, "Plagiarism-diff": 12, "Musicality": 12, "orig": 's1', "target": 's2',
+           "Style": {'s1': 2, 's2': 2, 's3': 2}}
+    d13 = {"Plagiarism-dist": 13, "Plagiarism-diff": 13, "Musicality": 13, "orig": 's1', "target": 's3',
+           "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d20 = {"Plagiarism-dist": 20, "Plagiarism-diff": 20, "Musicality": 20, "orig": 's2', "target": 's0',
+           "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d21 = {"Plagiarism-dist": 21, "Plagiarism-diff": 21, "Musicality": 21, "orig": 's2', "target": 's1',
+           "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d23 = {"Plagiarism-dist": 23, "Plagiarism-diff": 23, "Musicality": 23, "orig": 's2', "target": 's3',
+           "Style": {'s1': 3, 's2': 3, 's3': 3}}
+    d30 = {"Plagiarism-dist": 30, "Plagiarism-diff": 30, "Musicality": 30, "orig": 's3', "target": 's0',
+           "Style": {'s1': 0, 's2': 0, 's3': 0}}
+    d31 = {"Plagiarism-dist": 31, "Plagiarism-diff": 31, "Musicality": 31, "orig": 's3', "target": 's1',
+           "Style": {'s1': 1, 's2': 1, 's3': 1}}
+    d32 = {"Plagiarism-dist": 32, "Plagiarism-diff": 32, "Musicality": 32, "orig": 's3', "target": 's2',
+           "Style": {'s1': 2, 's2': 2, 's3': 2}}
 
     p01 = f'{data_path}tests/overall_metrics_dict-01'
     p02 = f'{data_path}tests/overall_metrics_dict-02'
@@ -390,7 +427,8 @@ def test_packed_metrics():
     save_pickle(d31, p31)
     save_pickle(d32, p32)
 
-    pm = get_packed_metrics([f'{data_path}tests/'])
+    mutation = "Mutation_add"
+    pm = get_packed_metrics([f'{data_path}tests/'], mutation)
 
     print(pm["Musicality"])
     print(pm["Plagiarism-dist"])
@@ -404,24 +442,38 @@ def test_packed_metrics():
 def test_overall_evaluation():
     b = 4
     model_name = "brmf_4b_beta-96"
+    mutation = "Mutation_add_sub"
 
     overall_metric_dirs = [get_eval_dir(model_name)]
-    eval_path = f"{data_path}/overall_evaluation/{model_name}"
+    eval_path = f"{data_path}/overall_evaluation/{model_name}-{mutation}"
 
-    do_overall_evaluation(overall_metric_dirs, eval_path, b)
+    do_overall_evaluation(overall_metric_dirs, mutation, eval_path, b)
+
+
+def test_overall_evaluation_mixture_model():
+    b, z = 4, 96
+    model_name = "4-Lakh_Kern-96"
+    mutation = "Mutation_add_sub"
+
+    overall_metric_dirs = [get_eval_dir(model_name)]
+    eval_path = f"{data_path}/overall_evaluation/{model_name}-{mutation}"
+
+    do_overall_evaluation(overall_metric_dirs, mutation, eval_path, b, z)
 
 
 def test_ensamble_overall_evaluation():
     b = 4
+    mutation = "Mutation_add_sub"
     ensamble = [m for m in models if m in mixture_models and m[0] == str(b)]
     overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
-    eval_path = f"{data_path}overall_evaluation/ensamble_{b}bars"
-    do_overall_evaluation(overall_metric_dirs, eval_path, b)
+    eval_path = f"{data_path}overall_evaluation/ensamble_{b}bars-{mutation}"
+    do_overall_evaluation(overall_metric_dirs, mutation, eval_path, b)
 
 
 def test_sheet_generation():
     model_name = "brmf_4b_beta-96"
     b, z = 4, 96
+    mutation = "Mutation_add"
 
     s1, s2 = "Bach", "Mozart"
 
@@ -431,4 +483,4 @@ def test_sheet_generation():
     df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"
     df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
 
-    sheets_generation(sheets_path, transference, df_audios_paths, df_sheets_paths, b, z)
+    sheets_generation(sheets_path, transference, mutation, df_audios_paths, df_sheets_paths, b, z)

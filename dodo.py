@@ -10,7 +10,7 @@ from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms,
     plot_closest_ot_style, plot_styles_bigrams_entropy, heatmap_style_differences, plot_heatmap_differences, \
     plot_accuracy, plot_accuracy_distribution, plot_styles_confusion_matrix
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
-from evaluation.app.html_maker import make_html, make_index
+from evaluation.html_maker import make_html, make_index
 from evaluation.evaluation import evaluate_model, evaluate_musicality
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
@@ -48,6 +48,8 @@ pre_models = [f"4-CPFRAa-{z}" for z in z_dims]
 mixture_models = [f"4-Lakh_Kern-{z}" for z in z_dims]
 ensamble_models = [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y]
 models = old_models + ensamble_models + ["4-small_br-96"] + pre_models + mixture_models
+
+mutations = ['Mutation_add_sub', 'Mutation_add']
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
@@ -223,7 +225,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
             if analysis == 'style_closeness':
                 for orig in styles:
-                    plot_closeness(df_test[df_test["Style"] == orig], orig, str(i), eval_dir_cv + "/styles")
+                    plot_closeness(df_test[df_test["Style"] == orig], orig, str(i), "dataset", eval_dir_cv + "/styles")
                 plot_accuracy(df_test, f'{eval_dir_cv}/{i}')
                 plot_accuracy_distribution(dfs_test_path, eval_dir_cv)
 
@@ -253,7 +255,8 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
     else:
         if analysis == 'style_closeness':
             for orig in styles:
-                plot_closeness(df[df["Style"] == orig], orig, 'nothing', eval_dir + "/styles", only_joined_ot=True)
+                plot_closeness(df[df["Style"] == orig], orig, 'nothing', "dataset", eval_dir + "/styles",
+                               only_joined_ot=True)
             plot_accuracy(df, eval_dir)
 
         elif analysis in ['distances_distribution', 'style_differences', 'style_histograms', 'confusion_matrix']:
@@ -286,7 +289,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
             plot_styles_bigrams_entropy(entropies, eval_dir, english=False)
 
         elif analysis == 'style_confusion_matrix':
-            rolls_diff_df = load_pickle(eval_dir + '/rolls_diff_df')
+            pass
 
         elif analysis == 'musicality':
             df_test = load_pickle(f'{dfs_test_path}0')
@@ -299,7 +302,8 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality',
+    'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
     for b in bars:
         for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality',
                          'style_histograms', 'confusion_matrix', 'style_confusion_matrix']:
@@ -545,7 +549,7 @@ def do_transfer(rec_path, model_path, characteristics, transferred_path, s1, s2,
     model_name = os.path.basename(model_path)
 
     df_transferred = transfer_style_to(df_rec, model, model_name, characteristics, original_style=s1, target_style=s2,
-                                       sparse=False)
+                                       mutations=mutations, sparse=False)
 
     save_pickle(df_transferred, transferred_path)
 
@@ -579,12 +583,12 @@ def task_transfer_style():
             }
 
 
-def calculate_metrics(trans_path, metrics_dir, s1, s2, b=4, z=96):
+def calculate_metrics(trans_path, metrics_dir, s1, s2, mutation, b=4, z=96):
     init(b, z)
     df_transferred = load_pickle(trans_path)
 
-    metrics1 = obtain_metrics(df_transferred, s1, s2, 'plagiarism', 'intervals', 'rhythmic_bigrams')
-    save_pickle(metrics1, f"{metrics_dir}/metrics_{s1}_to_{s2}")
+    metrics1 = obtain_metrics(df_transferred, s1, s2, mutation, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    save_pickle(metrics1, f"{metrics_dir}/metrics_{mutation}_{s1}_to_{s2}")
 
 
 def task_metrics():
@@ -596,33 +600,35 @@ def task_metrics():
         for s1, s2 in styles_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             metrics_path = get_metrics_dir(model_name)
-            yield {
-                'name': f"{model_name}_{s1}_to_{s2}",
-                'file_dep': [transferred_path],
-                'actions': [(calculate_metrics, [transferred_path, metrics_path, s1, s2, b, z])],
-                'targets': [f"{metrics_path}/metrics_{s1}_to_{s2}.pkl"],
-                'verbosity': 2,
-                # 'uptodate': [False]
-            }
+            for mutation in mutations:
+                yield {
+                    'name': f"{model_name}_{s1}_to_{s2}-{mutation}",
+                    'file_dep': [transferred_path],
+                    'actions': [(calculate_metrics, [transferred_path, metrics_path, s1, s2, mutation, b, z])],
+                    'targets': [f"{metrics_path}/metrics_{mutation}_{s1}_to_{s2}.pkl"],
+                    'verbosity': 2,
+                    # 'uptodate': [False]
+                }
 
 
-def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, b=4, z=96):
+def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, mutation, b=4, z=96):
     init(b, z)
 
     df_transferred = load_pickle(trans_path)
     styles = load_pickle(styles_path)
 
-    metrics = load_pickle(f"{metrics_dir}/metrics_{s1}_to_{s2}")
+    metrics = load_pickle(f"{metrics_dir}/metrics_{mutation}_{s1}_to_{s2}")
     melodic_musicality_distribution = load_pickle(data_path + 'data_analysis/melodic_distribution.pkl')
     rhythmic_musicality_distribution = load_pickle(data_path + 'data_analysis/rhythmic_distribution.pkl')
 
     successful_rolls, tables, overall_metrics = evaluate_model(df_transferred, metrics, styles,
                                                                melodic_musicality_distribution,
-                                                               rhythmic_musicality_distribution, eval_path=eval_dir)
-    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{s1}_to_{s2}")
-    save_pickle(overall_metrics, f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}")
+                                                               rhythmic_musicality_distribution, mutation,
+                                                               eval_path=eval_dir, plot=False)
+    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{mutation}-{s1}_to_{s2}")
+    save_pickle(overall_metrics, f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}")
     for t, v in tables.items():
-        v.to_csv(f"{eval_dir}/{t}_results-{s1}_to_{s2}.csv")
+        v.to_csv(f"{eval_dir}/{t}_results-{mutation}-{s1}_to_{s2}.csv")
 
 
 def task_evaluation():
@@ -635,26 +641,29 @@ def task_evaluation():
             styles_path = get_characteristics_path(model_name)
             metrics_dir = get_metrics_dir(model_name)
             eval_dir = get_eval_dir(model_name)
-            yield {
-                'name': f"{model_name}_{s1}_to_{s2}",
-                'file_dep': [transferred_path, styles_path,
-                             f"{metrics_dir}/metrics_{s1}_to_{s2}.pkl", f"{metrics_dir}/metrics_{s2}_to_{s1}.pkl",
-                             data_path + 'data_analysis/melodic_distribution.pkl',
-                             data_path + 'data_analysis/rhythmic_distribution.pkl'
-                             ],
-                'actions': [(do_evaluation, [transferred_path, styles_path, metrics_dir, eval_dir, s1, s2, b, z])],
-                'targets': [f"{eval_dir}/successful_rolls-{s1}_to_{s2}.pkl",
-                            f"{eval_dir}/results-{s1}_to_{s2}.csv",
-                            f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
-                            ],
-                'verbosity': 2,
-                # 'uptodate': [False]
-            }
+            for mutation in mutations:
+                yield {
+                    'name': f"{model_name}_{s1}_to_{s2}-{mutation}",
+                    'file_dep': [transferred_path, styles_path,
+                                 f"{metrics_dir}/metrics_{mutation}_{s1}_to_{s2}.pkl",
+                                 f"{metrics_dir}/metrics_{mutation}_{s2}_to_{s1}.pkl",
+                                 data_path + 'data_analysis/melodic_distribution.pkl',
+                                 data_path + 'data_analysis/rhythmic_distribution.pkl'
+                                 ],
+                    'actions': [(do_evaluation,
+                                 [transferred_path, styles_path, metrics_dir, eval_dir, s1, s2, mutation, b, z])],
+                    'targets': [f"{eval_dir}/successful_rolls-{mutation}-{s1}_to_{s2}.pkl",
+                                f"{eval_dir}/results-{mutation}-{s1}_to_{s2}.csv",
+                                f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+                                ],
+                    'verbosity': 2,
+                    # 'uptodate': [False]
+                }
 
 
-def do_overall_evaluation(overall_metric_dirs, eval_dir, b=4, z=96):
+def do_overall_evaluation(overall_metric_dirs, mutation, eval_dir, b=4, z=96):
     init(b, z)
-    m = get_packed_metrics(overall_metric_dirs)
+    m = get_packed_metrics(overall_metric_dirs, mutation)
     overall_evaluation(m, eval_dir)
 
 
@@ -664,43 +673,47 @@ def task_overall_evaluation():
         for b in bars:
             ensamble = [m for m in models if len(m) == 7 and m[0] == str(b) and m.split("-")[-1] == str(z)]
             overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
-            eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars_{z}dim"
-            yield {
-                'name': f"ensamble_{b}bars_{z}dim",
-                'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
-                             for eval_dir in overall_metric_dirs for s1, s2 in styles_names("brmf_4b")
-                             ],
-                'actions': [(do_overall_evaluation, [overall_metric_dirs, eval_path, b, z])],
-                'targets': [],
-                'verbosity': 2,
-                'uptodate': [False]
-            }
+            for mutation in mutations:
+                eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars_{z}dim-{mutation}"
+                yield {
+                    'name': f"ensamble_{b}bars_{z}dim-{mutation}",
+                    'file_dep': [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+                                 for eval_dir in overall_metric_dirs for s1, s2 in styles_names("brmf_4b")
+                                 ],
+                    'actions': [(do_overall_evaluation, [overall_metric_dirs, mutation, eval_path, b, z])],
+                    'targets': [],
+                    'verbosity': 2,
+                    'uptodate': [False]
+                }
 
     for model_name in old_models + mixture_models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
         eval_dir = get_eval_dir(model_name)
-        eval_path = f"{data_path}/overall_evaluation/{model_name}"
-        yield {
-            'name': model_name,
-            'file_dep': [f"{eval_dir}/overall_metrics_dict-{s1}_to_{s2}.pkl"
-                         for s1, s2 in styles_names(model_name)
-                         ],
-            'actions': [(do_overall_evaluation, [[eval_dir], eval_path, b, z])],
-            'targets': [],
-            'verbosity': 2,
-            'uptodate': [False]
-        }
+        for mutation in mutations:
+            eval_path = f"{data_path}/overall_evaluation/{model_name}-{mutation}"
+            yield {
+                'name': f"{model_name}-{mutation}",
+                'file_dep': [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+                             for s1, s2 in styles_names(model_name)
+                             ],
+                'actions': [(do_overall_evaluation, [[eval_dir], mutation, eval_path, b, z])],
+                'targets': [],
+                'verbosity': 2,
+                'uptodate': [False]
+            }
 
 
-def audio_generation(eval_dir, transferred_path, audios_path, succ_rolls_prefix=None, transformation=None, b=4, z=96):
+def audio_generation(mutation, eval_dir, transferred_path, audios_path, succ_rolls_prefix=None, transformation=None,
+                     b=4, z=96):
     init(b, z)
     orig = transformation.split('_')[0]
-    successful_dfs = load_pickle(f"{succ_rolls_prefix}{transformation}")
+    successful_dfs = load_pickle(f"{succ_rolls_prefix}-{transformation}")
     df_audios = pd.DataFrame()
     for k, df in successful_dfs.items():
         df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=5)
-        original_files, reconstructed_files, new_files = generate_audios(df, audios_path, f"{k}-{transformation}", 1)
+        original_files, reconstructed_files, new_files = generate_audios(df, mutation, audios_path,
+                                                                         f"{k}-{transformation}-{mutation}", 1)
         df["Original audio files"] = original_files
         df["Reconstructed audios"] = reconstructed_files
         df["New audio files"] = new_files
@@ -710,14 +723,15 @@ def audio_generation(eval_dir, transferred_path, audios_path, succ_rolls_prefix=
     # Include random selection
     df = load_pickle(transferred_path)
     df = df[df["Style"] == orig].sample(n=5, random_state=42)
-    original_files, reconstructed_files, new_files = generate_audios(df, audios_path, f"random-{transformation}", 1)
+    original_files, reconstructed_files, new_files = generate_audios(df, mutation, audios_path,
+                                                                     f"random-{transformation}-{mutation}", 1)
     df["Original audio files"] = original_files
     df["Reconstructed audios"] = reconstructed_files
     df["New audio files"] = new_files
     df["Selection criteria"] = len(new_files) * ["random"]
     df_audios = pd.concat([df_audios, df])
 
-    save_pickle(df_audios, f"{eval_dir}df_audios-{transformation}")
+    save_pickle(df_audios, f"{eval_dir}/df_audios-{transformation}-{mutation}")
 
 
 def task_sample_audios():
@@ -731,26 +745,28 @@ def task_sample_audios():
             transferred_path = get_transferred_path(s1, s2, model_name)
             eval_dir = get_eval_dir(model_name)
             transformation = f'{s1}_to_{s2}'
-            successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
-            yield {
-                'name': f"{model_name}-{transformation}",
-                'file_dep': [f"{successful_rolls_prefix}{transformation}.pkl", transferred_path],
-                'actions': [(audio_generation,
-                             [eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation, b, z])],
-                'targets': [f"{eval_dir}df_audios-{transformation}.pkl"],
-                'verbosity': 2,
-                # 'uptodate': [False]
-            }
+            for mutation in mutations:
+                successful_rolls_prefix = f"{eval_dir}/successful_rolls-{mutation}"
+                yield {
+                    'name': f"{model_name}-{transformation}-{mutation}",
+                    'file_dep': [f"{successful_rolls_prefix}-{transformation}.pkl", transferred_path],
+                    'actions': [(audio_generation,
+                                 [mutation, eval_dir, transferred_path, audios_path, successful_rolls_prefix,
+                                  transformation, b, z])],
+                    'targets': [f"{eval_dir}/df_audios-{transformation}-{mutation}.pkl"],
+                    'verbosity': 2,
+                    # 'uptodate': [False]
+                }
 
 
-def sheets_generation(sheets_path, transference, df_audios_path, df_sheets_paths, b=4, z=96):
+def sheets_generation(sheets_path, transference, mutation, df_audios_path, df_sheets_paths, b=4, z=96):
     init(b, z)
     df = load_pickle(df_audios_path)
 
     dest = transference.split('_')[-1]
     original_sheets = generate_sheets(df, 'roll', sheets_path, suffix='')
     reconstructed_sheets = generate_sheets(df, 'Reconstruction', sheets_path, suffix='-rec')
-    new_sheets = generate_sheets(df, 'NewRoll', sheets_path, suffix=f'-{dest}')
+    new_sheets = generate_sheets(df, f'{mutation}-NewRoll', sheets_path, suffix=f'-{dest}')
     df["Original sheet"] = original_sheets
     df["Reconstructed sheet"] = reconstructed_sheets
     df["New sheet"] = new_sheets
@@ -768,30 +784,31 @@ def task_sample_sheets():
             sheets_path = get_sheets_path(model_name)
             eval_dir = get_eval_dir(model_name)
             transference = f'{s1}_to_{s2}'
-            df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"
-            df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
-            yield {
-                'name': f"{model_name}-{transference}",
-                'file_dep': [df_audios_paths],
-                'actions': [(sheets_generation,
-                             [sheets_path, transference, df_audios_paths, df_sheets_paths, b, z])],
-                'targets': [df_sheets_paths],
-                'verbosity': 2,
-                # 'uptodate': [False]
-            }
+            for mutation in mutations:
+                df_audios_path = f"{eval_dir}/df_audios-{transference}-{mutation}.pkl"
+                df_sheets_path = f"{eval_dir}/df_sheets-{transference}-{mutation}.pkl"
+                yield {
+                    'name': f"{model_name}-{transference}-{mutation}",
+                    'file_dep': [df_audios_path],
+                    'actions': [(sheets_generation,
+                                 [sheets_path, transference, mutation, df_audios_path, df_sheets_path, b, z])],
+                    'targets': [df_sheets_path],
+                    'verbosity': 2,
+                    # 'uptodate': [False]
+                }
 
 
-def create_html(app_dir, dfs_sheets_paths, b, z):
+def create_html(mutation, app_dir, dfs_sheets_paths, b, z):
     init(b, z)
     files = []
     for df_path in dfs_sheets_paths:
         df = load_pickle(df_path)
-        transference = root_file_name(df_path.split('-')[-1])
+        transference = root_file_name(df_path.split('-')[-2])
         orig, _, dest = transference.split('_')
-        make_html(df, orig, dest, app_dir)
+        make_html(df, orig, dest, app_dir, mutation)
         files.append(transference)
 
-    make_index(app_dir, files)
+    make_index(mutation, app_dir, files)
 
 
 def task_html():
@@ -803,20 +820,21 @@ def task_html():
         eval_dir = get_eval_dir(model_name)
         app_dir = f"{eval_dir}/app/"
         dfs_sheets_paths = []
-        for s1, s2 in styles_names(model_name):
-            transference = f'{s1}_to_{s2}'
-            df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
-            dfs_sheets_paths.append(df_sheets_paths)
 
-        yield {
-            'name': model_name,
-            'file_dep': dfs_sheets_paths,
-            'actions': [(create_html,
-                         [app_dir, dfs_sheets_paths, b, z])],
-            # 'targets': [app_dir],
-            # 'verbosity': 2,
-            # 'uptodate': [False]
-        }
+        for mutation in mutations:
+            for s1, s2 in styles_names(model_name):
+                transference = f'{s1}_to_{s2}'
+                df_sheets_path = f"{eval_dir}/df_sheets-{transference}-{mutation}.pkl"
+                dfs_sheets_paths.append(df_sheets_path)
+            yield {
+                'name': f"{model_name}-{mutation}",
+                'file_dep': dfs_sheets_paths,
+                'actions': [(create_html,
+                             [mutation, app_dir, dfs_sheets_paths, b, z])],
+                # 'targets': [app_dir],
+                # 'verbosity': 2,
+                # 'uptodate': [False]
+            }
 
 
 # To use for debugging

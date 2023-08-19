@@ -70,11 +70,11 @@ def make_table(target: str, songs: List[dict]) -> str:
     """
 
 
-def make_body(original_style: str, songs: dict) -> str:
+def make_body(original_style: str, mutation: str, songs: dict) -> str:
     file = f"""<body id="css-zen-garden">
     <div class="page-wrapper">
     
-    <h1>Tabla de audios coder-decoder</h1>
+    <h1>Tabla de audios transformados con: {mutation}</h1>
     
     <h2>{original_style}</h2>
     """
@@ -86,7 +86,7 @@ def make_body(original_style: str, songs: dict) -> str:
     return file + "</body>"
 
 
-def make_html(df, orig, target, app_dir):
+def make_html(df, orig, target, app_dir, mutation):
     songs = {target: [{'title': r['Title'],
                        'selection_criteria': r['Selection criteria'],
                        'audio_path_orig': r["Original audio files"],
@@ -99,10 +99,10 @@ def make_html(df, orig, target, app_dir):
                       for _, r in df.iterrows()
                       ]
              }
-    file = make_head(orig) + make_body(orig, songs)
-    file += """\n<a href="./index.html" class="button">Volver al menú</a>"""
+    file = make_head(orig) + make_body(orig, mutation, songs)
+    file += f"""\n<a href="./index-{mutation}.html" class="button">Volver al menú</a>"""
 
-    file_name = f"{app_dir}{orig}_to_{target}.html"
+    file_name = f"{app_dir}{orig}_to_{target}-{mutation}.html"
     make_dirs_if_not_exists(file_name)
 
     with open(file_name, 'w') as f:
@@ -110,24 +110,24 @@ def make_html(df, orig, target, app_dir):
         print("Saved HTML file as:", file_name)
 
 
-def make_index(app_path, files):
+def make_index(mutation, app_path, files):
     file = make_head("Evaluación")
 
     file += f"""<body id="css-zen-garden">
     <div class="page-wrapper">
     
-    <h1>Transformaciones disponibles</h1>
+    <h1>Transformaciones disponibles para {mutation}</h1>
     
     <ul>
     """
 
     for transformation in files:
-        file += f"""<li><a href="./{transformation}.html" class="button">{transformation}</a></li>"""
+        file += f"""<li><a href="./{transformation}-{mutation}.html" class="button">{transformation}</a></li>\n"""
 
     file += "</ul>\n</div>\n"
     file += "</body>"
 
-    file_name = f"{app_path}index.html"
+    file_name = f"{app_path}index-{mutation}.html"
     make_dirs_if_not_exists(file_name)
 
     with open(file_name, 'w') as f:

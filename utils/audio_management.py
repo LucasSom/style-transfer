@@ -8,8 +8,7 @@ import pretty_midi
 from IPython.core.display import Image
 from IPython.display import Audio, display
 
-from utils.files_utils import data_path, root_file_name, get_audios_path
-
+from utils.files_utils import data_path, root_file_name
 
 lily_conv = m21.converter.subConverters.ConverterLilypond()
 
@@ -24,13 +23,14 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def generate_audios(df, path=f"{data_path}audios/", suffix=None, verbose=0) -> Tuple[List[str], List[str], List[str]]:
+def generate_audios(df, mutation, path=f"{data_path}audios/", suffix=None, verbose=0) \
+        -> Tuple[List[str], List[str], List[str]]:
     if verbose:
         print("============= Generating audios =============")
 
     original_midis = [r.get_midi(path, verbose=verbose) for r in df["roll"]]
     reconstructed_midis = [r.get_midi(path, verbose=verbose) for r in df["Reconstruction"]]
-    new_midis = [r.get_midi(path, verbose=verbose) for r in df["NewRoll"]]
+    new_midis = [r.get_midi(path, verbose=verbose) for r in df[f"{mutation}-NewRoll"]]
 
     new_titles = (df['Title'] if suffix is None
                   else df['Title'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
@@ -86,12 +86,11 @@ def display_audio(song, fmt=None):
     display(audio)
 
 
-def display_results(song_name, model_name, orig, target, fmt=None):
+def display_results(song_name, dir_path, orig, target, fmt=None):
     def _display_score(song):
         lily = lily_conv.write(song, fmt='lilypond', fp='file', subformats=['png'])
         display(Image(str(lily)))
 
-    dir_path = os.path.join(get_audios_path(model_name))
     orig_song = os.path.join(dir_path, song_name) + '_orig'
     reconstructed_song = os.path.join(dir_path, song_name) + '_recon'
     transformed_song = os.path.join(dir_path, song_name) + f'_{orig}_to_{target}'

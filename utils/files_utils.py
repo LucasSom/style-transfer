@@ -65,8 +65,8 @@ def preprocessed_data_path(b, lmd, small=False):
     if small:
         return f"{preprocessed_data_dir}{b}-small_br.pkl"
     if lmd:
-        return f"{preprocessed_data_dir}lmd_{lmd}-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
-    return f"{preprocessed_data_dir}bach-rag-moz-fres-{b}.pkl"  # TODO: Pasarlo a un archivo de configuracion
+        return f"{preprocessed_data_dir}lmd_{lmd}-{b}.pkl"
+    return f"{preprocessed_data_dir}bach-rag-moz-fres-{b}.pkl"
 
 
 def oversample_path(model_name):
@@ -107,54 +107,45 @@ def get_metrics_dir(model_name: str):
 
 
 def get_transferred_path(s1: str, s2: str, model_name: str):
+    """Returns the path of the form {data_path}models/{model_name}/embeddings/df_transferred_{s1}_{s2}.pkl"""
     transferred_path = f"{data_path}models/{model_name}/embeddings/df_transferred_{s1}_{s2}.pkl"
     make_dirs_if_not_exists(transferred_path)
     return transferred_path
 
 
 def get_emb_path(model_name: str):
+    """Returns the path of the form {data_path}models/{model_name}/embeddings/df_emb.pkl"""
     emb_path = f"{data_path}models/{model_name}/embeddings/df_emb.pkl"
     make_dirs_if_not_exists(emb_path)
     return emb_path
 
 
 def get_characteristics_path(model_name: str):
+    """Returns the path of the form {data_path}models/{model_name}/embeddings/authors_characteristics.pkl"""
     characteristics_path = f"{data_path}models/{model_name}/embeddings/authors_characteristics.pkl"
     return characteristics_path
 
 
 def get_reconstruction_path(model_name: str):
+    """Returns the path of the form {data_path}models/{model_name}/embeddings/reconstruction.pkl"""
     return f'{data_path}models/{model_name}/embeddings/reconstruction.pkl'
 
 
 def get_eval_dir(model_name: str):
+    """Returns the path of the form {data_path}models/{model_name}/Evaluation"""
     eval_path = f"{data_path}models/{model_name}/Evaluation"
     make_dirs_if_not_exists(eval_path)
     return eval_path
 
 
-def get_audios_path(model_name=None, reconstruction=False, e_orig=None, e_dest=None):
-    if model_name is None:  # ie, original
-        return os.path.join(data_path, "original/audios/")
-        # return original_audios_path
-    path = os.path.join(data_path, "models", model_name, "audios/")
-
-    if e_orig is not None or e_dest is not None:
-        return os.path.join(path, f"{e_orig}_to_{e_dest}/")
-
-    if reconstruction:
-        return os.path.join(path, "reconstruction/audios/")
-    return path
+def get_audios_path(model_name):
+    """Returns the path of the form {data_path}models/{model_name}/audios/"""
+    return os.path.join(data_path, "models", model_name, "audios/")
 
 
-def get_sheets_path(model_name: str = None):
-    """
-    :param model_name: name of the containing folder inside the data directory. If it's None, the folder will be 'data/original_sheets'
-    """
-    if model_name is None:
-        path = os.path.join(data_path, "original_sheets/")
-    else:
-        path = os.path.join(data_path, "models", model_name, "sheets/")
+def get_sheets_path(model_name: str):
+    """Returns the path of the form {data_path}models/{model_name}/sheets/"""
+    path = os.path.join(data_path, "models", model_name, "sheets/")
     # path = os.path.join(path, f"{original_style}_to_{target_style}/")
 
     if not os.path.isdir(path):
@@ -162,13 +153,14 @@ def get_sheets_path(model_name: str = None):
     return path
 
 
-def get_packed_metrics(overall_metric_dirs: List[str]):
+def get_packed_metrics(overall_metric_dirs: List[str], mutation):
     """
     :overall_metric_dirs: list of file names of pickles with the individual evaluations.
+    :mutation: type of mutation (add or add_sub)
     :return: dict with keys "Style", "Musicality" and "Plagiarism" with their respective DataFrames to plot the heatmaps.
     The value of "Style" is a dictionary of DataFrames with the original styles as keys.
     """
-    files = [f for d in overall_metric_dirs for f in glob.glob(os.path.join(d, 'overall_metrics_dict-*'))]
+    files = [f for d in overall_metric_dirs for f in glob.glob(os.path.join(d, f'overall_metrics_dict-{mutation}*'))]
     dicts_overall_metrics = [load_pickle(f) for f in files]
 
     styles = np.unique([d["orig"] for d in dicts_overall_metrics])

@@ -159,11 +159,12 @@ def test_obtain_metrics_intervals():
     init(4)
     model_name = "brmf_4b"
     e_orig, e_dest = "Bach", "Mozart"
+    mutation = "Mutation_add"
 
     df = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
 
     # obtain_metrics(df, e_orig, e_dest, styles, 'rhythmic_bigrams', 'plagiarism', 'intervals')
-    d = obtain_metrics(df, e_orig, e_dest, 'intervals')
+    d = obtain_metrics(df, e_orig, e_dest, mutation, 'intervals')
     print("")
     print(d["intervals"])
 
@@ -172,10 +173,11 @@ def test_obtain_metrics_rhythmic_intervals():
     init(4)
     model_name = "4-br-96"
     e_orig, e_dest = "Bach", "ragtime"
+    mutation = "Mutation_add"
 
     df = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
 
-    d = obtain_metrics(df, e_orig, e_dest, 'rhythmic_bigrams')
+    d = obtain_metrics(df, e_orig, e_dest, mutation, 'rhythmic_bigrams')
     print("")
     print(d["rhythmic_bigrams"])
 
@@ -183,10 +185,11 @@ def test_obtain_metrics_plagiarism_dist():
     init(4)
     model_name = "brmf_4b"
     e_orig, e_dest = "Bach", "Mozart"
+    mutation = "Mutation_add"
 
     df = load_pickle(get_transferred_path(e_orig, e_dest, model_name))
 
-    d = obtain_metrics(df, e_orig, e_dest, 'plagiarism')
+    d = obtain_metrics(df, e_orig, e_dest, mutation, 'plagiarism')
     print("")
     print(d["plagiarism-dist"])
     print(d["plagiarism-diff"])
@@ -194,9 +197,10 @@ def test_obtain_metrics_plagiarism_dist():
 
 def test_task():
     model_name = "brmf_4b_beta-96"
+    mutation = "Mutation_add"
 
     s1, s2 = styles_names(model_name)[0]
     transferred_path = get_transferred_path(s1, s2, model_name)
     metrics_path = get_metrics_dir(transferred_path)
 
-    calculate_metrics(transferred_path, metrics_path, 'Mozart', 'Bach')
+    calculate_metrics(transferred_path, metrics_path, 'Mozart', 'Bach', mutation)

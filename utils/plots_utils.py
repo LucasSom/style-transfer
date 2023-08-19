@@ -264,7 +264,7 @@ def bigrams_plot(df, order: List, eval_dir, plot_name, context='talk'):
     save_plot(eval_dir, plot_name, f'{plot_name} distribution of \n{orig} transformed to {dest}')
 
 
-def plagiarism_plot(df, orig, dest, by_distance, eval_dir, context):
+def plagiarism_plot(df, orig, dest, mutation, by_distance, eval_dir, context):
     kind = "Distance" if by_distance else "Differences"
     sns.set_theme(context)
 
@@ -276,9 +276,10 @@ def plagiarism_plot(df, orig, dest, by_distance, eval_dir, context):
 
     plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
-    plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}.png"
-    title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest}"
+    plot_name = f"plagiarism_{'dist' if by_distance else 'diff'}_{orig}_to_{dest}-{mutation}.png"
+    title = f"Place on plagiarism {'dist' if by_distance else 'diff'} ranking from {orig} to {dest} ({mutation})"
     save_plot(eval_dir, plot_name, title)
+
 
 def plot_IR_distributions(df: pd.DataFrame, orig, dest, plot_dir):
     for style in set(df["Style"]):

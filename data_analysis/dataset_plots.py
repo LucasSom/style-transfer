@@ -65,9 +65,9 @@ def plot_heatmap_differences(df, histograms, plot_dir, melodic=True):
                 ot.plot.plot1D_mat(a, b, G0, title)
                 save_plot(plot_dir, f"melodic_diff-{s1}_{s2}", title)
 
-                # TODO: sacar para ritmos
-                # TODO: en realidad quiero el valor
-                
+                # TODO: sacar para ritmos. En realidad quiero el valor
+
+
 def heatmap_style_differences(diff_table, plot_dir):
     # TODO: sacar para ritmos
     diff_table.to_csv(os.path.join(plot_dir, f"melodic_diff.csv"))
@@ -75,7 +75,7 @@ def heatmap_style_differences(diff_table, plot_dir):
     save_plot(plot_dir, 'melodic_diff')
 
 
-def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=False, english=False):
+def plot_closeness(df, orig, dest, mutation, eval_path, context='talk', only_joined_ot=False, english=False):
     fig = plt.figure(figsize=(10, 10))
     sns.set_theme(context)
     if english:
@@ -97,11 +97,12 @@ def plot_closeness(df, orig, dest, eval_path, context='talk', only_joined_ot=Fal
                 ax.title.set_text(f"{kind} closest style ({method})")
                 i += 1
 
-    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}", " ")
+    save_plot(eval_path, f"closest_styles-{orig}_to_{dest}-{mutation}",
+              f"Closest styles ({orig} to {dest}) - {mutation}")
     plt.close()
 
 
-def plot_distances(distances, orig, dest, plot_path, context='talk'):
+def plot_distances(distances, orig, dest, mutation, plot_path, context='talk'):
     sns.set_theme(context)
 
     d = {"style": [], "distance": []}
@@ -112,7 +113,7 @@ def plot_distances(distances, orig, dest, plot_path, context='talk'):
 
     sns.barplot(data=df, x="style", y="distance", errorbar="sd")
 
-    save_plot(plot_path, f"distances_{orig}_{dest}", f"Distances to styles\nafter {orig} to {dest} transformation")
+    save_plot(plot_path, f"distances_{orig}_{dest}-{mutation}", f"Distances to styles\nafter {orig} to {dest} transformation")
 
 
 def plot_closest_ot_style(df, plot_path, context='talk'):

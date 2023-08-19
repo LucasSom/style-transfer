@@ -7,7 +7,7 @@ from model.colab_tension_vae import params
 from roll.guoroll import GuoRoll
 
 
-# TODO: revisar porque el pading en realidad no debería estar si ya le paso solo la matriz que importa.
+# TODO: revisar porque el padding en realidad no debería estar si ya le paso solo la matriz que importa.
 # El último elemento directamente es -1
 def cmp_voice(v1, v2, voice, rest_value=12):
     if voice == 'melody':
@@ -118,11 +118,11 @@ def get_plagiarism_position(df, original_roll, transferred_roll, by_distance=Fal
     return position, len(rolls), sorted_rolls[position][0]
 
 
-def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFrame:
+def get_plagiarism_ranking_table(df, orig: str, mutation: str, by_distance=False) -> pd.DataFrame:
     """
     :param df: df_transferred
     :param orig: original style
-    :param dest: target style
+    :param mutation: type of mutation to analyze (add or add_sub)
     :param by_distance: whether to calculate plagiarism counting every distance between notes or only the amount of
     differences
     :return: a Dataframe with columns:
@@ -130,7 +130,7 @@ def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFr
             - Title
             - roll
             - Reconstruction
-            - NewRoll
+            - {mutation}-NewRoll
             - Differences position
             - Differences relative ranking
             - Differences rate
@@ -145,7 +145,7 @@ def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFr
              "Title": [],
              "roll": [],
              "Reconstruction": [],
-             "NewRoll": [],
+             f"{mutation}-NewRoll": [],
              f"{kind} position": [],
              f"{kind} relative ranking": [],
              f"{kind} rate": [],
@@ -154,12 +154,13 @@ def get_plagiarism_ranking_table(df, orig, dest, by_distance=False) -> pd.DataFr
 
     sub_df = df[df["Style"] == orig]
 
-    for style, title, r_orig, r_rec, r_trans in zip(sub_df["Style"], sub_df["Title"], sub_df['roll'], sub_df['Reconstruction'], sub_df["NewRoll"]):
+    for style, title, r_orig, r_rec, r_trans in zip(
+            sub_df["Style"], sub_df["Title"], sub_df['roll'], sub_df['Reconstruction'], sub_df[f"{mutation}-NewRoll"]):
         table["Style"].append(style)
         table["Title"].append(title)
         table["roll"].append(r_orig)
         table["Reconstruction"].append(r_rec)
-        table["NewRoll"].append(r_trans)
+        table[f"{mutation}-NewRoll"].append(r_trans)
 
         position, n, rate = get_plagiarism_position(df, r_orig, r_trans, by_distance=by_distance)
 
