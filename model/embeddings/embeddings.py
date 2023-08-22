@@ -45,17 +45,21 @@ def obtain_std(embeddings):
     return np.vstack(embeddings).std(axis=0)
 
 
-def transform_embeddings(df, characteristics: dict, original: str, target: str, scale=1, sample=1):
+def transform_embeddings(df, characteristics: dict, original: str, target: str, alphas, sample=1):
     v_original = characteristics[original].embedding
     v_goal = characteristics[target].embedding
 
-    return (df
-            >> dfply.mask(dfply.X['Style'] == original)
-            >> dfply.group_by('Title', 'Style')
-            >> dfply.sample(sample)
-            >> dfply.mutate(Mutation_add=dfply.X['Embedding'].apply(lambda e: e + v_goal * scale))
-            >> dfply.mutate(Mutation_add_sub=dfply.X['Mutation_add'].apply(lambda e: e - v_original * scale))
-            )
+    df = (df
+          >> dfply.mask(dfply.X['Style'] == original)
+          >> dfply.group_by('Title', 'Style')
+          >> dfply.sample(sample)
+          )
+
+    for a in alphas:
+        df[f"Mutation_add_{a}"] = [r["Embedding"] + v_goal * a for _, r in df.iterrows()]
+        df[f"Mutation_add_sub_{a}"] = [r[f"Mutation_add_{a}"] - v_original * a for _, r in df.iterrows()]
+
+    return df
 
 
 @dfply.make_symbolic
@@ -64,8 +68,9 @@ def embeddings_to_rolls(embeddings: Iterable, roll_names: List[str], suffix: str
     decoded_matrices = decode_embeddings(embeddings, model)
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
-    rolls = [GuoRoll(m, f"{r_name}-{suffix}", sparse=sparse, audio_path=audio_path, save_midi=save_midi, verbose=verbose)
-             for m, r_name in zip(matrices, roll_names)]
+    rolls = [
+        GuoRoll(m, f"{r_name}-{suffix}", sparse=sparse, audio_path=audio_path, save_midi=save_midi, verbose=verbose)
+        for m, r_name in zip(matrices, roll_names)]
 
     return rolls
 
@@ -124,16 +129,18 @@ def get_accuracies(x: List[np.array], y: List[np.array]):
     for x_i, y_i in zip(x, y):
         x_mel_notes = x_i[:, :params.config.melody_dim]
         x_mel_rhythm = x_i[:, params.config.melody_dim]
-        x_bass_notes = x_i[:, params.config.melody_dim + 1 : -1]
+        x_bass_notes = x_i[:, params.config.melody_dim + 1: -1]
         x_bass_rhythm = x_i[:, -1]
         y_mel_notes = y_i[:, :params.config.melody_dim]
         y_mel_rhythm = y_i[:, params.config.melody_dim]
         y_bass_notes = y_i[:, params.config.melody_dim + 1: -1]
         y_bass_rhythm = y_i[:, -1]
 
-        mel_acc += sum(sum((x_mel_notes == y_mel_notes).T) == (params.config.melody_dim * np.ones(params.config.time_step)))
+        mel_acc += sum(
+            sum((x_mel_notes == y_mel_notes).T) == (params.config.melody_dim * np.ones(params.config.time_step)))
         mel_rhythm_acc += sum(x_mel_rhythm == y_mel_rhythm)
-        bass_acc += sum(sum((x_bass_notes == y_bass_notes).T) == (params.config.bass_dim * np.ones(params.config.time_step)))
+        bass_acc += sum(
+            sum((x_bass_notes == y_bass_notes).T) == (params.config.bass_dim * np.ones(params.config.time_step)))
         bass_rhythm_acc += sum(x_bass_rhythm == y_bass_rhythm)
 
     return mel_acc / (N * n), mel_rhythm_acc / (N * n), bass_acc / (N * n), bass_rhythm_acc / (N * n)

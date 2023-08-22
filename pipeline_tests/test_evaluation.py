@@ -453,7 +453,7 @@ def test_overall_evaluation():
 def test_overall_evaluation_mixture_model():
     b, z = 4, 96
     model_name = "4-Lakh_Kern-96"
-    mutation = "Mutation_add_sub"
+    mutation = "Mutation_add_0.1"
 
     overall_metric_dirs = [get_eval_dir(model_name)]
     eval_path = f"{data_path}/overall_evaluation/{model_name}-{mutation}"

@@ -31,7 +31,7 @@ def make_dirs_if_not_exists(file_path):
 
 
 def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
-    if file_extension(file_name) == '':
+    if file_extension(file_name) != '.pkl':
         file_name += '.pkl'
 
     directory = os.path.dirname(file_name)
@@ -45,7 +45,7 @@ def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
 
 
 def load_pickle(file_name: str, verbose=False):
-    if file_extension(file_name) == '':
+    if file_extension(file_name) != '.pkl':
         file_name += '.pkl'
 
     with open(file_name, 'rb') as f:

@@ -49,7 +49,10 @@ mixture_models = [f"4-Lakh_Kern-{z}" for z in z_dims]
 ensamble_models = [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y]
 models = old_models + ensamble_models + ["4-small_br-96"] + pre_models + mixture_models
 
-mutations = ['Mutation_add_sub', 'Mutation_add']
+alphas = [0.1, 0.25, 0.5, 0.75, 1]
+mutations_add = [f'Mutation_add_{a}' for a in alphas]
+mutations_add_sub = [f'Mutation_add_sub_{a}' for a in alphas]
+mutations = mutations_add + mutations_add_sub
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
@@ -549,7 +552,7 @@ def do_transfer(rec_path, model_path, characteristics, transferred_path, s1, s2,
     model_name = os.path.basename(model_path)
 
     df_transferred = transfer_style_to(df_rec, model, model_name, characteristics, original_style=s1, target_style=s2,
-                                       mutations=mutations, sparse=False)
+                                       alphas=alphas, mutations=mutations, sparse=False)
 
     save_pickle(df_transferred, transferred_path)
 
