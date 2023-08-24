@@ -183,7 +183,7 @@ def test_calculate_resume_table():
 def test_evaluate_plagiarism_1():
     init(4)
     model_name = '4-small_br'
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     eval_path = f"{data_path}/debug_outputs/Evaluation"
@@ -198,7 +198,7 @@ def test_evaluate_plagiarism_1():
 def test_evaluate_plagiarism_separated_2():
     init(4)
     model_name = '4-small_br'
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-2"
@@ -224,7 +224,7 @@ def test_evaluate_plagiarism_separated_2():
 def test_evaluate_plagiarism_separated_proportional_10():
     init(4)
     model_name = '4-small_br'
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_10"
@@ -242,7 +242,7 @@ def test_evaluate_plagiarism_separated_proportional_10():
 def test_evaluate_plagiarism_separated_proportional_25():
     init(4)
     model_name = '4-small_br'
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_25"
@@ -260,7 +260,7 @@ def test_evaluate_plagiarism_separated_proportional_25():
 def test_evaluate_plagiarism_separated_proportional_50():
     init(4)
     model_name = '4-small_br'
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
     s1, s2 = "Bach", "ragtime"
     metrics = load_pickle(f"{data_path}models/{model_name}/metrics/metrics_small_{s1}_to_small_{s2}.pkl")
     cache_path = f"{data_path}/debug_outputs/tables/table_plagiarism-all_separated-proportional_5"
@@ -279,7 +279,7 @@ def test_evaluate_model():
     init(4)
 
     s1, s2, model_name = "small_Bach", "small_ragtime", "4-small_br"
-    mutation = "Mutation_add_sub"
+    mutation = "Mutation_add_sub_1"
     trans_path = get_transferred_path(s1, s2, model_name)
     df = load_pickle(trans_path)
 
@@ -300,7 +300,7 @@ def test_evaluation_task_4br():
     init(4)
     # model_name = "4-small_br"
     model_name = "4-br-96"
-    mutation = "Mutation_add_sub"
+    mutation = "Mutation_add_sub_1"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
@@ -316,7 +316,7 @@ def test_evaluation_task():
     init(4)
     # model_name = "4-small_br"
     model_name = "brmf_4b_beta-96"
-    mutation = "Mutation_add_sub"
+    mutation = "Mutation_add_sub_1"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
@@ -331,32 +331,32 @@ def test_evaluation_task():
 def test_evaluation_mixture_model():
     init(4)
     model_name = "4-Lakh_Kern-96"
-    mutation = "Mutation_add_sub"
+    mutation = "Mutation_add_1"
 
     styles_path = get_characteristics_path(model_name)
     metrics_dir = get_metrics_dir(model_name)
     eval_path = get_eval_dir(model_name)
 
-    for style1, style2 in styles_names(model_name):
-        transferred_path = get_transferred_path(style1, style2, model_name)
+    style1, style2 = "Bach", "Mozart"
+    transferred_path = get_transferred_path(style1, style2, model_name)
 
-        do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2, mutation)
+    do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2, mutation)
 
 
 def test_audio_generation_mixture_model():
     model_name = "4-Lakh_Kern-96"
     s1 = "Bach"
     s2 = "Mozart"
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
 
     audios_path = get_audios_path(model_name)
 
     transferred_path = get_transferred_path(s1, s2, model_name)
     eval_dir = get_eval_dir(model_name)
-    suffix = f'{s1}_to_{s2}'
-    successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
+    transformation = f'{s1}_to_{s2}'
+    successful_rolls_prefix = f"{eval_dir}/successful_rolls-{mutation}"
 
-    audio_generation(mutation, transferred_path, audios_path, successful_rolls_prefix, suffix, s1)
+    audio_generation(mutation, eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation)
 
 
 def test_audio_generation():
@@ -365,7 +365,7 @@ def test_audio_generation():
     s1 = "Bach"
     s2 = "Mozart"
     audios_path = get_audios_path(model_name)
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
 
     transferred_path = get_transferred_path(s1, s2, model_name)
     eval_dir = get_eval_dir(model_name)
@@ -442,7 +442,7 @@ def test_packed_metrics():
 def test_overall_evaluation():
     b = 4
     model_name = "brmf_4b_beta-96"
-    mutation = "Mutation_add_sub"
+    mutation = "Mutation_add_sub_1"
 
     overall_metric_dirs = [get_eval_dir(model_name)]
     eval_path = f"{data_path}/overall_evaluation/{model_name}-{mutation}"
@@ -463,7 +463,7 @@ def test_overall_evaluation_mixture_model():
 
 def test_ensamble_overall_evaluation():
     b = 4
-    mutation = "Mutation_add_sub"
+    mutation = "Mutation_add_sub_1"
     ensamble = [m for m in models if m in mixture_models and m[0] == str(b)]
     overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
     eval_path = f"{data_path}overall_evaluation/ensamble_{b}bars-{mutation}"
@@ -473,14 +473,15 @@ def test_ensamble_overall_evaluation():
 def test_sheet_generation():
     model_name = "brmf_4b_beta-96"
     b, z = 4, 96
-    mutation = "Mutation_add"
+    mutation = "Mutation_add_1"
 
     s1, s2 = "Bach", "Mozart"
 
+    transferred_path = get_transferred_path(s1, s2, model_name)
     sheets_path = get_sheets_path(model_name)
     eval_dir = get_eval_dir(model_name)
     transference = f'{s1}_to_{s2}'
     df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"
     df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
 
-    sheets_generation(sheets_path, transference, mutation, df_audios_paths, df_sheets_paths, b, z)
+    sheets_generation(sheets_path, transferred_path, transference, mutation, df_audios_paths, df_sheets_paths, b, z)

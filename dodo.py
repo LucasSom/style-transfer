@@ -590,8 +590,8 @@ def calculate_metrics(trans_path, metrics_dir, s1, s2, mutation, b=4, z=96):
     init(b, z)
     df_transferred = load_pickle(trans_path)
 
-    metrics1 = obtain_metrics(df_transferred, s1, s2, mutation, 'plagiarism', 'intervals', 'rhythmic_bigrams')
-    save_pickle(metrics1, f"{metrics_dir}/metrics_{mutation}_{s1}_to_{s2}")
+    metrics = obtain_metrics(df_transferred, s1, s2, mutation, 'plagiarism', 'intervals', 'rhythmic_bigrams')
+    save_pickle(metrics, f"{metrics_dir}/metrics_{mutation}_{s1}_to_{s2}")
 
 
 def task_metrics():
@@ -713,26 +713,30 @@ def audio_generation(mutation, eval_dir, transferred_path, audios_path, succ_rol
     orig = transformation.split('_')[0]
     successful_dfs = load_pickle(f"{succ_rolls_prefix}-{transformation}")
     df_audios = pd.DataFrame()
-    for k, df in successful_dfs.items():
-        df = sample_uniformly(df[df["Style"] == orig], f"{k} rank", n=5)
-        original_files, reconstructed_files, new_files = generate_audios(df, mutation, audios_path,
+    df = load_pickle(transferred_path)
+
+    for k, df_succ in successful_dfs.items():
+        df_merged = df_succ.merge(df, how='inner')
+        df_merged = sample_uniformly(df_merged[df_merged["Style"] == orig], f"{k} rank", n=5)
+        original_files, reconstructed_files, new_files = generate_audios(df_merged, mutation, audios_path,
                                                                          f"{k}-{transformation}-{mutation}", 1)
-        df["Original audio files"] = original_files
-        df["Reconstructed audios"] = reconstructed_files
-        df["New audio files"] = new_files
-        df["Selection criteria"] = len(new_files) * [k]
-        df_audios = pd.concat([df_audios, df])
+        df_merged = df_merged[['Style', 'Title', 'roll_id']]
+        df_merged["Original audio files"] = original_files
+        df_merged["Reconstructed audios"] = reconstructed_files
+        df_merged["New audio files"] = new_files
+        df_merged["Selection criteria"] = len(new_files) * [k]
+        df_audios = pd.concat([df_audios, df_merged])
 
     # Include random selection
-    df = load_pickle(transferred_path)
     df = df[df["Style"] == orig].sample(n=5, random_state=42)
     original_files, reconstructed_files, new_files = generate_audios(df, mutation, audios_path,
                                                                      f"random-{transformation}-{mutation}", 1)
-    df["Original audio files"] = original_files
-    df["Reconstructed audios"] = reconstructed_files
-    df["New audio files"] = new_files
-    df["Selection criteria"] = len(new_files) * ["random"]
-    df_audios = pd.concat([df_audios, df])
+    sub_df = df[['Style', 'Title', 'roll_id']]
+    sub_df["Original audio files"] = original_files
+    sub_df["Reconstructed audios"] = reconstructed_files
+    sub_df["New audio files"] = new_files
+    sub_df["Selection criteria"] = len(new_files) * ["random"]
+    df_audios = pd.concat([df_audios, sub_df])
 
     save_pickle(df_audios, f"{eval_dir}/df_audios-{transformation}-{mutation}")
 
@@ -762,19 +766,23 @@ def task_sample_audios():
                 }
 
 
-def sheets_generation(sheets_path, transference, mutation, df_audios_path, df_sheets_paths, b=4, z=96):
+def sheets_generation(sheets_path, transferred_path, transference, mutation, df_audios_path, df_sheets_paths, b=4,
+                      z=96):
     init(b, z)
-    df = load_pickle(df_audios_path)
+    df_transferred = load_pickle(transferred_path)
+    df_audios = load_pickle(df_audios_path)
+    df = df_audios.merge(df_transferred, how='inner')
 
     dest = transference.split('_')[-1]
     original_sheets = generate_sheets(df, 'roll', sheets_path, suffix='')
     reconstructed_sheets = generate_sheets(df, 'Reconstruction', sheets_path, suffix='-rec')
     new_sheets = generate_sheets(df, f'{mutation}-NewRoll', sheets_path, suffix=f'-{dest}')
-    df["Original sheet"] = original_sheets
-    df["Reconstructed sheet"] = reconstructed_sheets
-    df["New sheet"] = new_sheets
 
-    save_pickle(df, df_sheets_paths)
+    df_audios["Original sheet"] = original_sheets
+    df_audios["Reconstructed sheet"] = reconstructed_sheets
+    df_audios["New sheet"] = new_sheets
+
+    save_pickle(df_audios, df_sheets_paths)
 
 
 def task_sample_sheets():
@@ -784,6 +792,7 @@ def task_sample_sheets():
         z = int(model_name.split("-")[-1])
 
         for s1, s2 in styles_names(model_name):
+            transferred_path = get_transferred_path(s1, s2, model_name)
             sheets_path = get_sheets_path(model_name)
             eval_dir = get_eval_dir(model_name)
             transference = f'{s1}_to_{s2}'
@@ -794,7 +803,8 @@ def task_sample_sheets():
                     'name': f"{model_name}-{transference}-{mutation}",
                     'file_dep': [df_audios_path],
                     'actions': [(sheets_generation,
-                                 [sheets_path, transference, mutation, df_audios_path, df_sheets_path, b, z])],
+                                 [sheets_path, transferred_path, transference, mutation, df_audios_path, df_sheets_path,
+                                  b, z])],
                     'targets': [df_sheets_path],
                     'verbosity': 2,
                     # 'uptodate': [False]

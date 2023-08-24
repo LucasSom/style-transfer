@@ -1,6 +1,7 @@
 import glob
 import os
 import random
+import warnings
 from typing import List
 
 from scipy.sparse import csr_matrix
@@ -130,7 +131,7 @@ class GuoRoll:
             return self.roll_to_score(verbose)
         return self.score
 
-    def generate_sheet(self, file_name, fmt='png', do_display=True, verbose=False):
+    def generate_sheet(self, file_name, fmt='png', do_display=False, verbose=False):
         # file_name += f'.{fmt}'
         lily = lily_conv.write(self.get_score(verbose=verbose), fmt='lilypond', fp=file_name, subformats=[fmt])
 
@@ -140,7 +141,10 @@ class GuoRoll:
         files = glob.glob(root_file_name(lily) + '*')
         for f in files:
             if not (f.endswith('png') or f.endswith('pdf')):
-                os.remove(f)
+                try:
+                    os.remove(f)
+                except:
+                    warnings.warn(f"File not found: {f}")
 
         print("File saved in ", os.path.abspath(lily))
         return str(lily)

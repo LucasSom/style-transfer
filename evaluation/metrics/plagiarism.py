@@ -128,6 +128,7 @@ def get_plagiarism_ranking_table(df, orig: str, mutation: str, by_distance=False
     :return: a Dataframe with columns:
             - Style
             - Title
+            - roll_id
             - roll
             - Reconstruction
             - {mutation}-NewRoll
@@ -143,6 +144,7 @@ def get_plagiarism_ranking_table(df, orig: str, mutation: str, by_distance=False
     kind = "Distance" if by_distance else "Differences"
     table = {"Style": [],
              "Title": [],
+             "roll_id": [],
              "roll": [],
              "Reconstruction": [],
              f"{mutation}-NewRoll": [],
@@ -154,10 +156,11 @@ def get_plagiarism_ranking_table(df, orig: str, mutation: str, by_distance=False
 
     sub_df = df[df["Style"] == orig]
 
-    for style, title, r_orig, r_rec, r_trans in zip(
-            sub_df["Style"], sub_df["Title"], sub_df['roll'], sub_df['Reconstruction'], sub_df[f"{mutation}-NewRoll"]):
+    for style, title, r_id, r_orig, r_rec, r_trans in zip(
+            sub_df["Style"], sub_df["Title"], sub_df['roll_id'], sub_df['roll'], sub_df['Reconstruction'], sub_df[f"{mutation}-NewRoll"]):
         table["Style"].append(style)
         table["Title"].append(title)
+        table["roll_id"].append(r_id)
         table["roll"].append(r_orig)
         table["Reconstruction"].append(r_rec)
         table[f"{mutation}-NewRoll"].append(r_trans)

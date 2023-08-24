@@ -283,7 +283,7 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
     Calculate for each transformed roll to which style it sames to belong by comparing its optimal transport distance
     with the characteristic entropy matrix of rhythmic and melodic bigrams.
     """
-    common_columns = ['Style', 'Title', 'roll', 'Reconstruction', f'{mutation}-NewRoll', 'target']
+    common_columns = ['Style', 'Title', 'roll', 'roll_id', 'Reconstruction', f'{mutation}-NewRoll', 'target']
     joined_df = rhythmic_bigram_distances[common_columns + ["m'", "m"]].merge(melodic_bigram_distances[common_columns + ["m'", "m"]],
                                                                         on=common_columns, how='inner')
     joined_df.rename(columns={"m'_x": 'm_trans_rhythmic', "m'_y": 'm_trans_melodic', "m_x": "m_orig_rhythmic", "m_y": "m_orig_melodic"},
@@ -341,7 +341,7 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
 
     print("===== Evaluating musicality =====")
     df_test = df[["Style", "Title", "roll", f"{mutation}-NewRoll", "roll_id", "Reconstruction"]]
-    common_columns = ['Style', 'Title', 'roll', 'Reconstruction', f'{mutation}-NewRoll', 'target']
+    common_columns = ['Style', 'Title', 'roll_id', 'roll', 'Reconstruction', f'{mutation}-NewRoll', 'target']
     joined_df = metrics["rhythmic_bigrams"][common_columns + ["m'"]].merge(
         metrics["intervals"][common_columns + ["m'"]], on=common_columns, how='inner')
     df_test = df_test.merge(joined_df[["Style", "Title", "m'_x", "m'_y"]], on=["Style", "Title"])
@@ -352,10 +352,10 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
                                                                         f'_{orig}_to_{target}-{mutation}',
                                                                         only_probability=True, plot=plot)
 
-    return {"Style": s_df,
-            "Musicality": mus_sorted_df,
-            "Plagiarism-dist": p_dist_sorted_df,
-            "Plagiarism-diff": p_diff_sorted_df}, \
+    return {"Style": s_df[['Style', 'Title', 'roll_id', 'Style rank']],
+            "Musicality": mus_sorted_df[['Style', 'Title', 'roll_id', 'Musicality rank']],
+            "Plagiarism-dist": p_dist_sorted_df[['Style', 'Title', 'roll_id', 'Plagiarism-dist rank']],
+            "Plagiarism-diff": p_diff_sorted_df[['Style', 'Title', 'roll_id', 'Plagiarism-diff rank']]}, \
         {"Style": s_table,
          "Musicality": mus_table,
          "Plagiarism-dist": p_dist_table,
