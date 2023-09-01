@@ -26,18 +26,16 @@ def PlayMidi(midi_path, wav_path=None):
 def generate_audios(df, mutation, path=f"{data_path}audios/", suffix=None, verbose=0) \
         -> Tuple[List[str], List[str], List[str]]:
     if verbose:
-        print("============= Generating audios =============")
+        print(f"============= Generating audios {suffix} =============")
 
-    original_midis = [r.get_midi(path, verbose=verbose) for r in df["roll"]]
-    reconstructed_midis = [r.get_midi(path, verbose=verbose) for r in df["Reconstruction"]]
-    new_midis = [r.get_midi(path, verbose=verbose) for r in df[f"{mutation}-NewRoll"]]
+    original_midis = [root_file_name(r.get_audio(path, audio_name=f"{t}_{r_id}", verbose=verbose)) + '.mp3'
+                      for r, t, r_id in zip(df['roll'], df['Title'], df['roll_id'])]
+    reconstructed_midis = [r.get_audio(path, audio_name=f"{t}_{r_id}-rec", fmt='.mp3', verbose=verbose)
+                           for r, t, r_id in zip(df['Reconstruction'], df['Title'], df['roll_id'])]
+    new_midis = [r.get_audio(path, audio_name=f"{t}_{r_id}-{suffix}", fmt='.mp3', verbose=verbose)
+                 for r, t, r_id in zip(df[f"{mutation}-NewRoll"], df['Title'], df['roll_id'])]
 
-    new_titles = (df['Title'] if suffix is None
-                  else df['Title'].map(lambda t: f'{root_file_name(t)}_{suffix}'))
-
-    return save_audios(df['Title'], original_midis, path=path, verbose=verbose), \
-        save_audios([t + '-rec' for t in df['Title']], reconstructed_midis, path=path, verbose=verbose), \
-        save_audios(new_titles, new_midis, path=path, verbose=verbose)
+    return original_midis, reconstructed_midis, new_midis
 
 
 def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verbose=0) -> List[str]:
@@ -57,21 +55,22 @@ def save_audios(titles: List[str], midis: list, path=data_path + 'audios/', verb
 def save_audio(name: str, pm: Union[str, pretty_midi.PrettyMIDI], path: str, save_mp3=True, verbose=0):
     if not os.path.exists(path):
         os.makedirs(path)
-    fluids_cmd = f"fluidsynth {'-v' if verbose == 2 else ''} -a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
-    ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose == 2 else 'quiet'} -f s32le -i -"
 
     if type(pm) == str:
         pm = pretty_midi.PrettyMIDI(root_file_name(pm) + '.mid')
 
     file_name = os.path.join(path, name)
     pm.write(f'{file_name}.mid')
+
     # we convert the created midi to mp3 reading with fluidsynth and bringing it to ffmpeg
     if save_mp3:
+        fluids_cmd = f"fluidsynth {'-v' if verbose == 2 else ''} -a alsa -T raw -F - /usr/share/sounds/sf2/FluidR3_GM.sf2"
+        ffmpeg_cmd = f"ffmpeg -y -loglevel {'info' if verbose == 2 else 'quiet'} -f s32le -i -"
         os.system(f"{fluids_cmd} {file_name}.mid | {ffmpeg_cmd} {file_name}.mp3")
 
     if verbose:
-        print(f"Created {file_name}.mp3")
-    return f'{file_name}.mp3'
+        print(f"Created {file_name}.mp3 and *.mid") if save_mp3 else print(f"Created {file_name}.mid")
+    return f'{file_name}.mp3' if save_mp3 else f'{file_name}.mid'
 
 
 def display_audio(song, fmt=None):

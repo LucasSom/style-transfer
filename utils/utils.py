@@ -31,7 +31,7 @@ def generate_sheets(df, column, sheets_path, suffix) -> List[str]:
     Generates the sheets on PNGs of the rolls in the DataFrame[column]
     :return: list of PNGs paths
     """
-    titles = [t + suffix for t in df['Title']]
+    titles = [f"{t}_{r_id}{suffix}" for t, r_id in zip(df['Title'], df['roll_id'])]
     rolls = df[column]
     pngs_path = []
     for title, roll in zip(titles, rolls):

@@ -49,7 +49,12 @@ def make_table(target: str, songs: List[dict]) -> str:
         table += f"""    <td>{s['title']}</td>\n"""
         table += f"""    <td>{s['selection_criteria']}</td>\n"""
 
-        for path in s['audio_path_orig'], s['audio_path_rec'], s['audio_path_transformed']:
+        relative_path = '../../../../preprocessed_data/original/audios/4bars/' + s['audio_path_orig'].split('/')[-1]
+        table += f"""    <td><audio controls>
+                            <source src="{relative_path}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                            </audio></td>\n"""
+        for path in s['audio_path_rec'], s['audio_path_transformed']:
             relative_path = '../../audios/' + path.split('/')[-1]
             table += f"""    <td><audio controls>
                     <source src="{relative_path}" type="audio/mpeg">

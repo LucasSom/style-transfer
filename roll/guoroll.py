@@ -45,16 +45,17 @@ class GuoRoll:
 
         if save_midi:
             if song is None:
-                self.midi = self.roll_to_midi(audio_path, old_pm=None, verbose=verbose)
+                self.midi = self.roll_to_audio(audio_path, old_pm=None, verbose=verbose)
             else:
-                self.midi = self.roll_to_midi(audio_path, old_pm=song.old_pm, verbose=verbose)
+                self.midi = self.roll_to_audio(audio_path, old_pm=song.old_pm, verbose=verbose)
             if verbose: print(f"Created: {self.midi}")
         else:
             self.midi = None
 
-    def roll_to_midi(self, path, old_pm=None, verbose=False):
-        return save_audio(self.name, util.roll_to_pretty_midi(self.matrix, old_pm, self.sparse, verbose=verbose), path,
-                          False, verbose)
+    def roll_to_audio(self, path, audio_name=None, old_pm=None, save_mp3=False, verbose=False):
+        return save_audio(self.name if audio_name is None else audio_name,
+                          util.roll_to_pretty_midi(self.matrix, old_pm, self.sparse, verbose=verbose),
+                          path, save_mp3, verbose)
 
     def roll_to_score(self, verbose=False):
         def instrument_roll_to_part(rhythm_roll, pitch_roll, pitch_offset=24, verbose=False):
@@ -185,9 +186,10 @@ class GuoRoll:
 
         return permutation
 
-    def get_midi(self, audio_path, verbose=False):
-        if self.midi is None:
-            return self.roll_to_midi(audio_path, old_pm=None, verbose=verbose)
+    def get_audio(self, audio_path, audio_name=None, fmt='.mid', verbose=False) -> str:
+        get_mp3 = fmt == '.mp3'
+        if self.midi is None or get_mp3:
+            return self.roll_to_audio(audio_path, audio_name=audio_name, old_pm=None, save_mp3=get_mp3, verbose=verbose)
         return self.midi
 
 

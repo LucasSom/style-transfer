@@ -3,7 +3,7 @@ import os.path
 import pytest
 
 from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation, models, mixture_models, \
-    sheets_generation
+    sheets_generation, create_html
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
@@ -359,22 +359,6 @@ def test_audio_generation_mixture_model():
     audio_generation(mutation, eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation)
 
 
-def test_audio_generation():
-    model_name = "brmf_4b_beta-96"
-    b, z = 4, 96
-    s1 = "Bach"
-    s2 = "Mozart"
-    audios_path = get_audios_path(model_name)
-    mutation = "Mutation_add_1"
-
-    transferred_path = get_transferred_path(s1, s2, model_name)
-    eval_dir = get_eval_dir(model_name)
-    transformation = f'{s1}_to_{s2}'
-    successful_rolls_prefix = f"{eval_dir}/successful_rolls-"
-
-    audio_generation(mutation, eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation, b, z)
-
-
 def test_packed_metrics():
     d01 = {"Plagiarism-dist": 1, "Plagiarism-diff": 1, "Musicality": 1, "orig": 's0', "target": 's1',
            "Style": {'s1': 1, 's2': 1, 's3': 1}}
@@ -470,18 +454,55 @@ def test_ensamble_overall_evaluation():
     do_overall_evaluation(overall_metric_dirs, mutation, eval_path, b)
 
 
+def test_audio_generation():
+    model_name = "brmf_4b_beta-96"
+    b, z = 4, 96
+    s1 = "Mozart"
+    s2 = "Frescobaldi"
+    audios_path = get_audios_path(model_name)
+    mutation = "Mutation_add_sub_0.1"
+
+    transferred_path = get_transferred_path(s1, s2, model_name)
+    eval_dir = get_eval_dir(model_name)
+    transformation = f'{s1}_to_{s2}'
+    successful_rolls_prefix = f"{eval_dir}/successful_rolls-{mutation}"
+
+    audio_generation(mutation, eval_dir, transferred_path, audios_path, successful_rolls_prefix, transformation, b, z)
+
+    assert os.path.isfile(f"{audios_path}sonata01-1_25-rec.mid")
+    assert os.path.isfile(f"{audios_path}sonata01-1_25-{transformation}-{mutation}.mid")
+
+
 def test_sheet_generation():
     model_name = "brmf_4b_beta-96"
     b, z = 4, 96
-    mutation = "Mutation_add_1"
-
-    s1, s2 = "Bach", "Mozart"
+    s1 = "Mozart"
+    s2 = "Frescobaldi"
+    mutation = "Mutation_add_sub_0.1"
 
     transferred_path = get_transferred_path(s1, s2, model_name)
     sheets_path = get_sheets_path(model_name)
     eval_dir = get_eval_dir(model_name)
     transference = f'{s1}_to_{s2}'
-    df_audios_paths = f"{eval_dir}df_audios-{transference}.pkl"
-    df_sheets_paths = f"{eval_dir}df_sheets-{transference}.pkl"
+    df_audios_path = f"{eval_dir}/df_audios-{transference}-{mutation}.pkl"
+    df_sheets_path = f"{eval_dir}/df_sheets-{transference}-{mutation}.pkl"
 
-    sheets_generation(sheets_path, transferred_path, transference, mutation, df_audios_paths, df_sheets_paths, b, z)
+    sheets_generation(sheets_path, transferred_path, transference, mutation, df_audios_path, df_sheets_path, b, z)
+
+
+def test_html_generation():
+    model_name = 'brmf_4b_beta-96'
+    b = model_name[5]
+    z = int(model_name.split("-")[-1])
+
+    eval_dir = get_eval_dir(model_name)
+    app_dir = f"{eval_dir}/app/"
+    dfs_sheets_paths = []
+
+    mutation = "Mutation_add_sub_0.1"
+    s1, s2 = "Mozart", "Frescobaldi"
+    transference = f'{s1}_to_{s2}'
+    df_sheets_path = f"{eval_dir}/df_sheets-{transference}-{mutation}.pkl"
+    dfs_sheets_paths.append(df_sheets_path)
+
+    create_html(mutation, app_dir, dfs_sheets_paths, b, z)

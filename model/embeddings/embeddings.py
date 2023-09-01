@@ -69,7 +69,7 @@ def embeddings_to_rolls(embeddings: Iterable, roll_names: List[str], suffix: str
 
     matrices = matrix_sets_to_matrices(decoded_matrices)
     rolls = [
-        GuoRoll(m, f"{r_name}-{suffix}", sparse=sparse, audio_path=audio_path, save_midi=save_midi, verbose=verbose)
+        GuoRoll(m, f"{r_name}-{suffix}", audio_path=audio_path, save_midi=save_midi, sparse=sparse, verbose=verbose)
         for m, r_name in zip(matrices, roll_names)]
 
     return rolls
