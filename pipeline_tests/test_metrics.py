@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from matplotlib import pyplot as plt
 
-from dodo import styles_names, calculate_metrics
+from dodo import transference_names, calculate_metrics
 from evaluation.metrics.intervals import plot_matrix_of_adjacent_intervals
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.plagiarism import dumb_pitch_plagiarism
@@ -199,7 +199,7 @@ def test_task():
     model_name = "brmf_4b_beta-96"
     mutation = "Mutation_add"
 
-    s1, s2 = styles_names(model_name)[0]
+    s1, s2 = transference_names(model_name)[0]
     transferred_path = get_transferred_path(s1, s2, model_name)
     metrics_path = get_metrics_dir(transferred_path)
 

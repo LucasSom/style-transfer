@@ -2,14 +2,14 @@ import os.path
 
 import pytest
 
-from dodo import do_evaluation, styles_names, audio_generation, do_overall_evaluation, models, mixture_models, \
-    sheets_generation, create_html
+from dodo import do_evaluation, transference_names, audio_generation, do_overall_evaluation, models, mixture_models, \
+    sheets_generation, create_html, create_examples, style_names
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
     get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics, \
-    get_sheets_path
+    get_sheets_path, get_examples_path
 from utils.plots_utils import plot_intervals_improvements
 
 
@@ -306,7 +306,7 @@ def test_evaluation_task_4br():
     metrics_dir = get_metrics_dir(model_name)
     eval_path = get_eval_dir(model_name)
 
-    for style1, style2 in styles_names(model_name):
+    for style1, style2 in transference_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
 
         do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2, mutation)
@@ -322,7 +322,7 @@ def test_evaluation_task():
     metrics_dir = get_metrics_dir(model_name)
     eval_path = get_eval_dir(model_name)
 
-    for style1, style2 in styles_names(model_name):
+    for style1, style2 in transference_names(model_name):
         transferred_path = get_transferred_path(style1, style2, model_name)
 
         do_evaluation(transferred_path, styles_path, metrics_dir, eval_path, style1, style2, mutation)
@@ -506,3 +506,15 @@ def test_html_generation():
     dfs_sheets_paths.append(df_sheets_path)
 
     create_html(mutation, app_dir, dfs_sheets_paths, b, z)
+
+
+def test_sample_examples():
+    b, z = 4, 96
+    model_name = "brmf_4b_beta-96"
+
+    for orig in style_names(model_name):
+        transferred_paths = {dest: get_transferred_path(orig, dest, model_name)
+                             for dest in style_names(model_name) if orig != dest}
+        output_path = get_examples_path(model_name) + f'{orig}/'
+
+        create_examples(transferred_paths, output_path, b, z)

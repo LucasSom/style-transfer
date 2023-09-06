@@ -1,4 +1,4 @@
-from dodo import do_transfer, styles_names
+from dodo import do_transfer, transference_names
 from utils.files_utils import get_characteristics_path, get_emb_path, get_model_paths, get_transferred_path, \
     load_pickle, get_reconstruction_path
 
@@ -10,7 +10,7 @@ def test_transfer():
     characteristics_path = get_characteristics_path(model_name)
     emb_path = get_emb_path(model_name)
 
-    s1, s2 = styles_names(model_name)[0]
+    s1, s2 = transference_names(model_name)[0]
     transferred_path = get_transferred_path(s1, s2, model_name)
     do_transfer(emb_path, vae_dir, characteristics_path, transferred_path, s1, s2)
 
@@ -32,6 +32,6 @@ def test_transfer_mixture_model():
     characteristics_path = get_characteristics_path(model_name)
     rec_path = get_reconstruction_path(model_name)
 
-    s1, s2 = styles_names(model_name)[0]
+    s1, s2 = transference_names(model_name)[0]
     transferred_path = get_transferred_path(s1, s2, model_name)
     do_transfer(rec_path, vae_dir, characteristics_path, transferred_path, s1, s2, b, z)

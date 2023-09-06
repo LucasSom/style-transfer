@@ -1,6 +1,7 @@
 import os.path
 from copy import copy
 
+import pandas as pd
 from doit.api import run
 from keras.models import load_model
 
@@ -23,11 +24,11 @@ from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing.preprocessing import preprocess_data, oversample
-from utils.audio_management import generate_audios
+from utils.audio_management import generate_audios, save_audio
 from utils.files_utils import *
 from utils.files_utils import preprocessed_data_path
 from utils.plots_utils import plot_embeddings
-from utils.sampling_utils import sample_uniformly, balanced_sampling
+from utils.sampling_utils import sample_uniformly, balanced_sampling, sample_examples
 from utils.utils import generate_sheets
 
 DOIT_CONFIG = {'verbosity': 2}
@@ -59,7 +60,7 @@ checkpoints = [50, 100]
 cross_val = 5
 
 
-def styles_names(model_name):
+def transference_names(model_name):
     if model_name in ensamble_models:
         m1 = styles_dict[model_name.split('-')[1][0]]
         m2 = styles_dict[model_name.split('-')[1][1]]
@@ -72,6 +73,20 @@ def styles_names(model_name):
         styles = [(b, f), (b, m), (b, r), (f, m), (f, r), (m, r)]
         for s1, s2 in copy(styles):
             styles.append((s2, s1))
+    return styles
+
+
+def style_names(model_name):
+    if model_name in ensamble_models:
+        m1 = styles_dict[model_name.split('-')[1][0]]
+        m2 = styles_dict[model_name.split('-')[1][1]]
+        styles = [m1, m2]
+    elif "small" in model_name:
+        b, r = small_subdatasets
+        styles = [b, r]
+    else:
+        b, f, m, r = subdatasets
+        styles = [b, f, m, r]
     return styles
 
 
@@ -572,7 +587,7 @@ def task_transfer_style():
         characteristics_path = get_characteristics_path(model_name)
         rec_path = get_reconstruction_path(model_name)
 
-        for s1, s2 in styles_names(model_name):
+        for s1, s2 in transference_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             yield {
                 'name': f"{model_name}_{s1}_to_{s2}",
@@ -600,7 +615,7 @@ def task_metrics():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        for s1, s2 in styles_names(model_name):
+        for s1, s2 in transference_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             metrics_path = get_metrics_dir(model_name)
             for mutation in mutations:
@@ -639,7 +654,7 @@ def task_evaluation():
     for model_name in models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
-        for s1, s2 in styles_names(model_name):
+        for s1, s2 in transference_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             styles_path = get_characteristics_path(model_name)
             metrics_dir = get_metrics_dir(model_name)
@@ -681,7 +696,7 @@ def task_overall_evaluation():
                 yield {
                     'name': f"ensamble_{b}bars_{z}dim-{mutation}",
                     'file_dep': [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
-                                 for eval_dir in overall_metric_dirs for s1, s2 in styles_names("brmf_4b")
+                                 for eval_dir in overall_metric_dirs for s1, s2 in transference_names("brmf_4b")
                                  ],
                     'actions': [(do_overall_evaluation, [overall_metric_dirs, mutation, eval_path, b, z])],
                     'targets': [],
@@ -698,7 +713,7 @@ def task_overall_evaluation():
             yield {
                 'name': f"{model_name}-{mutation}",
                 'file_dep': [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
-                             for s1, s2 in styles_names(model_name)
+                             for s1, s2 in transference_names(model_name)
                              ],
                 'actions': [(do_overall_evaluation, [[eval_dir], mutation, eval_path, b, z])],
                 'targets': [],
@@ -748,7 +763,7 @@ def task_sample_audios():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        for s1, s2 in styles_names(model_name):
+        for s1, s2 in transference_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             eval_dir = get_eval_dir(model_name)
             transformation = f'{s1}_to_{s2}'
@@ -789,7 +804,7 @@ def task_sample_sheets():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        for s1, s2 in styles_names(model_name):
+        for s1, s2 in transference_names(model_name):
             transferred_path = get_transferred_path(s1, s2, model_name)
             sheets_path = get_sheets_path(model_name)
             eval_dir = get_eval_dir(model_name)
@@ -832,18 +847,54 @@ def task_html():
         dfs_sheets_paths = []
 
         for mutation in mutations:
-            for s1, s2 in styles_names(model_name):
+            for s1, s2 in transference_names(model_name):
                 transference = f'{s1}_to_{s2}'
                 df_sheets_path = f"{eval_dir}/df_sheets-{transference}-{mutation}.pkl"
                 dfs_sheets_paths.append(df_sheets_path)
             yield {
                 'name': f"{model_name}-{mutation}",
                 'file_dep': dfs_sheets_paths,
-                'actions': [(create_html,
-                             [mutation, app_dir, dfs_sheets_paths, b, z])],
+                'actions': [(create_html, [mutation, app_dir, dfs_sheets_paths, b, z])],
                 # 'targets': [app_dir],
                 # 'verbosity': 2,
                 # 'uptodate': [False]
+            }
+
+
+def create_examples(transferred_paths, output_path, b, z):
+    init(b, z)
+
+    df = pd.DataFrame()
+    for target, transferred_path in transferred_paths.items():
+        df_trans = load_pickle(transferred_path)
+        df_trans["target"] = df_trans.shape[0] * [target]
+        df = pd.concat([df, df_trans])
+
+    examples = sample_examples(df)
+
+    for s, rolls in examples.items():
+        for r in rolls:
+            audio_path = r.get_audio(f"{output_path}{s}/", fmt='.mp3')
+            print("Audio created:", audio_path)
+            os.remove(f'{root_file_name(audio_path)}.mid')
+
+
+def task_examples():
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name.split("-")[-1])
+
+        for orig in style_names(model_name):
+            transferred_paths = {dest: get_transferred_path(orig, dest, model_name)
+                                 for dest in style_names(model_name) if orig != dest}
+            output_path = get_examples_path(model_name) + f'{orig}/'
+
+            yield {
+                'name': f"{model_name}-{orig}",
+                'file_dep': list(transferred_paths.values()),
+                'actions': [(create_examples, [transferred_paths, output_path, b, z])],
+                # 'targets': [app_dir],
+                'uptodate': [False]
             }
 
 

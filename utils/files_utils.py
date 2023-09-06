@@ -153,6 +153,11 @@ def get_sheets_path(model_name: str):
     return path
 
 
+def get_examples_path(model_name: str):
+    """Returns the path of the form {data_path}models/{model_name}/examples/"""
+    return os.path.join(data_path, "models", model_name, "examples/")
+
+
 def get_packed_metrics(overall_metric_dirs: List[str], mutation):
     """
     :overall_metric_dirs: list of file names of pickles with the individual evaluations.
