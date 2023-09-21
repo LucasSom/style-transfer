@@ -875,6 +875,7 @@ def create_examples(transferred_paths, output_path, b, z):
     for s, rolls in examples.items():
         for r in rolls:
             audio_path = r.get_audio(f"{output_path}{s}/", fmt='.mp3')
+            r.generate_sheet(os.path.join(output_path, s, "sheets", r.name))
             print("Audio created:", audio_path)
             os.remove(f'{root_file_name(audio_path)}.mid')
 

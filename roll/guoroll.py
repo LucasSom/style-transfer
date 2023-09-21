@@ -12,7 +12,7 @@ from IPython.core.display import display, Image
 import model.colab_tension_vae.params as params
 from model.colab_tension_vae import util
 from utils.audio_management import save_audio, lily_conv
-from utils.files_utils import root_file_name, data_path
+from utils.files_utils import root_file_name, data_path, make_dirs_if_not_exists
 
 dur_to_value = 'rsqdc'
 
@@ -134,6 +134,7 @@ class GuoRoll:
 
     def generate_sheet(self, file_name, fmt='png', do_display=False, verbose=False):
         # file_name += f'.{fmt}'
+        make_dirs_if_not_exists(file_name)
         lily = lily_conv.write(self.get_score(verbose=verbose), fmt='lilypond', fp=file_name, subformats=[fmt])
 
         if do_display:

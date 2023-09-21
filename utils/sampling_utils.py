@@ -36,10 +36,13 @@ def balanced_sampling(df, n_samples=500):
     return df_sampled
 
 
-def sample_examples(df) -> Dict[str, List[GuoRoll]]:
+def sample_examples(df: pd.DataFrame) -> Dict[str, List[GuoRoll]]:
     # These two lines are because when we made the transformation, we sampled one roll per song
-    c = Counter(df["index"])
-    sub_df = df[df["index"] == max(c)].reset_index(drop=True)
+    df_sampled = df.sample(n=1,  random_state=42, ignore_index=True).iloc[0]
+    title = df_sampled["Title"]
+    roll_id = df_sampled["roll_id"]
+
+    sub_df = df[(df["Title"] == title) & (df["roll_id"] == roll_id)].reset_index(drop=True)
 
     styles = set(df["target"])
     d = {s: [] for s in styles}
