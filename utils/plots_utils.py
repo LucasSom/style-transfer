@@ -22,6 +22,7 @@ def save_plot(plot_dir, plot_name, title=None):
     """
     Save the plot in a subfolder 'plots' of plot_dir with name 'plot_name and title 'title'.
     """
+    title = ""
     plt.title(title) if not title is None else plt.title(plot_name)
     if not os.path.isdir(plot_dir + "/plots/"):
         os.makedirs(plot_dir + "/plots/")
@@ -59,7 +60,8 @@ def plot_accuracies(df, model, logs_path):
         decoded_matrices = decode_embeddings(encode(np.stack(original_matrices)).numpy(), model)
         reconstructed_matrices = matrix_sets_to_matrices(decoded_matrices)
         # save_pickle(original_matrices, data_path + "orig_matrices_ragtime")
-        mel_acc, mel_rhythm_acc, bass_acc, bass_rhythm_acc = get_accuracies(x=reconstructed_matrices, y=original_matrices)
+        mel_acc, mel_rhythm_acc, bass_acc, bass_rhythm_acc = get_accuracies(x=reconstructed_matrices,
+                                                                            y=original_matrices)
         # metrics = model.evaluate(x=reconstructed_matrices, y=original_matrices, workers=-1, use_multiprocessing=True)
         # model.metrics_names
         # accuracies[s] = metrics[1]
@@ -69,7 +71,7 @@ def plot_accuracies(df, model, logs_path):
     width = 0.2  # the width of the bars
     multiplier = 0
 
-    fig, ax = plt.subplots()#layout='constrained')
+    fig, ax = plt.subplots()  # layout='constrained')
 
     for attribute, measurement in accuracies.items():
         offset = width * multiplier
@@ -141,7 +143,9 @@ def plot_tsne(df, tsnes, plot_path, plot_name='tsne', style=None):
     save_plot(plot_path, plot_name)
     return grid
 
-def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_styles, plot_dir: str, plot_name="embeddings",
+
+def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_styles, plot_dir: str,
+                    plot_name="embeddings",
                     include_songs=True):
     # columns_to_plot = ["Style", emb_column] if type(emb_column) is str else ["Style"] + emb_column
     df_tsne = df[["Style", emb_column]]
@@ -162,18 +166,22 @@ def plot_embeddings(df: pd.DataFrame, emb_column: Union[str, List[str]], emb_sty
 
 
 def plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot=None):
-    intervals_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(np.array(tsne_df['intervals_distribution']))
-    rhythmic_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(np.array(tsne_df['rhythmic_bigrams_distribution']))
+    intervals_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(
+        np.array(tsne_df['intervals_distribution']))
+    rhythmic_tsne: np.ndarray = TSNE(n_components=2, perplexity=5).fit_transform(
+        np.array(tsne_df['rhythmic_bigrams_distribution']))
 
     tsne_df['intervals_dim_1'] = intervals_tsne[:, 0]
     tsne_df['intervals_dim_2'] = intervals_tsne[:, 1]
     tsne_df['rhythmic_dim_1'] = rhythmic_tsne[:, 0]
     tsne_df['rhythmic_dim_2'] = rhythmic_tsne[:, 1]
 
-    sns.relplot(x='intervals_dim_1', y='intervals_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6, style=style_plot)
+    sns.relplot(x='intervals_dim_1', y='intervals_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6,
+                style=style_plot)
     save_plot(plot_dir, plot_name + "-intervals", "Intervals distribution")
 
-    sns.relplot(x='rhythmic_dim_1', y='rhythmic_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6, style=style_plot)
+    sns.relplot(x='rhythmic_dim_1', y='rhythmic_dim_2', hue='Name', data=tsne_df, kind='scatter', height=6,
+                style=style_plot)
     save_plot(plot_dir, plot_name + "-rhythmic_bigrams", "Rhythmic bigrams distribution")
 
 
@@ -197,8 +205,10 @@ def plot_characteristics_distributions(styles: Dict[str, Style], plot_dir: str, 
         tsne_df["Style"].append(s)
     tsne_df = pd.DataFrame(tsne_df)
 
-    tsne_df['intervals_distribution'] = tsne_df.apply(lambda row: np.hstack(row["Style"].intervals_distribution), axis=1)
-    tsne_df['rhythmic_bigrams_distribution'] = tsne_df.apply(lambda row: np.hstack(row["Style"].rhythmic_bigrams_distribution), axis=1)
+    tsne_df['intervals_distribution'] = tsne_df.apply(lambda row: np.hstack(row["Style"].intervals_distribution),
+                                                      axis=1)
+    tsne_df['rhythmic_bigrams_distribution'] = tsne_df.apply(
+        lambda row: np.hstack(row["Style"].rhythmic_bigrams_distribution), axis=1)
 
     plot_tsne_distributions(tsne_df, plot_dir, plot_name)
 
@@ -242,7 +252,6 @@ def plot_fragments_distributions(df: pd.DataFrame, styles: Dict[str, Style], plo
     tsne_df = pd.DataFrame(tsne_df)
 
     plot_tsne_distributions(tsne_df, plot_dir, plot_name, style_plot="Type")
-
 
 
 def bigrams_plot(df, order: List, eval_dir, plot_name, context='talk'):
@@ -296,13 +305,13 @@ def plot_IR_distributions(df: pd.DataFrame, orig, dest, plot_dir):
 
         df_style = (df_style
                     >> dfply.gather("type", "IR", ["IR orig", "IR trans"])
-                   )
+                    )
         df_to_plot = pd.concat([df_style[["Style", "type", "IR"]], df_permutations])
 
         sns.displot(df_to_plot[["type", "IR"]].reset_index(), x="IR", kind='kde', hue='type', rug=True)
-        sns.displot(df_to_plot[["type", "IR"]].reset_index(), x="IR", kind='hist', hue='type', rug=False, stat="probability")
+        sns.displot(df_to_plot[["type", "IR"]].reset_index(), x="IR", kind='hist', hue='type', rug=False,
+                    stat="probability")
         # sns.displot(df_to_plot[["type", "IR"]], kind="kde", hue='type', rug=True)
-
 
         save_plot(plot_dir, f"IR-{style}-{orig}_to_{dest}", f"IR distribution of {style} ({orig} to {dest}) style")
 

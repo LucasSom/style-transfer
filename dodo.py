@@ -277,7 +277,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
                                only_joined_ot=True)
             plot_accuracy(df, eval_dir)
 
-        elif analysis in ['distances_distribution', 'style_differences', 'style_histograms', 'confusion_matrix']:
+        elif analysis in ['style_histograms', 'style_differences', 'distances_distribution', 'confusion_matrix']:
             histograms = plot_styles_heatmaps_and_get_histograms(df, eval_dir)
             save_pickle(histograms, eval_dir + '/style_histograms', verbose=True)
 
@@ -320,8 +320,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality',
-    'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
     for b in bars:
         for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality',
                          'style_histograms', 'confusion_matrix', 'style_confusion_matrix']:

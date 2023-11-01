@@ -6,7 +6,7 @@ from utils.files_utils import data_path, preprocessed_data_path
 
 def test_prepare_data():
     b = 4
-    eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+    eval_dir = f"{data_path}data_analysis"
     df_path = preprocessed_data_path(b, False)
 
     prepare_data(df_path, eval_dir, b, cv=False)
@@ -23,7 +23,7 @@ def test_closeness():
 
 def test_musicality():
     b = 4
-    eval_dir = f"{data_path}/brmf_{b}b/Evaluation/cross_val"
+    eval_dir = f"{data_path}data_analysis/cross_val"
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
@@ -32,7 +32,7 @@ def test_musicality():
 
 def test_style_histograms():
     b = 4
-    eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+    eval_dir = f"{data_path}data_analysis"
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
@@ -41,7 +41,7 @@ def test_style_histograms():
 
 def test_confusion_matrix():
     b = 4
-    eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+    eval_dir = f"{data_path}data_analysis"
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
@@ -50,7 +50,7 @@ def test_confusion_matrix():
 
 def test_distances_distribution():
     b = 4
-    eval_dir = f"{data_path}/brmf_{b}b/Evaluation"
+    eval_dir = f"{data_path}data_analysis"
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 

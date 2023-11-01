@@ -123,9 +123,9 @@ class GuoRoll:
 
     def get_adjacent_rhythmic_patterns(self, voice='melody') -> List[str]:
         if voice == 'melody':
-            return get_rp(self.get_melody_changes())
+            return get_rhythmic_patterns(self.get_melody_changes())
         if voice == 'bass':
-            return get_rp(self.get_bass_changes())
+            return get_rhythmic_patterns(self.get_bass_changes())
 
     def get_score(self, verbose=False):
         if self.score is None:
@@ -194,7 +194,7 @@ class GuoRoll:
         return self.midi
 
 
-def get_rp(changes) -> List[str]:
+def get_rhythmic_patterns(changes) -> List[str]:
     return [pattern_to_str(changes[i: i + 4]) for i in range(0, changes.size, 4)]
 
 

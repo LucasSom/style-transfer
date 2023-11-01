@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from typing import Union
 
 from model.colab_tension_vae import params
-from roll.guoroll import GuoRoll, get_rp
+from roll.guoroll import GuoRoll, get_rhythmic_patterns
 from roll.song import Song
 from utils.utils import normalize
 
@@ -18,7 +18,7 @@ def pattern_to_int(pattern):
 
 def matrix_of_adjacent_rhythmic_bigrams(roll_or_matrix: Union[GuoRoll, np.ndarray, Song], voice='melody'):
     if type(roll_or_matrix) is np.ndarray:
-        rps = list(map(pattern_to_int, get_rp(roll_or_matrix[:, params.config.melody_dim])))
+        rps = list(map(pattern_to_int, get_rhythmic_patterns(roll_or_matrix[:, params.config.melody_dim])))
     else:
         rps = list(map(pattern_to_int, roll_or_matrix.get_adjacent_rhythmic_patterns(voice)))
 
