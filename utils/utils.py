@@ -23,7 +23,7 @@ def exp_disponibles(df):
 
 def normalize(m, eps=0.00001):
     m_sum = np.sum(m + eps)
-    return m + eps / m_sum
+    return (m + eps) / m_sum
 
 
 def generate_sheets(df, column, sheets_path, suffix) -> List[str]:
