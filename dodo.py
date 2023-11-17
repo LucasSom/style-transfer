@@ -1,7 +1,7 @@
 import os.path
+import random
 from copy import copy
 
-import pandas as pd
 from doit.api import run
 from keras.models import load_model
 
@@ -11,8 +11,8 @@ from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms,
     plot_closest_ot_style, plot_styles_bigrams_entropy, heatmap_style_differences, plot_heatmap_differences, \
     plot_accuracy, plot_accuracy_distribution, plot_styles_confusion_matrix
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
-from evaluation.html_maker import make_html, make_index
 from evaluation.evaluation import evaluate_model, evaluate_musicality
+from evaluation.html_maker import make_html, make_index
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
@@ -24,7 +24,7 @@ from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing.preprocessing import preprocess_data, oversample
-from utils.audio_management import generate_audios, save_audio
+from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.files_utils import preprocessed_data_path
 from utils.plots_utils import plot_embeddings
@@ -50,14 +50,17 @@ mixture_models = [f"4-Lakh_Kern-{z}" for z in z_dims]
 ensamble_models = [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y]
 models = old_models + ensamble_models + ["4-small_br-96"] + pre_models + mixture_models
 
-alphas = [0.1, 0.25, 0.5, 0.75, 1]
+# alphas = [0.1, 0.25, 0.5, 0.75, 1]
+alphas = [0.1, 0.5, 1]
 mutations_add = [f'Mutation_add_{a}' for a in alphas]
 mutations_add_sub = [f'Mutation_add_sub_{a}' for a in alphas]
 mutations = mutations_add + mutations_add_sub
 
 epochs = [200, 500, 1000]
 checkpoints = [50, 100]
-cross_val = 5
+cross_val = 1
+
+random.seed(42)
 
 
 def transference_names(model_name):
@@ -320,7 +323,7 @@ def data_analysis(df_path, df_80_indexes_path, dfs_test_path, eval_dir, b, analy
 
 
 def task_analyze_data():
-    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
+    """Get different kind of analysis of the dataset ('style_closeness', 'distances_distribution', 'musicality', 'musicality_test', 'entropies', 'style_histograms', 'confusion_matrix', 'style_differences' and 'style_confusion_matrix')"""
     for b in bars:
         for analysis in ['style_closeness', 'distances_distribution', 'entropies', 'style_differences', 'musicality',
                          'style_histograms', 'confusion_matrix', 'style_confusion_matrix']:
@@ -346,7 +349,7 @@ def task_analyze_data():
                     'targets': [eval_dir + '/style_histograms.pkl'
                                 if analysis == 'style_differences' and not cv
                                 else f'{eval_dir}/{analysis}{cv}'],
-                    # 'uptodate': [False]
+                    'uptodate': [False]
                 }
 
 
@@ -383,8 +386,8 @@ def train(train_path, test_path, model_name, b, z, debug=False):
         elif model_name in pre_models:
             styles = [styles_dict[a] for a in model_name[2:8]]
         elif model_name in mixture_models:
-            model_name_aux = pre_models[0]
-            styles = [styles_dict[a] for a in model_name_aux[2:8]]
+            model_name_aux = f"brmf_{b}b-{z}"
+            styles = [styles_dict[a] for a in model_name_aux[:4]]
         else:
             styles = [styles_dict[a] for a in model_name[2:4]]
 
@@ -407,18 +410,18 @@ def task_train():
         z = int(model_name.split("-")[-1])
 
         oversample_data_path = oversample_path(model_name)
-        test_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+        test_path = f"{preprocessed_data_dir}{model_name}test.pkl"
 
         vae_path = get_model_paths(model_name)[2]
         if "small" in model_name:
             oversample_data_path = f"{preprocessed_data_dir}4-small_br.pkl"
             test_path = oversample_data_path
-        if model_name in pre_models:
+        elif model_name in pre_models:
             oversample_data_path = f"{preprocessed_data_dir}{model_name}train.pkl"
-        if model_name in mixture_models:
-            model_name_aux = f"{b}-CPFRAa-{z}"
-            oversample_data_path = f"{preprocessed_data_dir}{model_name_aux}train"
-            test_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
+        elif model_name in mixture_models:
+            model_name_aux = f"brmf_{b}b-{z}"
+            oversample_data_path = oversample_path(model_name_aux)
+            test_path = f"{preprocessed_data_dir}{model_name_aux}test.pkl"
         yield {
             'name': f"{model_name}",
             'file_dep': [oversample_data_path, test_path],
@@ -497,7 +500,7 @@ def task_embeddings():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        if model_name in mixture_models:
+        if model_name in pre_models:
             model_name_model = f"{b}-CPFRAa-{z}"
             model_name_data = f"brmf_{b}b_beta-{z}"
             model_path, vae_dir, vae_path = get_model_paths(model_name_model)
@@ -541,11 +544,7 @@ def task_reconstruct():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        if model_name in mixture_models:
-            model_name_aux = f"{b}-CPFRAa-{z}"
-            _, vae_dir, vae_path = get_model_paths(model_name_aux)
-        else:
-            _, vae_dir, vae_path = get_model_paths(model_name)
+        _, vae_dir, vae_path = get_model_paths(model_name)
 
         emb_path = get_emb_path(model_name)
 
@@ -577,11 +576,7 @@ def task_transfer_style():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        if model_name in mixture_models:
-            model_name_model = f"{b}-CPFRAa-{z}"
-            _, vae_dir, vae_path = get_model_paths(model_name_model)
-        else:
-            _, vae_dir, vae_path = get_model_paths(model_name)
+        _, vae_dir, vae_path = get_model_paths(model_name)
 
         characteristics_path = get_characteristics_path(model_name)
         rec_path = get_reconstruction_path(model_name)
@@ -680,6 +675,7 @@ def task_evaluation():
 
 def do_overall_evaluation(overall_metric_dirs, mutation, eval_dir, b=4, z=96):
     init(b, z)
+    make_dirs_if_not_exists(eval_dir)
     m = get_packed_metrics(overall_metric_dirs, mutation)
     overall_evaluation(m, eval_dir)
 
@@ -703,7 +699,7 @@ def task_overall_evaluation():
                     'uptodate': [False]
                 }
 
-    for model_name in old_models + mixture_models:
+    for model_name in old_models + mixture_models + pre_models:
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
         eval_dir = get_eval_dir(model_name)

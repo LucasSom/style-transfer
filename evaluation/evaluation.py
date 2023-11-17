@@ -7,6 +7,7 @@ import pandas as pd
 
 from data_analysis.assemble_data import optimal_transport, \
     linear_distance, kl, belonging_probability, joined_closest_style
+from data_analysis.statistics import test_musicality
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
 from evaluation.metrics.musicality import information_rate
 from evaluation.metrics.plagiarism import get_most_similar_roll
@@ -227,6 +228,7 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
     if plot:
         plot_musicality_distribution({'train': df_train, 'test': df_test, 'permutations': df_permutations},
                                      eval_dir, plot_suffix, only_probability=only_probability, only_joined=only_joined)
+        test_musicality(df_train, df_test, df_permutations, melodic_distribution, rhythmic_distribution)
 
     df_test = count_musicality(df_test, df_permutations)
     avg_musicality_rank = df_test.loc[:, "% permutations that are less musical"].mean()

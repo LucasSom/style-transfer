@@ -23,11 +23,10 @@ def file_extension(p):
     return os.path.splitext(p)[1]
 
 
-def make_dirs_if_not_exists(file_path):
-    base_dir = os.path.dirname(file_path)
-    if not os.path.isdir(base_dir):
-        os.makedirs(base_dir)
-        print("Creating directories:", base_dir)
+def make_dirs_if_not_exists(path):
+    if not os.path.isdir(path):
+        os.makedirs(path)
+        print("Creating directories:", path)
 
 
 def save_pickle(obj: Union[pd.DataFrame, dict], file_name: str, verbose=False):
@@ -109,14 +108,14 @@ def get_metrics_dir(model_name: str):
 def get_transferred_path(s1: str, s2: str, model_name: str):
     """Returns the path of the form {data_path}models/{model_name}/embeddings/df_transferred_{s1}_{s2}.pkl"""
     transferred_path = f"{data_path}models/{model_name}/embeddings/df_transferred_{s1}_{s2}.pkl"
-    make_dirs_if_not_exists(transferred_path)
+    make_dirs_if_not_exists(os.path.dirname(transferred_path))
     return transferred_path
 
 
 def get_emb_path(model_name: str):
     """Returns the path of the form {data_path}models/{model_name}/embeddings/df_emb.pkl"""
     emb_path = f"{data_path}models/{model_name}/embeddings/df_emb.pkl"
-    make_dirs_if_not_exists(emb_path)
+    make_dirs_if_not_exists(os.path.dirname(emb_path))
     return emb_path
 
 

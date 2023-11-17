@@ -23,11 +23,11 @@ def test_closeness():
 
 def test_musicality():
     b = 4
-    eval_dir = f"{data_path}data_analysis/cross_val"
+    eval_dir = f"{data_path}data_analysis"
     df_80_indexes_path = eval_dir + '/df_80_indexes_'
     df_test_path = eval_dir + '/rolls_long_df_test_'
 
-    data_analysis(f'{eval_dir}/df_to_analyze', df_80_indexes_path, df_test_path, eval_dir, b, 'musicality', cv=True)
+    data_analysis(f'{eval_dir}/df_to_analyze', df_80_indexes_path, df_test_path, eval_dir, b, 'musicality', cv=False)
 
 
 def test_style_histograms():

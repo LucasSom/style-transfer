@@ -84,9 +84,7 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, batch_size
     log_dir = f"{get_logs_path(model_name)}/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     path_to_save = f"{vae_dir}/"
-    if os.path.isdir(path_to_save):
-        shutil.rmtree(path_to_save)
-    else:
+    if not os.path.isdir(path_to_save):
         os.makedirs(path_to_save)
 
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
@@ -135,7 +133,7 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, batch_size
             verbose=verbose,
             workers=8,
             initial_epoch=initial_epoch,
-            epochs=initial_epoch + final_epoch,
+            epochs=final_epoch,
             callbacks=[tensorboard_callback,
                        checkpoint,
                        PrintLearningRate(),
@@ -153,7 +151,7 @@ def train(vae, df, test_data, model_name, initial_epoch, final_epoch, batch_size
             verbose=verbose,
             workers=8,
             initial_epoch=initial_epoch,
-            epochs=initial_epoch + final_epoch,
+            epochs=final_epoch,
             callbacks=[tensorboard_callback,
                        checkpoint,
                        PrintLearningRate(),

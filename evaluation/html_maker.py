@@ -108,7 +108,7 @@ def make_html(df, orig, target, app_dir, mutation):
     file += f"""\n<a href="./index-{mutation}.html" class="button">Volver al menú</a>"""
 
     file_name = f"{app_dir}{orig}_to_{target}-{mutation}.html"
-    make_dirs_if_not_exists(file_name)
+    make_dirs_if_not_exists(os.path.dirname(file_name))
 
     with open(file_name, 'w') as f:
         f.write(file)
@@ -133,7 +133,7 @@ def make_index(mutation, app_path, files):
     file += "</body>"
 
     file_name = f"{app_path}index-{mutation}.html"
-    make_dirs_if_not_exists(file_name)
+    make_dirs_if_not_exists(os.path.dirname(file_name))
 
     with open(file_name, 'w') as f:
         f.write(file)

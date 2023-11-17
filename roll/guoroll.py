@@ -134,7 +134,7 @@ class GuoRoll:
 
     def generate_sheet(self, file_name, fmt='png', do_display=False, verbose=False):
         # file_name += f'.{fmt}'
-        make_dirs_if_not_exists(file_name)
+        make_dirs_if_not_exists(os.path.dirname(file_name))
         lily = lily_conv.write(self.get_score(verbose=verbose), fmt='lilypond', fp=file_name, subformats=[fmt])
 
         if do_display:

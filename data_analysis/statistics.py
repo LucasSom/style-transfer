@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-from scipy.stats import entropy
+from scipy.stats import entropy, kstest
 from sklearn.model_selection import StratifiedShuffleSplit
 
 from data_analysis.assemble_data import optimal_transport
@@ -95,3 +95,50 @@ def closest_ot_style(df, histograms):
         df[f"{kind} closest style (ot)"] = df.apply(lambda row: d[row[f"{kind} closest style (ot)"]], axis=1)
 
     return df
+
+
+def test_musicality(df_train, df_test, df_permutations, melodic_distribution, rhythmic_distribution):
+    df_test.name = "test"
+    df_permutations.name = "permutations"
+    for df in df_test, df_permutations:
+        print(f"Size of dataframe {df.name}:", df.shape[0])
+        melodic_test = kstest(df[f'Melodic musicality difference (probability)'],
+                              df_train[f'Melodic musicality difference (probability)'])
+        rhythmic_test = kstest(df[f'Rhythmic musicality difference (probability)'],
+                               df_train[f'Rhythmic musicality difference (probability)'])
+
+        melodic_test_less = kstest(df[f'Melodic musicality difference (probability)'],
+                                   df_train[f'Melodic musicality difference (probability)'],
+                                   alternative='less')
+        rhythmic_test_less = kstest(df[f'Rhythmic musicality difference (probability)'],
+                                    df_train[f'Rhythmic musicality difference (probability)'],
+                                    alternative='less')
+
+        melodic_test_greater = kstest(df[f'Melodic musicality difference (probability)'],
+                                      df_train[f'Melodic musicality difference (probability)'],
+                                      alternative='greater')
+        rhythmic_test_greater = kstest(df[f'Rhythmic musicality difference (probability)'],
+                                       df_train[f'Rhythmic musicality difference (probability)'],
+                                       alternative='greater')
+
+        print("Results of melodic kstest (equal):", melodic_test)
+        print("Results of rhythmic kstest (equal):", rhythmic_test)
+        print("Results of melodic kstest (less):", melodic_test_less)
+        print("Results of rhythmic kstest (less):", rhythmic_test_less)
+        print("Results of melodic kstest (greater):", melodic_test_greater)
+        print("Results of rhythmic kstest (greater):", rhythmic_test_greater)
+
+        test_equal = kstest(df[f'Joined musicality difference (probability)'],
+                            df_train[f'Joined musicality difference (probability)'])
+
+        test_less = kstest(df[f'Joined musicality difference (probability)'],
+                           df_train[f'Joined musicality difference (probability)'],
+                           alternative='less')
+
+        test_greater = kstest(df[f'Joined musicality difference (probability)'],
+                              df_train[f'Joined musicality difference (probability)'],
+                              alternative='greater')
+
+        print("Results of kstest (equal):", test_equal)
+        print("Results of kstest (less):", test_less)
+        print("Results of kstest (greater):", test_greater)

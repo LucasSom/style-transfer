@@ -8,6 +8,7 @@ import ot
 import ot.plot
 import seaborn as sns
 from matplotlib import pyplot as plt
+from scipy.stats import kstest
 
 from data_analysis.assemble_data import histograms_and_distance
 from evaluation.metrics.intervals import get_style_intervals_bigrams_sum
@@ -82,7 +83,7 @@ def heatmap_style_differences(diff_table, plot_dir):
 
 
 def plot_closeness(df, orig, dest, mutation, eval_path, context='talk', only_joined_ot=False, english=False):
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(5, 5))
     sns.set_theme(context)
     if english:
         title = f"Closest styles of {orig} rolls" if dest == 'nothing' else f"Closest styles of {orig} rolls to {dest}"
@@ -239,21 +240,33 @@ def plot_accuracy(df, eval_path):
 
 
 def plot_musicality_distribution(dfs: dict, eval_path, plot_suffix='', context='talk', only_probability=False,
-                                 only_joined=True):
-    methods = ['probability'] if only_probability else ['linear', 'kl', 'ot', 'probability']
-    parts = ['Joined'] if only_joined else ["Melodic", "Rhythmic", "Joined"]
+                                 only_joined=True, english=False):
+    if english:
+        methods = ['probability'] if only_probability else ['linear', 'kl', 'ot', 'probability']
+        parts = ['Joined'] if only_joined else ["Melodic", "Rhythmic", "Joined"]
+    else:
+        methods = ['probabilidad'] if only_probability else ['lineal', 'kl', 'ot', 'probabilidad']
+        parts = ['conjunta'] if only_joined else ["melódica", "rítmica", "conjunta"]
 
     for method in methods:
         for i, part in enumerate(parts):
             sns.set_context(context)
             plt.figure(figsize=(10, 6))
-            title = f"{part} musicality ({method})"
+            title = f"{part} musicality ({method})" if english else f"Musicalidad {part} ({method})"
             sns.set_theme()
 
             for df in dfs.values():
-                sns.kdeplot(df[f'{part} musicality difference ({method})'])
+                part_name = part if english else 'Joined'
+                method_name = method if english else \
+                    ('probability' if method == 'probabilidad' else
+                     ('linear' if method == 'lineal' else method))
 
-            plt.legend(labels=dfs.keys())
+                sns.kdeplot(df[f'{part_name} musicality difference ({method_name})'])
+
+            plt.xlabel("Difference with musicality distribution"
+                       if english else "Diferencia con la distribución de musicalidad")
+            plt.ylabel("Density" if english else "Densidad")
+            plt.legend(labels=dfs.keys() if english else ['train', 'test', 'permutaciones'])
             save_plot(eval_path, f'{part}_musicality_{method}{plot_suffix}', title + plot_suffix)
 
 
