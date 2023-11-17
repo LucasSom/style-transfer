@@ -93,7 +93,7 @@ def test_plot_visualization(sonata15_mapleleaf_prep_8):
     final_epoch = 5
     model_name = "test_complete_training"
     callbacks = pd.read_csv(get_logs_path(model_name) + f"{model_name}_5.csv")
-    plot_train(callbacks, final_epoch)
+    plot_train(callbacks)
     assert True
 
 
@@ -174,5 +174,5 @@ def test_plot_visualization_4bars(sonata15_mapleleaf_prep_4):
     final_epoch = 5
     model_name = "test_complete_training"
     callbacks = pd.read_csv(get_logs_path(model_name) + f"{model_name}_5.csv")
-    plot_train(callbacks, final_epoch)
+    plot_train(callbacks)
     assert True

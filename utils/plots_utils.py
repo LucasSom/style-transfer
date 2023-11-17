@@ -36,18 +36,22 @@ def plot_area(area, color):
     plt.axvspan(xmin=area[0], xmax=area[1], facecolor=color, alpha=0.3)
 
 
-def plot_metric(callbacks, final_epoch, metric: str, figsize=(20, 10)):
-    plt.figure(figsize=figsize)
-    for k, v in callbacks.items():
-        if metric in k:
-            plt.plot(v, label=k)
+def plot_metric(callbacks, logs_dir, metric: str, only_general_loss: bool):
+    if only_general_loss:
+        for k, v in callbacks.items():
+            if k in ['loss', 'val_loss']:
+                plt.plot(v, label=k)
+    else:
+        for k, v in callbacks.items():
+            if metric in k:
+                plt.plot(v, label=k)
     plt.legend()
-    plt.savefig(data_path + f'logs/{params.config.time_step / 16}bars_{final_epoch}epochs_{metric}.png')
+    save_plot(logs_dir, metric)
 
 
-def plot_train(callbacks, epoca_final, figsize=(20, 10)):
-    plot_metric(callbacks, epoca_final, 'loss', figsize)
-    plot_metric(callbacks, epoca_final, 'accuracy', figsize)
+def plot_train(callbacks, logs_dir):
+    plot_metric(callbacks, logs_dir, 'loss', True)
+    plot_metric(callbacks, logs_dir, 'accuracy', False)
 
 
 def plot_accuracies(df, model, logs_path):

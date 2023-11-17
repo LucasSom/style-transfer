@@ -27,7 +27,7 @@ from preprocessing.preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios
 from utils.files_utils import *
 from utils.files_utils import preprocessed_data_path
-from utils.plots_utils import plot_embeddings
+from utils.plots_utils import plot_embeddings, plot_train
 from utils.sampling_utils import sample_uniformly, balanced_sampling, sample_examples
 from utils.utils import generate_sheets
 
@@ -462,19 +462,40 @@ def task_test():
         b = model_name[5] if model_name in old_models else model_name[0]
         z = int(model_name.split("-")[-1])
 
-        if model_name in mixture_models:
-            model_name_aux = f"{b}-CPFRAa-{z}"
-            _, vae_dir, vae_path = get_model_paths(model_name_aux)
-            train_path = f"{preprocessed_data_dir}{model_name_aux}train.pkl"
-        else:
-            _, vae_dir, vae_path = get_model_paths(model_name)
-            train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+        _, vae_dir, vae_path = get_model_paths(model_name)
+        train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
 
         yield {
             'name': model_name,
             'file_dep': [train_path, vae_path],
             'actions': [(analyze_training, [train_path, model_name, vae_dir, b, z])],
             # 'uptodate': [False]
+        }
+
+
+def plot_training_metrics(logs_dir, logs_path, b, z):
+    init(b, z)
+    callbacks = pd.read_csv(logs_path)
+    plot_train(callbacks, logs_dir)
+
+
+def task_plot_training_metrics():
+    """Shows a t-SNE plot of the songs in the latent space."""
+    for model_name in models:
+        b = model_name[5] if model_name in old_models else model_name[0]
+        z = int(model_name.split("-")[-1])
+
+        logs_dir = get_logs_path(model_name)
+        if model_name in mixture_models:
+            logs_path = logs_dir + '_484.csv'
+        else:
+            logs_path = logs_dir + '_0.csv'
+
+        yield {
+            'name': model_name,
+            'file_dep': [logs_path],
+            'actions': [(plot_training_metrics, [logs_dir, logs_path, b, z])],
+            'uptodate': [False]
         }
 
 
