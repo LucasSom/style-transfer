@@ -44,7 +44,7 @@ styles_dict = {'b': "Bach", 'm': "Mozart", 'f': "Frescobaldi", 'r': "ragtime", "
 z_dims = [96]
 bars = [4]  # [4, 8]
 # old_models = ['brmf_4b', 'brmf_8b']
-old_models = [f"brmf_4b-{z}" for z in z_dims] + [f"brmf_4b_beta-{z}" for z in z_dims]
+old_models = [f"brmf_4b_beta-{z}" for z in z_dims]
 pre_models = [f"4-CPFRAa-{z}" for z in z_dims]
 mixture_models = [f"4-Lakh_Kern-{z}" for z in z_dims]
 ensamble_models = [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y]
@@ -486,10 +486,7 @@ def task_plot_training_metrics():
         z = int(model_name.split("-")[-1])
 
         logs_dir = get_logs_path(model_name)
-        if model_name in mixture_models:
-            logs_path = logs_dir + '_484.csv'
-        else:
-            logs_path = logs_dir + '_0.csv'
+        logs_path = logs_dir + '_0.csv'
 
         yield {
             'name': model_name,

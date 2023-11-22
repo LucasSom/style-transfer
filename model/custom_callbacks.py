@@ -67,8 +67,8 @@ class LossHistory(keras.callbacks.Callback):
             with open(self.log_path, 'w'):
                 pass
         d = {k: [v] for k, v in logs.items()}
-        d['epoch'] = 0
+        d['epoch'] = epoch
         new_callbacks = prev_callbacks.append(pd.DataFrame(d))
 
-        new_callbacks.to_csv(self.log_path)
+        new_callbacks.to_csv(self.log_path, index=False)
         print(f"Guardado el csv en {self.log_path}")

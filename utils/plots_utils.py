@@ -39,12 +39,20 @@ def plot_area(area, color):
 def plot_metric(callbacks, logs_dir, metric: str, only_general_loss: bool):
     if only_general_loss:
         for k, v in callbacks.items():
-            if k in ['loss', 'val_loss']:
+            if k in ['loss', 'test_loss']:
                 plt.plot(v, label=k)
     else:
+        colors_train = ['red', 'blue', 'green', 'orange']
+        colors_test = ['red', 'blue', 'green', 'orange']
+        i_train, i_test = 0, 0
         for k, v in callbacks.items():
             if metric in k:
-                plt.plot(v, label=k)
+                if 'test' in k:
+                    plt.plot(v, label=k, linestyle='--', color=colors_test[i_test])
+                    i_test += 1
+                else:
+                    plt.plot(v, label=k, linestyle=':', color=colors_train[i_train])
+                    i_train += 1
     plt.legend()
     save_plot(logs_dir, metric)
 
