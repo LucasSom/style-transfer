@@ -15,6 +15,7 @@ from evaluation.metrics.intervals import get_style_intervals_bigrams_sum
 from evaluation.metrics.rhythmic_bigrams import get_style_rhythmic_bigrams_sum
 
 from utils.plots_utils import save_plot
+from utils.utils import normalize
 
 
 def plot_styles_bigrams_entropy(entropies, plot_dir, plot_name="styles_complexity", english=True):
@@ -42,21 +43,20 @@ def plot_styles_heatmaps_and_get_histograms(df, plot_dir, english=False):
     histograms = {}
     for style in set(df["Style"]):
         melodic_hist, m_xedges, m_yedges = get_style_intervals_bigrams_sum(np.zeros((25, 25)), df[df['Style'] == style])
-        plt.imshow(melodic_hist, interpolation='nearest', origin='lower',
-                   extent=[m_xedges[0], m_xedges[-1], m_yedges[0], m_yedges[-1]])
+        sns.heatmap(normalize(melodic_hist), xticklabels=m_xedges, yticklabels=m_yedges, cmap="viridis")
         plt.xlabel('First interval' if english else 'Primer intervalo')
         plt.ylabel('Second interval' if english else 'Segundo intervalo')
         title = f"Melodic distribution of {style}" if english else f"Distribución melódica de {style}"
         save_plot(plot_dir + "/melodic", f"{style}-melodic", title)
 
         rhythmic_hist, rx, ry = get_style_rhythmic_bigrams_sum(np.zeros((16, 16)), df[df['Style'] == style])
-        plt.imshow(rhythmic_hist, interpolation='nearest', origin='lower', extent=[rx[0], rx[-1], ry[0], ry[-1]])
+        sns.heatmap(normalize(rhythmic_hist), xticklabels=rx, yticklabels=ry, cmap="viridis")
         plt.xlabel('First rhythmic pattern' if english else 'Primer patrón rítmico')
         plt.ylabel('Second rhythmic pattern' if english else 'Segundo patrón rítmico')
         title = f"Rhythmic distribution of {style}" if english else f"Distribución rítmica de {style}"
         save_plot(plot_dir + "/rhythmic", f"{style}-rhythmic", title)
 
-        histograms[style] = {"melodic_hist": melodic_hist, "rhythmic_hist": rhythmic_hist}
+        histograms[style] = {"melodic_hist": melodic_hist, "rhythmic_hist": rhythmic_hist} # TODO: TENGO QUE NORMALIZAR
     return histograms
 
 
@@ -119,7 +119,7 @@ def plot_closeness(df, orig, dest, mutation, eval_path, context='talk', only_joi
     plt.close()
 
 
-def plot_distances(distances, orig, dest, mutation, plot_path, context='talk'):
+def plot_distances(distances, orig, dest, kind, mutation, plot_path, context='talk'):
     sns.set_theme(context)
 
     d = {"style": [], "distance": []}
@@ -130,8 +130,8 @@ def plot_distances(distances, orig, dest, mutation, plot_path, context='talk'):
 
     sns.barplot(data=df, x="style", y="distance", errorbar="sd")
 
-    save_plot(plot_path, f"distances_{orig}_{dest}-{mutation}",
-              f"Distances to styles\nafter {orig} to {dest} transformation")
+    save_plot(plot_path, f"distances_{orig}_{dest}-{kind}-{mutation}",
+              f"Distances to styles\nafter {orig} to {dest} transformation ({kind})")
 
 
 def plot_closest_ot_style(df, plot_path, context='talk'):

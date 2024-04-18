@@ -2,14 +2,15 @@ import os.path
 
 import pytest
 
-from dodo import do_evaluation, transference_names, audio_generation, do_overall_evaluation, models, mixture_models, \
-    sheets_generation, create_html, create_examples, style_names
+from dodo import do_evaluation, transference_names, audio_generation, do_overall_single_evaluation, models, \
+    mixture_models, \
+    sheets_generation, create_html, create_examples, style_names, do_family_evaluation, model_families, mutations
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
 from utils.files_utils import data_tests_path, load_pickle, data_path, get_eval_dir, get_transferred_path, \
-    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_packed_metrics, \
-    get_sheets_path, get_examples_path
+    get_metrics_dir, get_characteristics_path, get_audios_path, save_pickle, get_sheets_path, get_examples_path
+from evaluation.overall_evaluation import get_packed_metrics
 from utils.plots_utils import plot_intervals_improvements
 
 
@@ -431,7 +432,7 @@ def test_overall_evaluation():
     overall_metric_dirs = [get_eval_dir(model_name)]
     eval_path = f"{data_path}/overall_evaluation/{model_name}-{mutation}"
 
-    do_overall_evaluation(overall_metric_dirs, mutation, eval_path, b)
+    do_overall_single_evaluation(overall_metric_dirs, mutation, eval_path, b)
 
 
 def test_overall_evaluation_mixture_model():
@@ -442,7 +443,7 @@ def test_overall_evaluation_mixture_model():
     overall_metric_dirs = [get_eval_dir(model_name)]
     eval_path = f"{data_path}/overall_evaluation/{model_name}-{mutation}"
 
-    do_overall_evaluation(overall_metric_dirs, mutation, eval_path, b, z)
+    do_overall_single_evaluation(overall_metric_dirs, mutation, eval_path, b, z)
 
 
 def test_ensamble_overall_evaluation():
@@ -451,7 +452,26 @@ def test_ensamble_overall_evaluation():
     ensamble = [m for m in models if m in mixture_models and m[0] == str(b)]
     overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
     eval_path = f"{data_path}overall_evaluation/ensamble_{b}bars-{mutation}"
-    do_overall_evaluation(overall_metric_dirs, mutation, eval_path, b)
+    do_overall_single_evaluation(overall_metric_dirs, mutation, eval_path, b)
+
+
+def test_family_evaluation():
+    for family_name, family in model_families.items():
+        b = 4
+        z = 96
+        eval_paths_by_mutation = {}
+        for kind in 'joined', 'melodic', 'rhythmic':
+            for mutation in mutations:
+                eval_paths = []
+                for model_name in family:
+                    eval_dir = get_eval_dir(model_name)
+                    eval_paths += [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+                                   for s1, s2 in transference_names(model_name)
+                                   ]
+                eval_paths_by_mutation[mutation] = eval_paths
+            family_eval_dir = f"{data_path}/family_evaluation/{family_name}/{kind}"
+
+            do_family_evaluation(eval_paths_by_mutation, kind, family_eval_dir, b, z)
 
 
 def test_audio_generation():

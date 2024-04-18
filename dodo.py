@@ -12,11 +12,12 @@ from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms,
     plot_accuracy, plot_accuracy_distribution, plot_styles_confusion_matrix
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
 from evaluation.evaluation import evaluate_model, evaluate_musicality
+from evaluation.family_evaluation import get_family_metrics, evaluate_family_metrics
 from evaluation.html_maker import make_html, make_index
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
-from evaluation.overall_evaluation import overall_evaluation
+from evaluation.overall_evaluation import overall_single_evaluation, get_packed_metrics
 from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids
 from model.embeddings.embeddings import get_reconstruction
@@ -49,6 +50,13 @@ pre_models = [f"4-CPFRAa-{z}" for z in z_dims]
 mixture_models = [f"4-Lakh_Kern-{z}" for z in z_dims]
 ensamble_models = [f"{b}-{x}{y}-{z}" for z in z_dims for b in bars for x in 'brmf' for y in 'brmf' if x < y]
 models = old_models + ensamble_models + ["4-small_br-96"] + pre_models + mixture_models
+model_families = {
+    # "brmf": old_models,
+    "Lakh_Kern": mixture_models,
+    "CPFRAa": pre_models,
+    # "ensamble": ensamble_models,
+    # "small": ["4-small_br-96"]
+}
 
 # alphas = [0.1, 0.25, 0.5, 0.75, 1]
 alphas = [0.1, 0.5, 1]
@@ -133,7 +141,7 @@ def task_preprocess():
         'actions': [(preprocess, [4], {'folders': small_subdatasets, 'save_midis': False, 'sparse': True})],
         'targets': [preprocessed_data_path(4, False, True)],
         # 'uptodate': [os.path.isfile(preprocessed_data_path(4, False, True))]
-        'uptodate': [False]
+        # 'uptodate': [False]
     }
 
 
@@ -349,7 +357,7 @@ def task_analyze_data():
                     'targets': [eval_dir + '/style_histograms.pkl'
                                 if analysis == 'style_differences' and not cv
                                 else f'{eval_dir}/{analysis}{cv}'],
-                    'uptodate': [False]
+                    # 'uptodate': [False]
                 }
 
 
@@ -691,14 +699,14 @@ def task_evaluation():
                 }
 
 
-def do_overall_evaluation(overall_metric_dirs, mutation, eval_dir, b=4, z=96):
+def do_overall_single_evaluation(overall_metric_dirs, mutation, eval_dir, b=4, z=96):
     init(b, z)
     make_dirs_if_not_exists(eval_dir)
     m = get_packed_metrics(overall_metric_dirs, mutation)
-    overall_evaluation(m, eval_dir)
+    overall_single_evaluation(m, eval_dir)
 
 
-def task_overall_evaluation():
+def task_overall_single_evaluation():
     """Calculate the final metrics after evaluate the model"""
     for z in z_dims:
         for b in bars:
@@ -711,10 +719,10 @@ def task_overall_evaluation():
                     'file_dep': [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
                                  for eval_dir in overall_metric_dirs for s1, s2 in transference_names("brmf_4b")
                                  ],
-                    'actions': [(do_overall_evaluation, [overall_metric_dirs, mutation, eval_path, b, z])],
+                    'actions': [(do_overall_single_evaluation, [overall_metric_dirs, mutation, eval_path, b, z])],
                     'targets': [],
                     'verbosity': 2,
-                    'uptodate': [False]
+                    # 'uptodate': [False]
                 }
 
     for model_name in old_models + mixture_models + pre_models:
@@ -728,7 +736,57 @@ def task_overall_evaluation():
                 'file_dep': [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
                              for s1, s2 in transference_names(model_name)
                              ],
-                'actions': [(do_overall_evaluation, [[eval_dir], mutation, eval_path, b, z])],
+                'actions': [(do_overall_single_evaluation, [[eval_dir], mutation, eval_path, b, z])],
+                'targets': [],
+                'verbosity': 2,
+                # 'uptodate': [False]
+            }
+
+
+def do_family_evaluation(eval_paths, kind, output_dir, b=4, z=96):
+    init(b, z)
+    make_dirs_if_not_exists(output_dir)
+    m = get_family_metrics(eval_paths, kind=kind)
+    evaluate_family_metrics(m, output_dir, mutations_add, mutations_add_sub)
+
+
+def task_family_evaluation():
+    """Generates a boxplot with the metrics of a family of models"""
+    # for z in z_dims:
+    #     for b in bars:
+    #         ensamble = [m for m in models if len(m) == 7 and m[0] == str(b) and m.split("-")[-1] == str(z)]
+    #         overall_metric_dirs = [get_eval_dir(model_name) for model_name in ensamble]
+    #         for mutation in mutations:
+    #             eval_path = f"{data_path}/overall_evaluation/ensamble_{b}bars_{z}dim-{mutation}"
+    #             yield {
+    #                 'name': f"ensamble_{b}bars_{z}dim-{mutation}",
+    #                 'file_dep': [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+    #                              for eval_dir in overall_metric_dirs for s1, s2 in transference_names("brmf_4b")
+    #                              ],
+    #                 'actions': [(do_overall_single_evaluation, [overall_metric_dirs, mutation, eval_path, b, z])],
+    #                 'targets': [],
+    #                 'verbosity': 2,
+    #                 'uptodate': [False]
+    #             }
+
+    for family_name, family in model_families.items():
+        b = 4
+        z = 96
+        eval_paths_by_mutation = {}
+        for kind in 'joined', 'melodic', 'rhythmic':
+            for mutation in mutations:
+                eval_paths = []
+                for model_name in family:
+                    eval_dir = get_eval_dir(model_name)
+                    eval_paths += [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+                                   for s1, s2 in transference_names(model_name)
+                                   ]
+                eval_paths_by_mutation[mutation] = eval_paths
+            family_eval_dir = f"{data_path}/family_evaluation/{family_name}/{kind}"
+            yield {
+                'name': f"{family_name}-{b}b-{z}dims-{kind}",
+                'file_dep': [p for eval_paths in eval_paths_by_mutation.values() for p in eval_paths],
+                'actions': [(do_family_evaluation, [eval_paths_by_mutation, kind, family_eval_dir, b, z])],
                 'targets': [],
                 'verbosity': 2,
                 'uptodate': [False]

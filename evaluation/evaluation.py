@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from data_analysis.assemble_data import optimal_transport, \
-    linear_distance, kl, belonging_probability, joined_closest_style
+    linear_distance, kl, belonging_probability, joined_closest_style, rhythmic_closest_style, melodic_closest_style
 from data_analysis.statistics import test_musicality
 from evaluation.metrics.intervals import matrix_of_adjacent_intervals
 from evaluation.metrics.musicality import information_rate
@@ -175,6 +175,7 @@ def count_musicality(df_test, df_permutations):
     """
     It calculates the proportion of generated rolls that are more musicals than i permutations of the original roll
     """
+
     def perm_less_musical(row):
         t, roll_id = row['Title'], row['roll_id']
         ps = df_permutations[(df_permutations['Title'] == t) & (df_permutations['roll_id'] == roll_id)]
@@ -192,13 +193,16 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
     if only_probability:
         methods = [('probability', belonging_probability)]
     else:
-        methods = [('linear', linear_distance), ('kl', kl), ('ot', optimal_transport), ('probability', belonging_probability)]
+        methods = [('linear', linear_distance), ('kl', kl), ('ot', optimal_transport),
+                   ('probability', belonging_probability)]
 
     df_train["Melodic bigram matrix"] = df_train.apply(lambda r: matrix_of_adjacent_intervals(r["roll"])[0], axis=1)
-    df_train["Rhythmic bigram matrix"] = df_train.apply(lambda r: matrix_of_adjacent_rhythmic_bigrams(r["roll"])[0], axis=1)
+    df_train["Rhythmic bigram matrix"] = df_train.apply(lambda r: matrix_of_adjacent_rhythmic_bigrams(r["roll"])[0],
+                                                        axis=1)
 
     # Armo las permutaciones
-    df_permutations = {'Title': [], 'roll_id': [], 'roll': [], "Melodic bigram matrix": [], "Rhythmic bigram matrix": []}
+    df_permutations = {'Title': [], 'roll_id': [], 'roll': [], "Melodic bigram matrix": [],
+                       "Rhythmic bigram matrix": []}
     for _, row in df_train.iterrows():
         ps = roll_permutations(row['roll'], n=n_permutations)
         df_permutations['Title'] += n_permutations * [row['Title']]
@@ -232,20 +236,22 @@ def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distri
 
     df_test = count_musicality(df_test, df_permutations)
     avg_musicality_rank = df_test.loc[:, "% permutations that are less musical"].mean()
-    table = {'% rolls that are more musical than all permutations': [df_test[df_test["% permutations that are less musical"] == 100]]}
+    table = {'% rolls that are more musical than all permutations': [
+        df_test[df_test["% permutations that are less musical"] == 100]]}
 
-    df_test['Joined musicality difference (probability)'] = df_test.apply(lambda row: abs(row['Joined musicality difference (probability)']), axis=1)
+    df_test['Joined musicality difference (probability)'] = df_test.apply(
+        lambda row: abs(row['Joined musicality difference (probability)']), axis=1)
     sorted_df = df_test.sort_values(by=['Joined musicality difference (probability)'], ascending=True)
     sorted_df.rename({'Joined musicality difference (probability)': "Musicality rank"}, inplace=True, axis=1)
     return pd.DataFrame(table), sorted_df, avg_musicality_rank
 
 
-def count_closest(df, style):
+def count_closest(df, style, kind):
     df_style = df[df["target"] == style]
-    return df_style[df_style["Joined closest style (ot)"] == style].shape[0] / df_style.shape[0] * 100
+    return df_style[df_style[f"{kind} closest style (ot)"] == style].shape[0] / df_style.shape[0] * 100
 
 
-def styles_approach(df, styles, orig: str, dest: str) -> Tuple[Dict[str, int], Dict[str, List[float]]]:
+def styles_approach(df, styles, orig: str) -> Tuple[Dict[str, Dict[str, int]], Dict[str, Dict[str, List[float]]]]:
     """
     It calculates how many rolls (in percentage) got closer to each style (w/o the original style).
 
@@ -255,26 +261,51 @@ def styles_approach(df, styles, orig: str, dest: str) -> Tuple[Dict[str, int], D
     :param dest: name of the destination style
     :return: a dictionary that maps styles with the percentages of rolls that are closer to the style.
     """
-    improvements = {}
-    distances = {}
-    df = df[df["Style"] == orig]
+    improvements = {"joined": {}, "melodic": {}, "rhythmic": {}}
+    distances = {"joined": {}, "melodic": {}, "rhythmic": {}}
+    # df = df[df["Style"] == orig]
     for name, style_obj in styles.items():
         if name != orig:
-            df[f"Rhythmic closeness to {name} (orig)"] = df.apply(lambda row: optimal_transport(style_obj.rhythmic_bigrams_distribution, row["m_orig_rhythmic"], melodic=False), axis=1)
-            df[f"Melodic closeness to {name} (orig)"] = df.apply(lambda row: optimal_transport(style_obj.intervals_distribution, row["m_orig_melodic"], melodic=True), axis=1)
-            df[f"Joined closeness to {name} (orig)"] = df[f"Rhythmic closeness to {name} (orig)"] + df[f"Melodic closeness to {name} (orig)"]
+            df[f"Rhythmic closeness to {name} (orig)"] = df.apply(
+                lambda row: optimal_transport(style_obj.rhythmic_bigrams_distribution, row["m_orig_rhythmic"],
+                                              melodic=False), axis=1)
+            df[f"Melodic closeness to {name} (orig)"] = df.apply(
+                lambda row: optimal_transport(style_obj.intervals_distribution, row["m_orig_melodic"], melodic=True),
+                axis=1)
+            df[f"Joined closeness to {name} (orig)"] = df[f"Rhythmic closeness to {name} (orig)"] + df[
+                f"Melodic closeness to {name} (orig)"]
 
-            df[f"Rhythmic closeness to {name} (trans)"] = df.apply(lambda row: optimal_transport(style_obj.rhythmic_bigrams_distribution, row["m_trans_rhythmic"], melodic=False), axis=1)
-            df[f"Melodic closeness to {name} (trans)"] = df.apply(lambda row: optimal_transport(style_obj.intervals_distribution, row["m_trans_melodic"], melodic=True), axis=1)
-            df[f"Joined closeness to {name} (trans)"] = df[f"Rhythmic closeness to {name} (trans)"] + df[f"Melodic closeness to {name} (trans)"]
+            df[f"Rhythmic closeness to {name} (trans)"] = df.apply(
+                lambda row: optimal_transport(style_obj.rhythmic_bigrams_distribution, row["m_trans_rhythmic"],
+                                              melodic=False), axis=1)
+            df[f"Melodic closeness to {name} (trans)"] = df.apply(
+                lambda row: optimal_transport(style_obj.intervals_distribution, row["m_trans_melodic"], melodic=True),
+                axis=1)
+            df[f"Joined closeness to {name} (trans)"] = df[f"Rhythmic closeness to {name} (trans)"] + df[
+                f"Melodic closeness to {name} (trans)"]
 
-            df[f"Improvement of joined closeness to {name}"] = df[f"Joined closeness to {name} (trans)"] < df[f"Joined closeness to {name} (orig)"]
-            df[f"Normalized distance to {name}"] = (df[f"Joined closeness to {name} (trans)"] - df[f"Joined closeness to {name} (orig)"]) / df[f"Joined closeness to {name} (orig)"]
+            df[f"Improvement of rhythmic closeness to {name}"] = df[f"Rhythmic closeness to {name} (trans)"] < df[
+                f"Rhythmic closeness to {name} (orig)"]
+            df[f"Normalized rhythmic distance to {name}"] = (df[f"Rhythmic closeness to {name} (trans)"] - df[
+                f"Rhythmic closeness to {name} (orig)"]) / df[f"Rhythmic closeness to {name} (orig)"]
 
-            sub_df = df[df["target"] == dest]
-            n = sub_df[sub_df[f"Improvement of joined closeness to {name}"]].shape[0]
-            improvements[name] = n / sub_df.shape[0] * 100
-            distances[name] = list(df[f"Normalized distance to {name}"])
+            df[f"Improvement of melodic closeness to {name}"] = df[f"Melodic closeness to {name} (trans)"] < df[
+                f"Melodic closeness to {name} (orig)"]
+            df[f"Normalized melodic distance to {name}"] = (df[f"Melodic closeness to {name} (trans)"] - df[
+                f"Melodic closeness to {name} (orig)"]) / df[f"Melodic closeness to {name} (orig)"]
+
+            df[f"Improvement of joined closeness to {name}"] = df[f"Joined closeness to {name} (trans)"] < df[
+                f"Joined closeness to {name} (orig)"]
+            df[f"Normalized joined distance to {name}"] = (df[f"Joined closeness to {name} (trans)"] - df[
+                f"Joined closeness to {name} (orig)"]) / df[f"Joined closeness to {name} (orig)"]
+
+            # sub_df = df[df["target"] == dest]
+            for kind in ["joined", "melodic", "rhythmic"]:
+                # n = sub_df[sub_df[f"Improvement of {kind} closeness to {name}"]].shape[0]
+                # improvements[kind][name] = n / sub_df.shape[0] * 100
+                n = df[df[f"Improvement of {kind} closeness to {name}"]].shape[0]
+                improvements[kind][name] = n / df.shape[0] * 100
+                distances[kind][name] = list(df[f"Normalized {kind} distance to {name}"])
 
     return improvements, distances
 
@@ -285,27 +316,44 @@ def evaluate_style_belonging(rhythmic_bigram_distances, melodic_bigram_distances
     Calculate for each transformed roll to which style it sames to belong by comparing its optimal transport distance
     with the characteristic entropy matrix of rhythmic and melodic bigrams.
     """
+    # Filter dfs by orig and target styles
+    rhythmic_bigram_distances = rhythmic_bigram_distances[rhythmic_bigram_distances["Style"] == orig]
+    rhythmic_bigram_distances = rhythmic_bigram_distances[rhythmic_bigram_distances["target"] == dest]
+    melodic_bigram_distances = melodic_bigram_distances[melodic_bigram_distances["Style"] == orig]
+    melodic_bigram_distances = melodic_bigram_distances[melodic_bigram_distances["target"] == dest]
+
+    # Merge both dataframes
     common_columns = ['Style', 'Title', 'roll', 'roll_id', 'Reconstruction', f'{mutation}-NewRoll', 'target']
-    joined_df = rhythmic_bigram_distances[common_columns + ["m'", "m"]].merge(melodic_bigram_distances[common_columns + ["m'", "m"]],
-                                                                        on=common_columns, how='inner')
-    joined_df.rename(columns={"m'_x": 'm_trans_rhythmic', "m'_y": 'm_trans_melodic', "m_x": "m_orig_rhythmic", "m_y": "m_orig_melodic"},
-                     inplace=True)
+    joined_df = rhythmic_bigram_distances[common_columns + ["m'", "m"]].merge(
+        melodic_bigram_distances[common_columns + ["m'", "m"]],
+        on=common_columns, how='inner')
+    joined_df.rename(columns={"m'_x": 'm_trans_rhythmic', "m'_y": 'm_trans_melodic', "m_x": "m_orig_rhythmic",
+                              "m_y": "m_orig_melodic"}, inplace=True)
 
-    styles_approach_dict, distances_dict = styles_approach(joined_df, styles, orig, dest)
+    styles_approach_dict, distances_dict = styles_approach(joined_df, styles, orig)
 
-    joined_df = joined_df[joined_df["target"] == dest]
-    joined_df["Joined closest style (ot)"] = joined_df.apply(lambda row: joined_closest_style(row["m_trans_melodic"], row["m_trans_rhythmic"], styles, method='ot'), axis=1)
-    joined_df["Style rank"] = joined_df.apply(lambda row:
-                                              abs(optimal_transport(styles[dest].intervals_distribution, row["m_trans_melodic"], True))
-                                            + abs(optimal_transport(styles[dest].rhythmic_bigrams_distribution, row["m_trans_rhythmic"], False)),
+    # joined_df = joined_df[joined_df["target"] == dest]
+    joined_df["Rhythmic closest style (ot)"] = joined_df.apply(
+        lambda row: rhythmic_closest_style(row["m_trans_rhythmic"], styles, method='ot'), axis=1)
+    joined_df["Melodic closest style (ot)"] = joined_df.apply(
+        lambda row: melodic_closest_style(row["m_trans_melodic"], styles, method='ot'), axis=1)
+    joined_df["Joined closest style (ot)"] = joined_df.apply(
+        lambda row: joined_closest_style(row["m_trans_melodic"], row["m_trans_rhythmic"], styles, method='ot'), axis=1)
+    joined_df["Style joined rank"] = joined_df.apply(lambda row:
+                                              abs(optimal_transport(styles[dest].intervals_distribution,
+                                                                    row["m_trans_melodic"], True))
+                                              + abs(optimal_transport(styles[dest].rhythmic_bigrams_distribution,
+                                                                      row["m_trans_rhythmic"], False)),
                                               axis=1)
-    joined_df.sort_values(by=['Style rank'], ascending=True)
+    joined_df.sort_values(by=['Style joined rank'], ascending=True)
 
     if plot:
         plot_closeness(joined_df, orig, dest, mutation, eval_path, context, only_joined_ot=True)
-        plot_distances(distances_dict, orig, dest, mutation, eval_path, context)
+        for kind in "joined", "melodic", "rhythmic":
+            plot_distances(distances_dict, orig, dest, kind, mutation, eval_path, context)
 
-    table = {f'% rolls whose closest style is the target ({dest})': [count_closest(joined_df, dest)]}
+    for kind in "Joined", "Melodic", "Rhythmic":
+        table = {f'% rolls whose {kind} closest style is the target ({dest})': [count_closest(joined_df, dest, kind)]}
     return pd.DataFrame(table), joined_df, styles_approach_dict
 
 
@@ -354,7 +402,7 @@ def evaluate_model(df, metrics, styles_char, melodic_musicality_distribution, rh
                                                                         f'_{orig}_to_{target}-{mutation}',
                                                                         only_probability=True, plot=plot)
 
-    return {"Style": s_df[['Style', 'Title', 'roll_id', 'Style rank']],
+    return {"Style": s_df[['Style', 'Title', 'roll_id', 'Style joined rank']],
             "Musicality": mus_sorted_df[['Style', 'Title', 'roll_id', 'Musicality rank']],
             "Plagiarism-dist": p_dist_sorted_df[['Style', 'Title', 'roll_id', 'Plagiarism-dist rank']],
             "Plagiarism-diff": p_diff_sorted_df[['Style', 'Title', 'roll_id', 'Plagiarism-diff rank']]}, \
