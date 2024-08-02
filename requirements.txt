@@ -19,5 +19,5 @@ verbosity
 p_tqdm
 tables
 
-keras==2.11.0
+keras==2.13.1
 POT==0.8.2
