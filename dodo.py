@@ -12,7 +12,8 @@ from data_analysis.dataset_plots import plot_styles_heatmaps_and_get_histograms,
     plot_accuracy, plot_accuracy_distribution, plot_styles_confusion_matrix
 from data_analysis.statistics import stratified_split, closest_ot_style, styles_bigrams_entropy, styles_ot_table
 from evaluation.evaluation import evaluate_model, evaluate_musicality
-from evaluation.family_evaluation import get_family_metrics, evaluate_family_metrics
+from evaluation.family_evaluation import get_family_metrics, evaluate_family_metrics, get_families_metrics, \
+    evaluate_families_metrics
 from evaluation.html_maker import make_html, make_index
 from evaluation.metrics.intervals import get_intervals_distribution
 from evaluation.metrics.metrics import obtain_metrics
@@ -57,6 +58,7 @@ model_families = {
     # "ensamble": ensamble_models,
     # "small": ["4-small_br-96"]
 }
+models_alias = {"Lakh_Kern": "post", "CPFRAa": "pre"}
 
 # alphas = [0.1, 0.25, 0.5, 0.75, 1]
 alphas = [0.1, 0.5, 1]
@@ -743,11 +745,12 @@ def task_overall_single_evaluation():
             }
 
 
-def do_family_evaluation(eval_paths, kind, output_dir, b=4, z=96):
+def do_family_evaluation(eval_paths, output_dir, b=4, z=96):
     init(b, z)
     make_dirs_if_not_exists(output_dir)
-    m = get_family_metrics(eval_paths, kind=kind)
-    evaluate_family_metrics(m, output_dir, mutations_add, mutations_add_sub)
+    m = get_family_metrics(eval_paths)
+    evaluate_family_metrics(m, output_dir, mutations_add, mutations_add_sub, individual=False)
+    save_pickle(m, os.path.join(output_dir, "family_metrics"), verbose=True)
 
 
 def task_family_evaluation():
@@ -773,24 +776,49 @@ def task_family_evaluation():
         b = 4
         z = 96
         eval_paths_by_mutation = {}
-        for kind in 'joined', 'melodic', 'rhythmic':
-            for mutation in mutations:
-                eval_paths = []
-                for model_name in family:
-                    eval_dir = get_eval_dir(model_name)
-                    eval_paths += [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
-                                   for s1, s2 in transference_names(model_name)
-                                   ]
-                eval_paths_by_mutation[mutation] = eval_paths
-            family_eval_dir = f"{data_path}/family_evaluation/{family_name}/{kind}"
-            yield {
-                'name': f"{family_name}-{b}b-{z}dims-{kind}",
-                'file_dep': [p for eval_paths in eval_paths_by_mutation.values() for p in eval_paths],
-                'actions': [(do_family_evaluation, [eval_paths_by_mutation, kind, family_eval_dir, b, z])],
-                'targets': [],
-                'verbosity': 2,
-                'uptodate': [False]
-            }
+        for mutation in mutations_add_sub:
+            eval_paths = []
+            for model_name in family:
+                eval_dir = get_eval_dir(model_name)
+                eval_paths += [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+                               for s1, s2 in transference_names(model_name)
+                               ]
+            eval_paths_by_mutation[mutation] = eval_paths
+        family_eval_dir = f"{data_path}/family_evaluation/{family_name}"
+        yield {
+            'name': f"{family_name}-{b}b-{z}dims",
+            'file_dep': [p for eval_paths in eval_paths_by_mutation.values() for p in eval_paths],
+            'actions': [(do_family_evaluation, [eval_paths_by_mutation, family_eval_dir, b, z])],
+            'targets': [os.path.join(family_eval_dir, "family_metrics.pkl")],
+            'verbosity': 2,
+            'uptodate': [False]
+        }
+
+
+def evaluate_all_models(eval_paths, output_dir, b=4, z=96):
+    init(b, z)
+    df = get_families_metrics(eval_paths, models_alias)
+    evaluate_families_metrics(df, output_dir)
+
+
+def task_all_models_evaluation():
+    """Generates a boxplot with the metrics combining all models"""
+    b = 4
+    z = 96
+    output_dir = os.path.join(data_path, "family_evaluation")
+    family_eval_dirs = []
+    for family_name, family in model_families.items():
+        family_eval_dir = f"{output_dir}/{family_name}"
+        family_eval_dirs.append(os.path.join(family_eval_dir, "family_metrics.pkl"))
+
+    yield {
+        'name': f"{b}b-{z}dims",
+        'file_dep': family_eval_dirs,
+        'actions': [(evaluate_all_models, [family_eval_dirs, output_dir, b, z])],
+        'targets': [],
+        'verbosity': 2,
+        'uptodate': [False]
+    }
 
 
 def audio_generation(mutation, eval_dir, transferred_path, audios_path, succ_rolls_prefix=None, transformation=None,

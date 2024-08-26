@@ -460,18 +460,17 @@ def test_family_evaluation():
         b = 4
         z = 96
         eval_paths_by_mutation = {}
-        for kind in 'joined', 'melodic', 'rhythmic':
-            for mutation in mutations:
-                eval_paths = []
-                for model_name in family:
-                    eval_dir = get_eval_dir(model_name)
-                    eval_paths += [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
-                                   for s1, s2 in transference_names(model_name)
-                                   ]
-                eval_paths_by_mutation[mutation] = eval_paths
-            family_eval_dir = f"{data_path}/family_evaluation/{family_name}/{kind}"
+        for mutation in mutations:
+            eval_paths = []
+            for model_name in family:
+                eval_dir = get_eval_dir(model_name)
+                eval_paths += [f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}.pkl"
+                               for s1, s2 in transference_names(model_name)
+                               ]
+            eval_paths_by_mutation[mutation] = eval_paths
+        family_eval_dir = f"{data_path}/family_evaluation/{family_name}"
 
-            do_family_evaluation(eval_paths_by_mutation, kind, family_eval_dir, b, z)
+        do_family_evaluation(eval_paths_by_mutation, family_eval_dir, b, z)
 
 
 def test_audio_generation():
