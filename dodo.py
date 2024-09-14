@@ -20,8 +20,8 @@ from evaluation.metrics.metrics import obtain_metrics
 from evaluation.metrics.rhythmic_bigrams import get_rhythmic_distribution
 from evaluation.overall_evaluation import overall_single_evaluation, get_packed_metrics
 from model.colab_tension_vae.params import init
-from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids
-from model.embeddings.embeddings import get_reconstruction
+from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids, calculate_characteristics
+from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.style import Style
 from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
@@ -58,7 +58,7 @@ model_families = {
     # "ensamble": ensamble_models,
     # "small": ["4-small_br-96"]
 }
-models_alias = {"Lakh_Kern": "post", "CPFRAa": "pre"}
+models_alias = {"Lakh_Kern": "fine", "CPFRAa": "pre"}
 
 # alphas = [0.1, 0.25, 0.5, 0.75, 1]
 alphas = [0.1, 0.5, 1]
@@ -506,13 +506,15 @@ def task_plot_training_metrics():
         }
 
 
-def do_embeddings(df_path, model_path, vae_path, characteristics_path, emb_path, b, z):
+def do_embeddings(train_path, val_path, model_path, vae_path, characteristics_path, emb_path, b, z):
     init(b, z)
     model = load_model(os.path.abspath(vae_path))
     plots_dir = os.path.join(model_path, "plots")
-    df = load_pickle(df_path)
+    df_train = load_pickle(train_path)
+    df_val = load_pickle(val_path)
 
-    df_emb, styles_char = obtain_characteristics(df, model)
+    styles_char = calculate_characteristics(df_train, model)
+    df_emb = obtain_embeddings(df_val, model)
 
     plot_embeddings(df_emb, "Embedding", {n: s.embedding for n, s in styles_char.items()}, plots_dir,
                     include_songs=True)
@@ -533,9 +535,11 @@ def task_embeddings():
             model_name_data = f"brmf_{b}b_beta-{z}"
             model_path, vae_dir, vae_path = get_model_paths(model_name_model)
             train_path = f"{preprocessed_data_dir}{model_name_data}train.pkl"
+            val_path = f"{preprocessed_data_dir}{model_name_data}val.pkl"
         else:
             model_path, vae_dir, vae_path = get_model_paths(model_name)
             train_path = f"{preprocessed_data_dir}{model_name}train.pkl"
+            val_path = f"{preprocessed_data_dir}{model_name}val.pkl"
 
         characteristics_path = get_characteristics_path(model_name)
         emb_path = get_emb_path(model_name)
@@ -545,6 +549,7 @@ def task_embeddings():
             'file_dep': [train_path, vae_path],
             'actions': [(do_embeddings,
                          [train_path,
+                          val_path,
                           model_path,
                           vae_dir,
                           characteristics_path,
@@ -665,8 +670,8 @@ def do_evaluation(trans_path, styles_path, metrics_dir, eval_dir, s1, s2, mutati
                                                                melodic_musicality_distribution,
                                                                rhythmic_musicality_distribution, mutation,
                                                                eval_path=eval_dir, plot=False)
-    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{mutation}-{s1}_to_{s2}")
-    save_pickle(overall_metrics, f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}")
+    save_pickle(successful_rolls, f"{eval_dir}/successful_rolls-{mutation}-{s1}_to_{s2}", verbose=True)
+    save_pickle(overall_metrics, f"{eval_dir}/overall_metrics_dict-{mutation}-{s1}_to_{s2}", verbose=True)
     for t, v in tables.items():
         v.to_csv(f"{eval_dir}/{t}_results-{mutation}-{s1}_to_{s2}.csv")
 

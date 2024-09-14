@@ -189,7 +189,7 @@ def count_musicality(df_test, df_permutations):
 
 
 def evaluate_musicality(df_train, df_test, melodic_distribution, rhythmic_distribution, eval_dir, plot_suffix='',
-                        only_probability=False, only_joined=True, n_permutations=5, plot=True):
+                        only_probability=False, only_joined=True, n_permutations=20, plot=True):
     if only_probability:
         methods = [('probability', belonging_probability)]
     else:

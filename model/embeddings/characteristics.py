@@ -7,8 +7,9 @@ from model.embeddings.style import Style
 from model.embeddings.embeddings import obtain_std, obtain_embeddings, embeddings_to_rolls
 
 
-def calculate_characteristics(df) -> Dict[str, Style]:
-    df_char = (df
+def calculate_characteristics(df, model) -> Dict[str, Style]:
+    df_emb = obtain_embeddings(df, model)
+    df_char = (df_emb
               >> dfply.group_by("Style")
               >> dfply.summarise(Embedding=dfply.X['Embedding'].mean(), Sigma=obtain_std(dfply.X['Embedding']))
               )
@@ -23,9 +24,9 @@ def calculate_characteristics(df) -> Dict[str, Style]:
     return characteristic_vectors
 
 
-def obtain_characteristics(df, vae) -> Tuple[pd.DataFrame, Dict[str, Style]]:
-    df_emb = obtain_embeddings(df, vae, inplace=True)
-    return df_emb, calculate_characteristics(df_emb)
+def obtain_characteristics(df, model) -> Tuple[pd.DataFrame, Dict[str, Style]]:
+    df_emb = obtain_embeddings(df, model, inplace=True)
+    return df_emb, calculate_characteristics(df_emb, model)
 
 
 def interpolate_centroids(styles, vae, audio_path):

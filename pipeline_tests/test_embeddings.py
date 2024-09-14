@@ -114,8 +114,8 @@ def test_reconstruction_mixture_model():
 def test_characteristics():
     model_name = '4-small_br'
     model_path = data_path + f'models/{model_name}/vae'
-    do_embeddings(preprocessed_data_path(4, False), model_path, model_path, get_characteristics_path(model_name),
-                  get_emb_path(model_name), 4, z=96)
+    do_embeddings(preprocessed_data_path(4, False), val_path, model_path, model_path,
+                  get_characteristics_path(model_name), get_emb_path(model_name), 4, z=96)
 
 
 def test_characteristics_beta():
@@ -127,10 +127,7 @@ def test_characteristics_beta():
     emb_path = get_emb_path(model_name)
     small = "small" in model_name
 
-    do_embeddings(preprocessed_data_path(b, False, small),
-                  model_path,
-                  vae_dir,
-                  characteristics_path,
+    do_embeddings(preprocessed_data_path(b, False, small), val_path, model_path, vae_dir, characteristics_path,
                   emb_path, b, z)
 
 # def test_all_models_characteristics():

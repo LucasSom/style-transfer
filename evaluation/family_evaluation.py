@@ -64,7 +64,8 @@ def get_families_metrics(family_paths: List[str], models_alias):
 def evaluate_families_metrics(df, output_dir):
     df.rename(columns={"Plagiarism-dist": "Similarity"}, inplace=True)
     # sns.set(rc={'axes.facecolor': 'white'})
+    sns.set_context('talk')
     sns.set_style('whitegrid')
     for metric in 'Musicality', 'Style', 'Similarity':
-        sns.boxplot(data=df, x='alpha', y=metric, hue='model', palette={'pre': 'white', 'post': 'grey'})
+        sns.boxplot(data=df, x='alpha', y=metric, hue='model', palette={'pre': 'white', 'fine': 'grey'}, hue_order=['pre', 'fine'])
         save_plot(output_dir, metric)
