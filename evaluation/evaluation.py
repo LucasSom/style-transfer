@@ -258,7 +258,6 @@ def styles_approach(df, styles, orig: str) -> Tuple[Dict[str, Dict[str, int]], D
     :param df: DataFrame with columns 'Style' 'm_orig_rhythmic' and 'm_orig_melodic'
     :param styles: dictionary that maps style names with Style objects
     :param orig: name of the original style
-    :param dest: name of the destination style
     :return: a dictionary that maps styles with the percentages of rolls that are closer to the style.
     """
     improvements = {"joined": {}, "melodic": {}, "rhythmic": {}}

@@ -23,15 +23,17 @@ def PlayMidi(midi_path, wav_path=None):
     return Audio(wav_path)
 
 
-def generate_audios(df, mutation, path=f"{data_path}audios/", suffix=None, verbose=0) \
+def generate_audios(df, mutation, path=f"{data_path}audios/", suffix=None, only_new=False, verbose=0) \
         -> Tuple[List[str], List[str], List[str]]:
     if verbose:
         print(f"============= Generating audios {suffix} =============")
 
-    original_midis = [root_file_name(r.get_audio(path, audio_name=f"{t}_{r_id}", verbose=verbose)) + '.mp3'
-                      for r, t, r_id in zip(df['roll'], df['Title'], df['roll_id'])]
-    reconstructed_midis = [r.get_audio(path, audio_name=f"{t}_{r_id}-rec", fmt='.mp3', verbose=verbose)
-                           for r, t, r_id in zip(df['Reconstruction'], df['Title'], df['roll_id'])]
+    original_midis, reconstructed_midis = [], []
+    if not only_new:
+        original_midis = [root_file_name(r.get_audio(path, audio_name=f"{t}_{r_id}", verbose=verbose)) + '.mp3'
+                          for r, t, r_id in zip(df['roll'], df['Title'], df['roll_id'])]
+        reconstructed_midis = [r.get_audio(path, audio_name=f"{t}_{r_id}-rec", fmt='.mp3', verbose=verbose)
+                               for r, t, r_id in zip(df['Reconstruction'], df['Title'], df['roll_id'])]
     new_midis = [r.get_audio(path, audio_name=f"{t}_{r_id}-{suffix}", fmt='.mp3', verbose=verbose)
                  for r, t, r_id in zip(df[f"{mutation}-NewRoll"], df['Title'], df['roll_id'])]
 

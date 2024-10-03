@@ -2,6 +2,7 @@ import os.path
 import random
 from copy import copy
 
+import numpy as np
 from doit.api import run
 from keras.models import load_model
 
@@ -23,7 +24,7 @@ from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids, calculate_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.style import Style
-from model.embeddings.transfer import transfer_style_to
+from model.embeddings.transfer import transfer_style_to, transfer_roll
 from model.train import train_model
 from preprocessing.preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios
@@ -1002,6 +1003,47 @@ def task_examples():
                 'uptodate': [False]
             }
 
+
+def do_transfer_new_rolls(model_path, characteristics, s1, s2, alpha, b=4, z=96):
+    init(b, z)
+    input_path = f"{project_path}/../inputs/{s1}/"
+    output_path = f"{project_path}/../outputs/{s1}/"
+    model = load_model(model_path)
+    model_name = os.path.basename(model_path)
+
+    songs = {s1: [f"{input_path}/{song}"
+                     for song in os.listdir(input_path)]}
+    df_preprocessed = preprocess_data(songs, save_midis=False, sparse=False)
+    df_emb = obtain_embeddings(df_preprocessed, model)
+    characteristics = load_pickle(characteristics)
+
+    df_transferred = transfer_style_to(df_emb, model, model_name, characteristics, original_style=s1, target_style=s2,
+                                       alphas=[alpha], mutations=[f"Mutation_add_sub_{alpha}"], sparse=False)
+
+    generate_audios(df_transferred, f"Mutation_add_sub_{alpha}", output_path, f"-{alpha}", 1)
+
+
+def task_transfer_new_rolls():
+    """Do the transference of style from new rolls to another style"""
+    model_name = "4-Lakh_Kern-96"
+    b = 4
+    z = 96
+
+    _, vae_dir, vae_path = get_model_paths(model_name)
+    characteristics_path = get_characteristics_path(model_name)
+
+    for s1, s2 in transference_names(model_name):
+        for alpha in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
+            yield {
+                'name': f"{s1}_to_{s2}-{alpha}",
+                'file_dep': [vae_path, characteristics_path],
+                'actions': [(do_transfer_new_rolls,
+                             [vae_dir, characteristics_path, s1, s2, alpha, b, z]
+                             )],
+                'targets': [],
+                'verbosity': 2,
+                'uptodate': [False]
+            }
 
 # To use for debugging
 if __name__ == '__main__':
