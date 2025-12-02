@@ -4,7 +4,8 @@ import pytest
 
 from dodo import do_evaluation, transference_names, audio_generation, do_overall_single_evaluation, models, \
     mixture_models, \
-    sheets_generation, create_html, create_examples, style_names, do_family_evaluation, model_families, mutations
+    sheets_generation, create_html, create_examples, style_names, do_family_evaluation, model_families, mutations, \
+    evaluate_all_models
 from evaluation.evaluation import *
 from evaluation.metrics.intervals import get_interval_distribution_params
 from model.colab_tension_vae.params import init
@@ -471,6 +472,20 @@ def test_family_evaluation():
         family_eval_dir = f"{data_path}/family_evaluation/{family_name}"
 
         do_family_evaluation(eval_paths_by_mutation, family_eval_dir, b, z)
+
+
+def test_all_evaluation():
+    b = 4
+    z = 96
+    output_dir = os.path.join(data_path, "family_evaluation")
+    family_eval_dirs = []
+    families = []
+    for family_name, family in model_families.items():
+        family_eval_dir = f"{output_dir}/{family_name}"
+        family_eval_dirs.append(os.path.join(family_eval_dir, "family_metrics.pkl"))
+        families.append(family[0])
+
+    evaluate_all_models(family_eval_dirs, output_dir, families, b, z)
 
 
 def test_audio_generation():

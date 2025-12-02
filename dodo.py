@@ -2,7 +2,6 @@ import os.path
 import random
 from copy import copy
 
-import numpy as np
 from doit.api import run
 from keras.models import load_model
 
@@ -24,7 +23,7 @@ from model.colab_tension_vae.params import init
 from model.embeddings.characteristics import obtain_characteristics, interpolate_centroids, calculate_characteristics
 from model.embeddings.embeddings import get_reconstruction, obtain_embeddings
 from model.embeddings.style import Style
-from model.embeddings.transfer import transfer_style_to, transfer_roll
+from model.embeddings.transfer import transfer_style_to
 from model.train import train_model
 from preprocessing.preprocessing import preprocess_data, oversample
 from utils.audio_management import generate_audios

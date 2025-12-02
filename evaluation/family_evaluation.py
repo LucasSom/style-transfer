@@ -2,6 +2,8 @@ import pandas as pd
 import seaborn as sns
 from typing import Dict, List
 
+from matplotlib import pyplot as plt
+
 from utils.files_utils import load_pickle
 from utils.plots_utils import save_plot
 
@@ -67,5 +69,7 @@ def evaluate_families_metrics(df, output_dir):
     sns.set_context('talk')
     sns.set_style('whitegrid')
     for metric in 'Musicality', 'Style', 'Similarity':
-        sns.boxplot(data=df, x='alpha', y=metric, hue='model', palette={'pre': 'white', 'fine': 'grey'}, hue_order=['pre', 'fine'])
+        sns.catplot(data=df, x=metric, y='alpha', hue='model', palette={'pre': 'white', 'fine': 'grey'},
+                    hue_order=['pre', 'fine'], orient='h', kind='box', aspect=2, legend=False)
+        plt.legend(loc='best')
         save_plot(output_dir, metric)
