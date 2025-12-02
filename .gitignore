@@ -2,6 +2,7 @@
 *.idea/
 *data/*
 data/
+docs/local/
 
 .github/
 
